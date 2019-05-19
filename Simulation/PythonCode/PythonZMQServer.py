@@ -65,7 +65,8 @@ print("DONE")
 # Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 #fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
-out = cv2.VideoWriter('D:/GitRepos/Uni/Thesis/Simulation/Output/unity_calibration_output.avi', 
+vid_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/unity_output.avi'
+out = cv2.VideoWriter(vid_path, 
                         fourcc, 20, (DIMENSION, DIMENSION), True)
 
 for i in range(0, imgNum):
