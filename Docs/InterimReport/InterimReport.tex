@@ -17,15 +17,20 @@
 %\usepackage{makeidx}
 \graphicspath{{Images/}}
 
+%\usepackage[colorlinks]{hyperref}
+%\hypersetup{colorlinks = false}
+\usepackage{pdfpages}
+\usepackage[ampersand]{easylist}
+
 %AJL SEIT Comment out these two lines for the final submission
-\usepackage{draftwatermark}
-\SetWatermarkFontSize{5cm} \SetWatermarkScale{6} \SetWatermarkText{\textbf{DRAFT-REMOVE}}
+%\usepackage{draftwatermark}
+%\SetWatermarkFontSize{5cm} \SetWatermarkScale{6} \SetWatermarkText{\textbf{DRAFT-REMOVE}}
+\pagestyle{plain}
 
-
- \title{Preparation of Final Project Summary Report 2015}
+ \title{Towards Self Driving: Sensing and Learning\\ Interim report}
 
  \author{
-  Jane B. Smith\thanks{OFFCDT, School of Engineering and Information Technology, ZEIT4500/4501/4297 - delete as appropriate}\
+  Michael McDonnell\thanks{CAPT, School of Engineering and Information Technology, ZEIT4901}\
   \\
   {\normalsize\itshape
    UNSW Canberra at ADFA.}\\
@@ -50,9 +55,9 @@
 \maketitle
 
 
-\begin{abstract}
-These instructions give you guidelines for preparing your Final Project Summary Report. Use this document as a template if you are using  \LaTeX\ . Otherwise, use this document as an instruction set. The title of this report should be your project title and should NOT contain the word thesis. This section is the abstract, which should concisely summarise your report including the aim, motivations, methodology and observations (or achievements) and conclusions in a single paragraph. Define all symbols used in the abstract. Do not cite references in the abstract. The abstract should be no more than 400 words in length. The footnote on the first page should list your project course. See  \underbar{http://seit.unsw.adfa.edu.au/ojs/index.php/juer} for past examples of final thesis reports, bearing in mind the length requirements may vary.
-\end{abstract}
+%\begin{abstract}
+%These instructions give you guidelines for preparing your Final Project Summary Report. Use this document as a template if you are using  \LaTeX\ . Otherwise, use this document as an instruction set. The title of this report should be your project title and should NOT contain the word thesis. This section is the abstract, which should concisely summarise your report including the aim, motivations, methodology and observations (or achievements) and conclusions in a single paragraph. Define all symbols used in the abstract. Do not cite references in the abstract. The abstract should be no more than 400 words in length. The footnote on the first page should list your project course. See  \underbar{http://seit.unsw.adfa.edu.au/ojs/index.php/juer} for past examples of final thesis reports, bearing in mind the length requirements may vary.
+%\end{abstract}
 
 
 \tableofcontents
@@ -61,25 +66,25 @@ These instructions give you guidelines for preparing your Final Project Summary 
 %\listoftables
 
 
-\section*{Nomenclature (examples � include units where appropriate)}
+%\section*{Nomenclature (examples � include units where appropriate)}
+%
+%%AJL - COMMENT OUT WHEN YOU WANT TO USE THE AUTOMATIC FILLING OF THE AREA - SEE LATER
+%%\printglossary% creates nomenclature section produced by MakeIndex
+%\begin{tabbing}
+%  XXX \= \kill% this line sets tab stop
+%  $J$ \> Jacobian Matrix \\
+%  $f$ \> Residual value vector \\
+%  $x$ \> Variable value vector \\
+%  $F$ \> Force, [N] \\
+%  $m$ \> Mass, [kg] \\
+%  $\Delta x$ \> Variable displacement vector \\
+%  $\alpha$ \> Acceleration, [m/s\textsuperscript{2}] \\[5pt]
+%  \textit{Subscript}\\
+%  $i$ \> Variable number \\
+% \end{tabbing}
 
-%AJL - COMMENT OUT WHEN YOU WANT TO USE THE AUTOMATIC FILLING OF THE AREA - SEE LATER
-%\printglossary% creates nomenclature section produced by MakeIndex
-\begin{tabbing}
-  XXX \= \kill% this line sets tab stop
-  $J$ \> Jacobian Matrix \\
-  $f$ \> Residual value vector \\
-  $x$ \> Variable value vector \\
-  $F$ \> Force, [N] \\
-  $m$ \> Mass, [kg] \\
-  $\Delta x$ \> Variable displacement vector \\
-  $\alpha$ \> Acceleration, [m/s\textsuperscript{2}] \\[5pt]
-  \textit{Subscript}\\
-  $i$ \> Variable number \\
- \end{tabbing}
-
-
-\section{Introduction (or some other more appropriate heading)}
+\newpage
+\section{Introduction (or some other more appropriate heading)} \label{sect:intro}
 %\index{}
 
 
@@ -96,21 +101,53 @@ Deep CNN for road detection \cite{deepRoadSegmentation}
 
 \subsection{Project aim}
 
-Trying to rectify GPS location and route polyline with CV data
-How is GPS and Nav data stored (polyline)
-Workflow : Sim data to Python to analyse, output local nav goal/GPS route in scene
-Send back to sim
+The aim of this project is to investigate localising navigation data from a GPS feed to the observed road via a vehicle mounted camera. A subordinate aim as part of this is to develop a simulation that will provide sensor data to an external program for processing. 
+
+GPS route data is held as encoded polylines which represents a road as a series of connected points \cite{googleMapPolyline}. The approach for the positional localisation is to use the vehicle GPS position as a fuzzy input location and detected road features to identify an accurate position of the vehicle and identify the GPS route on forward facing video feed. This sets the conditions for autonomous control of the vehicle based on a programmed nagivation route. 
+
+A subordinate aim to the project is the development of a simulation which provides a sensor data, such as location and video feeds from a simulated vehicle. This simulation will allow both the generation of a large and varied data set for testing as well as allow the ability to provide control feedback for the simulated vehicle based off the processing of the sensor data.
+\textbf{TODO: Come up with better term than 'external program'. TERMS: External Program, Simulation `tick', Computer vision CV}
+
+The data flow is anticipated to be as follows:
+\begin{easylist}[itemize]
+	& Simulated sensor data passed to external program
+	& External program processes data:
+	&& Road/Lane detection
+	&& Curve/Map matching of current GPS area
+	&& Reprojection of desired direction onto road image
+	& External program returns control data (as applicable) to simulation for next `tick'
+\end{easylist}
 
 \subsection{Scope and Deliverables}
-Limited to - easily detectable road surface, single lane (Lane detection divorced from project intent but part of it)
-Identify intersections and relate to google maps/OSM data
 
-Simulation deliverable
+The scope of the project is deliberately kept constrained initially. This is to focus on the specific problem of localising a navigation route without losing development effort to supporting elements. While the scope is initially narrowly defined it can be extended towards the end of the project as time and opportunity allow.
+
+The scope and deliverables have been identified as follows:
+\begin{easylist}[itemize]
+	& \textbf{Limitation of road complexity.} There is a requirement for road/lane detection as part of this project (to marry up with the GPS polyline data) however it is not the main focus of the project. Further as the project purely uses the output data of lane detection, it can be considered a `black box' and implementations can be swapped out as more advanced options are identified. The initial limitations on scope of road detection includes:
+	&& Limit road detection to easily detectable road surface
+	&& Limit roads to single lane
+	& \textbf{TODO: OTHER SCOPE?!??!}
+	& \textbf{Simulation deliverable requirements.} A core supporting element of this project is the development of the simulation. In addition to providing data for this project the intent is for the simulation to be held as an asset within SEIT for use in subsequent student projects in this area. The basic requirements for the simulation are:
+	&& Ability to provide 3D video feed of simulated driving to external program
+	&& Support simulated GPS tracking data
+	&& Support simulation of GPS route guidance
+\end{easylist}
+
+
 
 \section{Project management}
 
 \subsection{Project flow}
-CV research, Sim development, Lane detection, Intersection detection, Curve matching (splines etc)
+\textbf{TODO: Cut the extra crap from here - just talk about how it flows in general and leave the rest for the current work part}
+
+The initial state of the project consisted of autonomous vehicles as the general area of focus, as a result the first phase of the project was the identification of the `problem area' and narrowing of scope. A broad reading of relevant research and industry articles identified the ability to navigate in arbitrary areas as a candidate problem area and the scope was refined as outlined in section \ref{sect:intro}. 
+
+This project is being undertaken in an area of study that is a new field for the author. As a result the early focus was on developing base competencies in digital image processing and general computer vision. This included a variety of tools and \textbf{TODO: Talk about the analysis of CV options. This included lane detection}
+
+In parallel with the CV competency development, research and experimentation on key technical risk elements of the simulation was conducted. \textbf{TODO: These include.....}
+
+TODO:  Intersection detection, Curve matching (splines etc) and/or Map matching, 
 
 \subsection{Gantt Chart discussion}
 
@@ -120,6 +157,16 @@ CV research, Sim development, Lane detection, Intersection detection, Curve matc
 Before any effective computer vision approaches can be implemented a robust base of understanding of digital image processing is required (What IS CV, DIP). Background study (textbooks, online course etc)
 
 Intent of CV, what are the outcomes (lane detection, intersection detection)
+
+flow - inverse perspective mapping. 
+The output of the inverse perspective mapping calibration undertaken is included as figure \ref{f:inverse_perspective_calibration}.
+
+\begin{figure}[htb]% order of placement preference: here, top, bottom
+	\includegraphics{InversePerspectiveEg.png}
+	\caption{Inverse perspective mapping calibration}
+	\label{f:inverse_perspective_calibration}
+\end{figure}
+
 
 \subsubsection{Python vs C++}
 
@@ -134,13 +181,36 @@ Intent of simulation
 IPC
 
 \subsubsection{Simulation engine}
-Home rolled vs Unreal (C++ so can talk direct to OpenCV C++) vs Unity 
+%Home rolled vs Unreal (C++ so can talk direct to OpenCV C++) vs Unity 
 
-\subsubsection{IPC}
 
+\subsubsection{Interprocess Communication (IPC)}
+
+One of the main issues identified with using Python Open CV and the Unity game engine is the ability for simulation data, for example video feeds, to be transferred from Unity to the Python process. This was a significant technical challenge (REF GANTT CHART? HOW LONG WAS BUDGETED). The motivation for fast IPC was to allow real time processing of the simulation data in order to allow for potential control feedback to the simulation. Transferring image data represents a large amount of memory thus has a significant time complexity per simulation `tick'. 
+
+The initial research approach involved investigating the ability to use a static memory buffer that could be written to by Unity and read by Python. Shared memory or memory mapped files do offer this however they add another level of complexity and implementation details are largely for lower level languages and could not be identified in particular for Python. Named pipes were also investigated and, while they represented an improved option, still had many of the technical and implementation complexity issues of the memory mapped approach.
+
+The final solution identified was using TCP via the ZeroMQ middleware. This has implementations for both C\# and Python and is well optimised for speed on localhost (\textbf{TODO: What is localhost}) machines. The speed of this approach is highly dependant on the size of the transferred data \textbf{TODO: GRAPH OF TIME PERFORMANCE OF 64, 128, 256 AND 512....}. The use of this approach requires slower than real time simulation processing which was achieved by dynamic simulation time dilation, discussed in section \ref{sect:timedilation}. This approach allows easy and reliable two way communication which is required for effective feedback between the processes. This is something that would be complicated significantly by memory mapping, requiring multiple memory locations with varying roles. The current solution also offers the ability to expand off a single local machine, for example a hosted simulation with remote processing. While this is well out of scope of this thesis it presents additional flexibility for future development.
+
+Once the IPC approach was confirmed, the data handling pipeline between the Unity (C\#) and Python processes was developed. The final simulation output data structure for video feed is a flattened 3D byte array, consisting of the x and y pixel coordinates and the colour value. The colour is represented by a four element vector of bytes for the Red, Blue, Green and Alpha channels. 
+
+The Python process casts the byte stream as a byte array and reshapes the data to a 3D array. The fourth element of each colour value is removed, resulting in a final data structure consisting of a 2D array of 3 element vectors of bytes which is the required data structure for OpenCV processing operations. 
+
+A simple calibration was established using three coloured cubes (Red, Green and Blue) in Unity to confirm colour channel and axis orientation correctness. A still from the colour image IPC calibration undertaken is included as figure \ref{f:unity_calibration}. \textbf{TODO: Fix image - border? Also shrink and put in/near text}
+
+\begin{figure}[htb]% order of placement preference: here, top, bottom
+ \includegraphics{unity_calibration.png}
+ \caption{Still from calibration of colour image IPC pipeline between Unity and Python}
+ \label{f:unity_calibration}
+\end{figure}
+
+
+\subsubsection{Simulation time dilation}\label{sect:timedilation}
+
+It was determined that the simulation had a requirement to dynamically scale simulation time based on the external processing in order to ensure the simulation effectiveness regardless of the data processing time requirement. \textbf{TODO: Allows }
 
 \section{Results}
-
+Is this required?
 \subsection{Computer vision}
 
 
@@ -211,7 +281,6 @@ Curve detection options - sliding window REF LINK %https://www.spiedigitallibrar
 % \label{f:magnetic_field}
 %\end{figure}
 
-%
 %Sometimes writing meaningless text can be quiet easy, but other times one is hard pressed to keep the words flowing.\footnote{And sometimes things get carried away in endless detail.}
 %
 %\begin{table}% no placement specified: defaults to here, top, bottom, page
@@ -234,11 +303,10 @@ Curve detection options - sliding window REF LINK %https://www.spiedigitallibrar
 % \end{center}
 %\end{table}
 
-%
 %\subsubsection{Equations, Numbers, Symbols, and Abbreviations}
 %Equations are centered and numbered consecutively, with equation numbers in parentheses flush right, as in  Eq.~(\ref{e:function}) that demonstrates some math
 %typesetting.
-%
+
 %\begin{equation}
 % \label{e:function}
 % \int_{0}^{r_{2}} F(r,\varphi) \, dr \, d\varphi =
@@ -270,6 +338,8 @@ Appendices may used to archive detailed summaries of data such as images, tables
 \bibliography{InterimReferences}
 \bibliographystyle{aiaa}
 
+\appendix
+\includepdf[angle=-90,scale=0.9,pages=1,pagecommand=\section{Gantt Chart for Research Project}]{GanttChart.pdf}
 
 
 \end{document}
