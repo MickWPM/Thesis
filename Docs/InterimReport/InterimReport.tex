@@ -60,11 +60,15 @@
 \maketitle
 
 
-%\begin{abstract}
-%These instructions give you guidelines for preparing your Final Project Summary Report. Use this document as a template if you are using  \LaTeX\ . Otherwise, use this document as an instruction set. The title of this report should be your project title and should NOT contain the word thesis. This section is the abstract, which should concisely summarise your report including the aim, motivations, methodology and observations (or achievements) and conclusions in a single paragraph. Define all symbols used in the abstract. Do not cite references in the abstract. The abstract should be no more than 400 words in length. The footnote on the first page should list your project course. See  \underbar{http://seit.unsw.adfa.edu.au/ojs/index.php/juer} for past examples of final thesis reports, bearing in mind the length requirements may vary.
-%\end{abstract}
+\begin{abstract}
+Is an abstract required for the interim report? What is the wording style for it?
+The aim of this project is to investigate localising navigation data from a GPS feed to the observed road via a vehicle mounted camera. A subordinate aim as part of this is to develop a simulation that will provide sensor data to an external program for processing. 
+The early focus for this project was developing core competencies in Image Processing and Computer Vision techniques which feed in to the design of the localisation system architecture. OpenCV in Python will be used for the sensor analysis which includes GPS position data, navigation route information and video feed from a simulated vehicle.
+The simulation design and tool analysis was conducted with the key technical risks addressed. The simulation is being developed in Unity and requires inter process communication between the Unity process and the external Python process. This has been developed using the ZeroMQ library and the simulation uses dynamic time scaling to ensure that sensor data processing occurs at a desired rate. The simulation development has now entered an agile design approach with iterative functionality improvements to be delivered.
+The navigation localisation problem has key technical risks in curved lane and intersection detection and correlation of the detected features with the navigation data. Several candidate approaches to address these risks have been identified and work in these areas will be progressing in the short term.
+\end{abstract}
 
-
+\newpage
 \tableofcontents
 %Anyone know an automated way to do this? Simple as that??!!!!!
 %\listoffigures
@@ -91,7 +95,8 @@
 \newpage
 \section{Introduction} \label{sect:intro}
 %\index{}
-
+ \textbf{TODO: REFERENCES DO REFERENCING THE FULL SECTION - SHOULD BE III-B-2, NOT JUST 2}
+ 
 \lettrine[nindent=0pt]{T}{he} idea of a future where personal transportation is handled by autonomous vehicles is increasingly in the public consciousness however there is a range of challenges that need to be addressed from legal, security and ethical \citep{gmReport} to maturity concerns that out to the 2030s, `autonomous vehicles will be expensive novelties' \citep{vicTransportImplications}. Autonomous driving is not a binary capability however, rather a scale with increasing levels of autonomy. The automation levels identified by the US National Highway Traffic Safety Administration \citep{automationVisionForSafety} outlined in table \ref{t:automationLevels}. While true full automation may be many years off, there is an undeniable increase in the cognitive assistance and partial automation technologies in consumer vehicles. As an example the 2019 Kia Sorento includes active lane keeping assist (lane detection and steering) and adaptive cruise control (autonomous acceleration and braking based off radar distance to leading vehicles) \citep{kia}. 
 
 
@@ -113,7 +118,7 @@
 
 In order for an autonomous vehicle to navigate effectively there are a few key challenges. The vehicle must have a mechanism to sense the local environment for example lane and road detection as well as transient aspects such as other vehicles and on road obstacles. There are many Computer Vision techniques that can assist in providing an understanding of the environment. Direct techniques such as edge and line detection are widely used however Deep Convolutional Neural Networks have also been shown to be effective for road detection \citep{deepRoadSegmentation}.
 
-In addition to the local area, the vehicle must also have the ability to reconcile navigation data with the current location. A supporting concept to this is that of map matching which calculates out the vehicle location by using the geographical information from sensors such as GPS position and intertial data and the map information from the mapping service \citep{keyTechSelfDriving}. Current high end self driving vehicles require high fidelity 3D maps to operate effectively. Despite this, position localisation improvements have been achieved using a data fusion of GPS and intertial navigation system data \citep{gpsInsFusion} correlating a back lane mark registry (BLMR) supported with CV, GPS and inertial data with map data \citep{lowCostSensorNav} and through use of Kalman filters and LIDAR in more complex environments \citep{robotLIDARSLAM}.
+In addition to the local area, the vehicle must also have the ability to reconcile navigation data with the current location. A supporting concept to this is that of map matching which calculates out the vehicle location by using the geographical information from sensors such as GPS position and inertial data and the map information from the mapping service \citep{keyTechSelfDriving}. Current high end self driving vehicles require high fidelity 3D maps to operate effectively. Despite this, position localisation improvements have been achieved using a data fusion of GPS and inertial navigation system data \citep{gpsInsFusion} correlating a back lane mark registry supported with CV, GPS and inertial data with map data \citep{lowCostSensorNav} and through use of Kalman filters and LIDAR in more complex environments \citep{robotLIDARSLAM}.
 
 This process of combining data from several sources into a single unified description of a situation is known as data fusion \citep{gpsInsFusion}. Self driving vehicles rely on sensor and data fusion to achieve the four capabilities required of autonomous driving; car navigation system, path planning, environment perception and car control \citep{keyTechSelfDriving}. This project touches on elements of the first three capabilities in order to localise navigation information. The localisation of navigation data will be achieved by the use of GPS position data and computer vision techniques to correlate data from preloaded maps. 
 
@@ -125,20 +130,20 @@ The following abbreviations and definitions are used throughout this report:
 
 \begin{easylist}[itemize]
 	& \textbf{Computer Vision (CV)}. Techniques to allow machines to `see'; processing visual images of the world and deriving understanding.
+	& \textbf{Navigation localisation}. Definition definition
 	& \textbf{WORD (abbrev)}. Definition definition
 	& \textbf{WORD (abbrev)}. Definition definition
 	& \textbf{WORD (abbrev)}. Definition definition
 	& \textbf{WORD (abbrev)}. Definition definition
 	& \textbf{WORD (abbrev)}. Definition definition
-	& \textbf{WORD (abbrev)}. Definition definition
-	& \textbf{TODO: External Program, Simulation `tick'}
+	& \textbf{TODO: DIP, External Program, Simulation `tick', Open Street Map, Polyline}
 \end{easylist}
 
 \subsection{Project aim}
 
 The aim of this project is to investigate localising navigation data from a GPS feed to the observed road via a vehicle mounted camera. A subordinate aim as part of this is to develop a simulation that will provide sensor data to an external program for processing. 
 
-GPS route data is held as encoded polylines which represents a road as a series of connected points (nodes) \citep{googleMapPolyline}. The approach for the positional localisation is to use the vehicle GPS position as an approximate input location and detected road features to determine an accurate position of the vehicle and identify the GPS route on forward facing video feed. This sets the conditions for autonomous control of the vehicle based on a programmed nagivation route. 
+GPS route data is held as encoded polylines which represents a road as a series of connected points (nodes) \citep{googleMapPolyline}. The approach for the positional localisation is to use the vehicle GPS position as an approximate input location and detected road features to determine an accurate position of the vehicle and identify the GPS route on forward facing video feed. This sets the conditions for autonomous control of the vehicle based on a programmed navigation route. 
 
 A subordinate aim to the project is the development of a simulation which provides a sensor data, such as GPS location and video feeds from a simulated vehicle. This simulation will allow both the generation of a large and varied data set for testing as well as allow the ability to provide control feedback for the simulated vehicle based off the processing of the sensor data.
 
@@ -180,31 +185,28 @@ This project is being undertaken in an area of study that is a new field for the
 
 In parallel with the CV competency development, research and experimentation on key technical risk elements of the simulation was conducted. The core technical risk was the ability for simulation code to communicate with sensor processing code. The aim was to keep these two code bases separate to allow other individuals to use the simulation for relevant purposes without being tied in to the aims of this project.
 
-Once the core competancies have been developed and the supporting tool options have been analysed the focus will split between agile development of the simulation and the development of the external processing program. The simulation development will consist of `sprint' periods designed around providing incremental functionality, prioritised as needs arise. The development of the external processing forms the specific primary aim and will include the following core milestones:
+Once the core competencies have been developed and the supporting tool options have been analysed the focus will split between agile development of the simulation and the development of the external processing program. The simulation development will consist of `sprint' periods designed around providing incremental functionality, prioritised as needs arise. The development of the external processing forms the specific primary aim and will include the following core milestones:
 
 \begin{easylist}[itemize]
 	& Curved lane detection
 	& Intersection detection and identification of discrete roads
 	& Mapped road position estimation based off the GPS position and nearby road map nodes (accounting for GPS inaccuracy)
 	& Map matching, specifically some form of curve or spline matching to correlate the estimated map position with the identified road features
-	& Consolodation of return data. This may include:
+	& Consolidation of return data. This may include:
 	&& Overlaying the navigation route directly to the video feed
 	&& Providing control inputs to the vehicle for autonomous driving of the route
 \end{easylist}
 
 Additional considerations which will be addressed as part of the simulation development include the data structure representation of the GPS maps and navigation routes. These will both be in line with the OSM data structures but may be simplified to specifically the required data for ease of processing in testing. Simplification of data will only occur where it is feasible that the OSM (or similar) data format can be transformed into the used data format with sufficient preprocessing. \textbf{TODO: ie. Using only information that is present in the OSM or similar data}
-
-\subsection{TODO: Gantt Chart discussion (Is this a subsection or just another para?)}
+\textbf{TODO: Gantt Chart discussion and update (Is this a subsection or just another para?)}
 
 \section{Current work}
 
 The bulk of the initial effort has been developing technical competency within informing disciplines. This includes both the CV technical competency development and addressing the simulation technical risks. Additionally to these aspects, familiarity projects were conducted on neural networks to consolidate the basic theory for potential future use. The projects consisted of developing neuroevolution based solutions for both a physics based ball balancing challenge over the duration of 5 minutes and custom cloned version of the mobile game `flappy bird'. Both solutions used a simple feedforward neural network coded in C\# without the use of any existing libraries with the networks evolving using a custom built genetic algorithm. The CV and simulation aspects are discussed in more detail in the following subsections.
 
-\subsection{Computer Vision}
+\subsection{Computer Vision}\label{s:currentWork_CV}
 
-\textbf{Intent of CV, what are the outcomes (lane detection, intersection detection)}
-
-Before any effective computer vision approaches can be implemented a robust base of understanding of digital image processing is required. \textbf{TODO: Definition of CV, DIP}. In order to develop a robust understanding of DIP concepts study was undertaken using a range of publicly available resources. The main resource used for structured learning was the Spring 2015 offering of ECSE-4540 at Rensselaer Polytechnic Institute by Rich Radke which has the full set of recorded lectures freely available online. Basic algorithms were implemented from first principles in MATLAB which reinforced the internalisation of the concepts. More advanced computer vision concepts were subsequently researched and tested within Python using OpenCV functionality which is discussed further in this section (subsections \ref{s:pythonVc} and \ref{s:openCV}). 
+Before any effective computer vision approaches can be implemented a robust base of understanding of digital image processing is required. In order to develop a robust understanding of DIP concepts study was undertaken using a range of publicly available resources. The main resource used for structured learning was the Spring 2015 offering of ECSE-4540 at Rensselaer Polytechnic Institute by Rich Radke which has the full set of recorded lectures freely available online. Basic algorithms were implemented from first principles in MATLAB which reinforced the internalisation of the concepts. More advanced computer vision concepts were subsequently researched and tested within Python using OpenCV functionality which is discussed further in this section (subsections \ref{s:pythonVc} and \ref{s:openCV}). 
 
 Simple lane detection approaches for straight lanes using the Hough Transform were implemented with varying levels of success. It was noted that the simple approaches suffered when the dashed lane line was faint in comparison with other linear features and when the road was cast in shadow. The final experiment to improve on detection involved lane detection on a video feed using a rolling average of the lower area of interest of the most recent 5 frames of video as input to the lane detection for each frame. The lane detection approach involved identifying straight lines using the Hough Transform of the Canny edge detected area of interest after a low pass filter had been applied. The Hough lines were then chosen based on strength with the strongest line for each angle (side of the lane) chosen. The output consisted of the averaged area of interest with the detected lane lines in red overlayed onto the original frame. An example frame from the video output is included as figure \ref{f:simpleLaneDetectionHough}.
 
@@ -221,7 +223,7 @@ Simple lane detection approaches for straight lanes using the Hough Transform we
 	\label{f:simpleLaneDetectionHough}
 \end{wrapfigure}
 
-\textbf{THE FLOW OF CV IN LANE DETECTION involves correcting the image for camera lenses before inverse perspective mapping to get a `birds eye view' of the road. From this top down perspective, road/lane analysis can be conducted properly.} An inverse perspective mapping calibration was developed using the interprocess communication implementation discussed in section \ref{s:IPC} \textbf{TODO: THIS ISNT REFERENCING THE FULL SECTION - SHOULD BE III-B-2, NOT JUST 2}. This calibration consists of still image of a checkerboard pattern on the horizontal plane within the simulation taken from the perspective of the camera. Corners of the checkerboard are manually identified in pixel space and the inverse perspective matrix is calculated based on the current old (perspective) and desired new (inverse perspective) positions. Automated identification of checkerboard corners is possible however the simulation camera rotation with reference to the horizontal plane is fixed therefore only a single calibration is required. The input and output of the inverse perspective mapping calibration undertaken is included as figure \ref{f:inverse_perspective_calibration}.
+\textbf{THE FLOW OF CV IN LANE DETECTION involves correcting the image for camera lenses before inverse perspective mapping to get a `birds eye view' of the road. From this top down perspective, road/lane analysis can be conducted properly.} An inverse perspective mapping calibration was developed using the interprocess communication implementation discussed in section \ref{s:IPC}. This calibration consists of still image of a checkerboard pattern on the horizontal plane within the simulation taken from the perspective of the camera. Corners of the checkerboard are manually identified in pixel space and the inverse perspective matrix is calculated based on the current old (perspective) and desired new (inverse perspective) positions. Automated identification of checkerboard corners is possible however the simulation camera rotation with reference to the horizontal plane is fixed therefore only a single calibration is required. The input and output of the inverse perspective mapping calibration undertaken is included as figure \ref{f:inverse_perspective_calibration}.
 
 \begin{figure}[htb]% order of placement preference: here, top, bottom
 	\includegraphics{InversePerspectiveEg.png}
@@ -237,7 +239,7 @@ The DIP theory that was undertaken opened up the possibility to implement the CV
 
 While implementing all functions manually has merit for further reinforcement of the basic principles, the decision was made to use the OpenCV library. Rationale for this includes the following: 
 
-\begin{easylist}
+\begin{easylist}[itemize]
 	& Efficient high performance vectorised implementations
 	& Allows a greater proportion of time to be spent on solving the problem as opposed to implementing known algorithms.
 	& Increase familiarity with available tools for future use
@@ -247,27 +249,27 @@ While implementing all functions manually has merit for further reinforcement of
 
 Given the choice of OpenCV for the CV framework the options considered for the core language were C++ or Python. C++ has the advantage of being `lower level' however the OpenCV Python interface compiles down to the same C++ code so the only performance gains would be in the general program code as opposed to the CV implementations. Simulation engine considerations also played a part, as discussed in section \ref{s:simEngineChoice}, Unreal Engine uses C++ which would allow simulation code to talk directly to the OpenCV interface.
 
-Despite the above advantages, C++ comes with an increased complexity and any speed gains require a robust understanding (and implementation) of memory management. By contrast, Python presents a lower barrier to entry while maintaining the OpenCV C++ vectorised optimisation. In addition, libraries such as numpy within Python present fast vectorised operations for arrays. The descision to use Unity for the simulation engine as discussed in section \ref{s:simEngineChoice} removed the major benefit of the C++ interface thus Python was determined to be the preferred language.
+Despite the above advantages, C++ comes with an increased complexity and any speed gains require a robust understanding (and implementation) of memory management. By contrast, Python presents a lower barrier to entry while maintaining the OpenCV C++ vectorised optimisation. In addition, libraries such as numpy within Python present fast vectorised operations for arrays. The decision to use Unity for the simulation engine as discussed in section \ref{s:simEngineChoice} removed the major benefit of the C++ interface thus Python was determined to be the preferred language.
 
 \subsection{Simulation system}
 
-A significant element of the project deliverable is the development of the simulation system to provide sensor outputs. The intent of the simulation is to provide a pipeline of sensor feeds and potentially a \textbf{interface to control a simulated vehicle based off BLAH} with scope of the simulation as discussed in section \ref{s:scope}. \textbf{TODO: ?scope? IPC?} Key elements of the simulation system are discussed in the following subsections.
+A significant element of the project deliverable is the development of the simulation system to provide sensor outputs. The intent of the simulation is to provide a pipeline of sensor feeds and potentially an interface to control a simulated vehicle based off the processed sensor data. The scope of the simulation is discussed in section \ref{s:scope}. Key elements of the simulation system are discussed in the following subsections.
 
 
 \subsubsection{Simulation engine} \label{s:simEngineChoice}
 
-Two courses of action were available for the implementation of the simulation engine; a full custom engine or use an existing game engine for the base. For the existing game engine option, Unreal and Unity were both considered. A full custom engine allows fine grain control over the implementation the specific requirements of the simulation however has significant overheads including the implementation of 3D visuals including rendering, texturing and importing of 3D models. It was determined that this represented a very large time commitment for negligable benefit.
+Two courses of action were available for the implementation of the simulation engine; a full custom engine or use an existing game engine for the base. For the existing game engine option, Unreal and Unity were both considered. A full custom engine allows fine grain control over the implementation the specific requirements of the simulation however has significant overheads including the implementation of 3D visuals including rendering, texturing and importing of 3D models. It was determined that this represented a very large time commitment for negligible benefit.
 
 Both Unity and Unreal are professional 3D engine used in commercial games and computer graphics applications. They are well established and have a robust set of supporting tools. Specific considerations for each engine are as follows:
 
-\begin{easylist}
+\begin{easylist}[itemize]
 	& Unity
 	&& Personal experience with workflow; very comfortable
 	&& Personal experience with C\# which is used for scripting within the engine
 	&& No C\# interface with OpenCV therefore interprocess communication will need to be developed between the OpenCV processing implementation and the simulation engine.
 	& Unreal
 	&& New, unfamiliar workflow
-	&& Lack of familiarity and comfort with C++ which is used for scripting within the engine. `Blueprint' system does allow a visual programming approach although that represents an additional compenancy to be developed
+	&& Lack of familiarity and comfort with C++ which is used for scripting within the engine. `Blueprint' system does allow a visual programming approach although that represents an additional competency to be developed
 	&& C++ code allows direct interface with OpenCV
 \end{easylist}
 
@@ -285,7 +287,7 @@ Once the IPC approach was confirmed, the data handling pipeline between the Unit
 
 The Python process casts the byte stream as a byte array and reshapes the data to a 3D array. The fourth element of each colour value is removed, resulting in a final data structure consisting of a 2D array of 3 element vectors of bytes which is the required data structure for OpenCV processing operations. 
 
-A simple calibration was established using three coloured cubes (Red, Green and Blue) in Unity to confirm colour channel and axis orientation correctness. A still from the colour image IPC calibration undertaken is included as figure \ref{f:unity_calibration}. \textbf{TODO: Fix image - border? Also shrink and put in/near text}
+A simple calibration was established using three coloured cubes (Red, Green and Blue) in Unity to confirm colour channel and axis orientation correctness. A still from the colour image IPC calibration undertaken is included as figure \ref{f:unity_calibration}.
 
 %\begin{figure}[htb]% order of placement preference: here, top, bottom
 % \includegraphics{unity_calibration.png}
@@ -309,143 +311,112 @@ The implementation of time dilation involved a simulation controller that runs t
 
 The time dilation was tested using an initial prototype of the simulation in the same manner as the colour calibration discussed previously. Two stills from the output video showing the raw feed and the canny edges is included as figure 
 
-\begin{wrapfigure}{r}{0.75\textwidth} %this figure will be at the right
-	\centering
-	\includegraphics[width=0.75\textwidth, height=0.75\textwidth]{simPrototypeIPC.png}
-	\caption{Still from video feed of simulation prototype test. Original camera feed \textit{(left)} and canny edges of feed \textit{(right)}}
-	\label{f:simPrototypeIPCTest}
-\end{wrapfigure}
+%\begin{wrapfigure}{r}{0.75\textwidth} %this figure will be at the right
+%	\centering
+%	\includegraphics[width=0.75\textwidth, height=0.75\textwidth]{simPrototypeIPC.png}
+%	\caption{Still from video feed of simulation prototype test. Original camera feed \textit{(left)} and canny edges of feed \textit{(right)}}
+%	\label{f:simPrototypeIPCTest}
+%\end{wrapfigure}
 
-\section{TODO: Future work}
+\begin{figure}[htb]% order of placement preference: here, top, bottom
+ \includegraphics{simPrototypeIPC.png}
+ \caption{Still from video feed of simulation prototype test. Original camera feed \textit{(left)} and canny edges of feed \textit{(right)}}
+ \label{f:simPrototypeIPCTest}
+\end{figure}
 
-The work completed thus far has solved some key technical challenges required \textbf{TODO: }
+\section{Future work}
 
-\subsection{TODO: Road detection}
+The work completed thus far has solved some key technical challenges required, in particular on the simulation side. The core areas of work in the remainder of the project, with the associated assessed technical risk, are discussed in the coming subsections.
 
-\subsubsection{TODO: Lane line detection}
+\subsection{Computer Vision}
 
-Detect the curve of the lane and identify intersections
-Curve detection options - sliding window REF LINK %https://www.spiedigitallibrary.org/conference-proceedings-of-spie/0852/0000/Progress-In-Road-Intersection-Detection-For-Autonomous-Vehicle-Navigation/10.1117/12.968232.short?SSO=1
+\subsubsection{Lane detection}
 
-CNN discussion with references?
+Detection of straight lane lines has been completed in the familiarisation activities conducted as discussed in section \ref{s:currentWork_CV} and demonstrated in figure \ref{f:simpleLaneDetectionHough}. A harder challenge is identifying a curved lane. The current approach being investigated is lane edge detection via polynomial fitting of edge pixels detected by sliding window. 
 
-\subsubsection{TODO: Intersection detection}
+The sliding window detection process is as follows:
+\begin{easylist}[itemize]
+	& Identify the near lane/road edge (bottom of the frame) by either edge detection or histogram peaks.
+	& A window of a defined width and height is placed over the detected start point and the average horizontal position of the edge pixels is determined
+	&& If the detected pixels is below a threshold, the average is set to the previous average
+	& The next window is placed one window height above the previous window at the previous average horizontal pixel position.
+	& This process is repeated until the window reaches an edge of the frame
+\end{easylist}
 
-\subsection{TODO: GPS Data matching}
-Curve matching (splines etc) and/or Map matching, 
-
-\subsection{TODO: Simulation}
-
-Road network
-GPS sensor
-GPS nav route definition
-
-extensions: Sensor external definitions
-%
-%\begin{table}[t] % no placement specified: defaults to here, top, bottom, page
-% \begin{center}
-%  \caption{Expectations for the Assessment of the Final Project Summary Report \
-% (Final Project Summary Report is worth 35\% of the course) }
-%  \label{t:scheme_marking}
-%  \begin{tabular}{|c|} \hline
-%\\
-%\textbf{Understanding of the topic: (What and why?)} \\\hline
-%�	Has the problem been adequately defined? \\
-%�	Has a critical review of the relevant literature been performed? \\
-%Note the most important references should be included in this report, whereas \\
-%extensive literature reviews where appropriate should be confined to the \\
-%Appendices or your separate Project Specific Deliverable. \\
-%�	Has the relationship between the project and the literature been adequately defined? \\
-%�	Has a clear, appropriate and attainable set of aims been identified? \\
-%\\
-%\textbf{Methodology (How?)}  \\\hline	
-%�	Has a logical process been developed to meet the aims? \\
-%�	Has this process been justified? \\
-%�	Is the methodology appropriate for the scope of the project? \\
-%\\
-%\textbf{Analysis}	 \\\hline
-%�	Has there been an adequate collection of data/information (or efficient design)? \\
-%�	Has appropriate and sufficient analysis been performed to reduce it to a useful form? \\
-%�	Have the aims been adequately addressed (if not then have valid reasons been given)? \\
-%\\
-%\textbf{Discussion, conclusions and recommendations:} \\\hline	
-%�	Are they meaningful/worthwhile/significant within the scope of the project? \\
-%�	Are they appropriate and adequately justified? \\
-%\\
-%\textbf{Presentation of the project report:}	 \\\hline
-%�	Is the document set out clearly and logically? \\
-%�	Does the text clearly explain all aspects of the project to even a non-expert? \\
-%�	Has appropriate use been made of figures/tables/charts? \\
-%�	Has appropriate and accurate use of referencing been made? \\
-%\\
-%\textbf{Management}	 \\\hline
-%�	There is no requirement for an explicit management document, but it may be \\
-%appropriate for you to briefly discuss your learnings in terms of expectations \\
-%in the context of your project. \\
-%\\
-% \\\hline
-% \end{tabular}
-% \end{center}
-%\end{table}
+The above process is completed for each side of the lane and polynomial regression is used on the relevant pixels to determine the final detected line.
 
 
+In addition to the sliding window detection, supervised convolutional neural network lane detection has had success through fully convolutional \citep{cnnLanes1} and instance segmented \citep{cnnLanes2} approaches. This will be further investigated however the intent at this stage is to focus on the sliding window detection in the first instance. Another unique option involves spline based representation using random sample consensus for bezier splines based off road edge detection \citep{ransicBezierFit}. This method has the benefit that it provides a different form of output (splines) that may be more suitable to matching with GPS data. The technical risk of this aspect is low to medium.
 
-%\begin{figure}[htb]% order of placement preference: here, top, bottom
-% \includegraphics{image_eg.png}
-% \caption{Magnetization as a function of applied field, which has
-%   borders so thick that they overwhelm the data and for some reason the
-%   ordinate label is rotated 90 degrees to make it difficult to
-%   read. This figure also demonstrates the dangers of using a bitmap
-%   as opposed to a vector image.}
-% \label{f:magnetic_field}
-%\end{figure}
+\subsubsection{Intersection detection}
 
-%Sometimes writing meaningless text can be quiet easy, but other times one is hard pressed to keep the words flowing.\footnote{And sometimes things get carried away in endless detail.}
-%
-%\begin{table}% no placement specified: defaults to here, top, bottom, page
-% \begin{center}
-%  \caption{Variable and Fixed Coefficient Runge-Kutta Schemes as a
-%           Function of Reynolds Number}
-%  \label{t:scheme_comparison}
-%  \begin{tabular}{rrr}
-%       Re & Vary & Fixed \\\hline
-%        1 &  868 & 4,271 \\
-%       10 &  422 & 2,736 \\
-%       25 &  252 & 1,374 \\
-%       50 &  151 &   736 \\
-%      100 &  110 &   387 \\
-%      500 &   85 &   136 \\
-%    1,000 &   77 &   117 \\
-%    5,000 &   81 &    98 \\
-%   10,000 &   82 &    99
-%  \end{tabular}
-% \end{center}
-%\end{table}
+Intersection detection presents a more challenging prospect than simple lane detection. The simplifying assumption of a single left and right lane edge is removed when intersections are introduced. One example of effective intersection detection as it applies to this project is model based recognition which matches intersection models to a series of road boundary points \citep{modelBasedIntersection}. The advantage of this method is edge detected pixels can be used as the boundary points and the intersection model can be built reasonably simply using the OSM map data.
 
-%\subsubsection{Equations, Numbers, Symbols, and Abbreviations}
-%Equations are centered and numbered consecutively, with equation numbers in parentheses flush right, as in  Eq.~(\ref{e:function}) that demonstrates some math
-%typesetting.
+An alternate approach that will be further investigated as required is using skeletonisation of the road binary mask:
 
-%\begin{equation}
-% \label{e:function}
-% \int_{0}^{r_{2}} F(r,\varphi) \, dr \, d\varphi =
-%    \left[ \sigma r_{2}/(2\mu_{0}) \right] \cdot
-%    \int_{0}^{\infty} \exp(-\rho|z_{j}-z_{i}|) \, \lambda^{-1} 
-%\end{equation}
-%Eq.~(\ref{e:function}) is grand.
-%
-%
-\section{TODO: Conclusions}
-The conclusions should summarise the main findings of your thesis project including a brief reference to the supporting evidence and to the initial aims. Note that the Conclusions and Recommendations sections are the last sections of the paper that should be numbered. The acknowledgements and references should be listed without numbers.
-This had been a brief example of some of the more advanced options available for \LaTeX\ .
-%
+\begin{easylist}[itemize]
+	& When the full road surface is represented by a binary mask, skeletonisation will reduce each road to a single pixel line. Intersections of the pixel lines will represent the intersection midpoint with each skeleton arm representing a road surface entering the intersection.
+	&& Skeletonisation can be achieved by morphological erosion/thinning operations or by obtaining the medial axis transform via the distance transform.
+\end{easylist}
+
+Once the skeleton has been obtained it can be matched to the possible intersection orientations in a similar way to the model based recognition initially outlined. It is assessed at this stage that the skeletonisation is likely a redundant step however it is an option if the road boundary points approach proves unreliable. The technical risk of this aspect is medium.
+
+\subsection{Navigation localisation}
+
+The final step involves correlating the GPS positional data, features from video sensor feed and the navigation data to localise the navigation data to the vehicle position. Static route map matching at its most trivial relates a GPS position to the nearest point on a polyline. It is anticipated that this will be the first step in the localisation to approximate the position on the navigation route. After this approximation, the road and intersection detection will be correlated with the GPS data to fully localise the position. 
+
+A LiDAR-based local trajectory generation has demonstrated through practical experiments that effective localisation using OSM data and global waypoints is possible using a LIDAR sensor suite \cite{mitLocalNavDriving}. General curve or spline matching options will be investigated and it has been identified that Markov and extended Kalman filter localisation techniques may also assist in this problem \citep{probabalisticRobotics} and will be investigated in the near term. The technical risk of this aspect is medium.
+
+\subsection{Simulation}
+
+The simulation development will follow the agile development process and deliver incremental feature additions and improvements. The basic features which are high priority for the early sprints are the implementation of the functionality required for the minimum viable product; the vehicle controller, the road network and the GPS sensor and navigation implementations. These aspects, as well as candidate functionality extensions are discussed in more detail in the coming subsections.
+
+\subsubsection{Vehicle controller}
+
+The vehicle controller will be implemented using the built in PhysX components within the Unity engine. The basic vehicle setup will consist of steering, accelerating and braking functions with vehicle movement simulated by the physics engine. An autopilot function that will follow defined waypoints will also be developed. It is important to note that this is not based on the external analysis of sensor input but will use the exact game data. The intent of this functionality is to provide a constant video feed of a driving vehicle for analysis. 
+
+Features such as engine power simulation will not be implemented in the initial stages but may be introduced as future features. The technical risk of this aspect is very low.
+
+\subsubsection{Road network}
+
+The road network is being implemented using a purchased tool called Easyroads 3D. This tool assists in mesh generation, placement, connection and texturing of roads as well as terrain moulding. Additionally the tool can accept map data exported from OSM. While each of these functions can be custom built individually it represents a significant time commitment and is unrelated to the core simulation. The road visible in the raw video feed of the IPC prototype test in figure \ref{f:simPrototypeIPCTest} demonstrates the implementation of a test road in Unity. The initial implementation of the road network will be simple tracks. The technical risk of this aspect is low.
+
+\subsubsection{GPS sensor}
+
+The GPS sensor implementation is a simple function and required for the base sensor data analysis. The functionality will use the in engine coordinates for the GPS coordinates, as will all other data and sensors. An initial static random position offset will be used to simulate GPS positional error however additional functionality improvements may include a greater simulation of GPS error. The technical risk of this aspect is very low.
+
+\subsubsection{GPS navigation}
+
+The navigation functionality will initially be via hardcoded hand placed waypoints, using a simple queue system, with waypoint positions using the in engine coordinate system. This represents the minimum viable product. There is significant room for expansion of functionality here including the ability to automatically route plan based off the OSM data used to build the road network. This aspect has significant room for scope creep so will be managed tightly in the sprint reviews. The technical risk of this aspect is low to medium.
+
+\subsubsection{Possible Extensions}
+
+The implementation of further functionality is based on the sprint velocity achievable and the needs at the time. Once the minimum viable product is delivered with the above functionality it is likely that improvements to existing functionality will take a high priority in future sprints however additional functionality will be considered in the sprint backlogs.
+
+Possible future extension ideas include:
+\begin{easylist}[itemize]
+	& External sensor definition files for automatic setup in simulation
+	& External OSM data file loading 
+	&& Implementing this will also result in the requirement for automated data extraction from OSM files for simulated GPS and navigation rather than using hand placed nodes of interest.
+	& Increased communication options between simulation and external process, for example vehicle control signals or specific sensor control/activation/deactivation.
+	& 3D visual clutter such as trees
+\end{easylist}
+
+\section{Conclusions}
+
+The main technical risks for the simulation have been successfully addressed and the development of the simulation is ready to enter the agile development process. This will deliver iterative improvements in functionality and provide a wealth of sensor data for analysis testing. The main technical risks for the sensor data processing include the detection of curved roads and intersections and the navigation localisation. Of these risks, the intersection detection is the most significant risk as it has the burden of providing an output that can be effectively used by the navigation localisation step. Despite the identified risks, the research conducted has identified candidate solutions for each area of technical risk and rapid iteration through the areas of technical risk will assist in assessing the relative merit of the identified approaches.
+
+
+
 %\section{Recommendations}
 %This section should discuss and recommend directions for future work that will build on and extend your research and perhaps resolve some of the issues that you have encountered in your work.
 %
 %\section*{Acknowledgements}
 %The Acknowledgements section should be used to briefly thank those individuals or organisations that have assisted you directly in your thesis work whether they be family, friends and colleagues, or technical and academic staff. Note that any external funding source that supported your project should be acknowledged here. 
 %
-%\section*{Appendices (Separate Document)}
+\newpage
+\section*{Appendices}
+A - Gantt chart 
 %Appendices may used to archive detailed summaries of data such as images, tables and charts and detailed example calculations such as for the estimation of measurement uncertainty. They may also include design drawings. Raw data, or detailed computer programs and files and extensive design drawings, should not be included. Their archiving should be discussed with your supervisor. Any appendices should be submitted as a SINGLE separate document file if referred to in the main text and be listed in the table of contents at the beginning (Note the use of a separate page numbering scheme).
 
 % If you use MakeIndex
@@ -458,7 +429,7 @@ This had been a brief example of some of the more advanced options available for
 %\bibliographystyle{aiaa}
 
 \appendix
-\includepdf[angle=-90,scale=0.9,pages=1,pagecommand=\section{Gantt Chart for Research Project}]{GanttChart.pdf}
+\includepdf[angle=-90,scale=0.9,pages=1,pagecommand=\section{Gantt Chart for Research Project}]{GanttChart.pdf} 
 
 
 \end{document}
