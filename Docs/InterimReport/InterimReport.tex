@@ -93,16 +93,36 @@
 %\index{}
 
 
-\lettrine[nindent=0pt]{\textbf{G}}{\textbf{eneral background.}} Autonomous vehicles in general - self driving autopilot etc for personal travel. Relies on mass sensors and data. Wider applications include cognitive assistance and autonomous logistics (refs? Has this been done?). 
+\lettrine[nindent=0pt]{\textbf{G}}{\textbf{eneral background.}} Autonomous vehicles in general - self driving autopilot etc for personal travel. Wider applications include cognitive assistance and autonomous logistics (refs? Has this been done?). 
 
-\textbf{Other lit review related stuff}
+
+Data fusion is the process of combining data from several sources into a single unified description of a situation \citep{gpsInsFusion}. Self driving vehicles rely on sensor and data fusion to achieve the four capabilities required of autonomous driving; car navigation system, path planning, environment perception and car control \citep{keyTechSelfDriving}. This project touches on a fusion of the first three capabilities to localise navigation information. 
+
+Autonomous driving is not a binary capability, rather a scale with increasing levels of autonomy. The automation levels identified by the US National Highway Traffic Safety Administration \citep{automationVisionForSafety} outlined in table \ref{t:automationLevels}.
+
+\begin{table}% no placement specified: defaults to here, top, bottom, page
+ \begin{center}
+  \caption{automation levels identified by the US National Highway Traffic Safety Administration \citep{automationVisionForSafety}}
+  \label{t:automationLevels}
+  \begin{tabular}{p{0.1\linewidth}p{0.25\linewidth}p{0.6\linewidth}}
+       Level & Classification & Detail\\\hline
+        0 &  No Automation & Zero autonomy; the driver performs all driving tasks. \\
+       1 &  Driver Assistance & Vehicle is controlled by the driver, but some driving assist features may be included in the vehicle design \\
+       2 &  Partial Automation & Vehicle has combined automated functions, like acceleration and steering, but the driver must remain engaged with the driving task and monitor the environment at all times. \\
+       3 &  Conditional Automation &   Driver is a necessity, but is not required to monitor the environment. The driver must be ready to take control of the vehicle at all times with notice. \\
+      4 &  High Automation &   The vehicle is capable of performing all driving functions under certain conditions. The driver may have the option to control the vehicle. \\
+      5 &   Full Automation &   The vehicle is capable of performing all driving functions under all conditions. The driver may have the option to control the vehicle. 
+  \end{tabular}
+ \end{center}
+\end{table}
+
 
 In order for an autonomous vehicle to navigate effectively there are a few key challenges. The vehicle must have a mechanism to sense the local environment \textbf{TODO: Lane detection, road detection etc. Intersection control} as well as transient aspects such as other vehicles and on road obstacles.
 
 \textbf{In addition to ?manual? CV technicues, Deep Convolutional Neural Networks have also been shown to be effective for road detection \citep{deepRoadSegmentation} PLUS MORE? }
 
 
-In addition to the local area, the vehicle must also have the ability to reconcile navigation data with the current location. \textbf{TODO: Map matching / Nav localisation}.
+In addition to the local area, the vehicle must also have the ability to reconcile navigation data with the current location. A supporting concept to this is that of map matching which calculates out the vehicle location by using the geographical information from sensors such as GPS position and intertial data and the map information from the mapping service \citep{keyTechSelfDriving}. Current high end self driving vehicles require high fidelity 3D maps to operate effectively. Despite this, position localisation improvements have been achieved using a data fusion of GPS and intertial navigation system data \citep{gpsInsFusion} correlating a back lane mark registry (BLMR) supported with CV, GPS and inertial data with map data \citep{lowCostSensorNav} and through use of Kalman filters and LIDAR in more complex environments \citep{robotLIDARSLAM}.
 
 \textbf{Scope and Similar work}. Requirement for robust navigation data. Ability to extend tech requires more agile approach. SIMILAR WORK - MIT local navigation goal \citep{mitLocalNavDriving} requires use of LIDAR, also uses OSM data. 
 
@@ -146,6 +166,7 @@ The scope and deliverables have been identified as follows:
 	&& Support simulation of GPS route guidance
 \end{easylist}
 
+\textbf{TODO: Reference the automation table as target}
 
 
 \section{TODO: Project management}
@@ -273,6 +294,15 @@ A simple calibration was established using three coloured cubes (Red, Green and 
 While the initial design aimed for realtime simulation and processing it was quickly determined that the simulation had a requirement to dynamically scale simulation time. This scaling is based on the external processing in order to ensure the simulation effectiveness regardless of the data processing time requirement and allows both the simulation to be effective on lower end computers and the number of sensors to scale without affecting simulation quality.
 
 The implementation of time dilation involved a simulation controller that runs the simulation for a set time based off the desired sensor processing rate. After this time has elapsed, the sensor data is collated and sent to the external processing program via the IPC process outlined above. On completion of the data processing, the external program sends an acknowledgement in return which triggers the next simulation tick. This has been implemented and tested by sleeping the processing thread for several seconds each tick.
+
+The time dilation was tested using an initial prototype of the simulation in the same manner as the colour calibration discussed previously. Two stills from the output video showing the raw feed and the canny edges is included as figure 
+
+\begin{wrapfigure}{r}{0.75\textwidth} %this figure will be at the right
+	\centering
+	\includegraphics[width=0.75\textwidth, height=0.75\textwidth]{simPrototypeIPC.png}
+	\caption{Still from video feed of simulation prototype test. Original camera feed \textit{(left)} and canny edges of feed \textit{(right)}}
+	\label{f:simPrototypeIPCTest}
+\end{wrapfigure}
 
 \section{TODO: Future work}
 
