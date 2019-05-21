@@ -89,16 +89,11 @@
 % \end{tabbing}
 
 \newpage
-\section{TODO: Introduction (or some other more appropriate heading)} \label{sect:intro}
+\section{Introduction} \label{sect:intro}
 %\index{}
 
+\lettrine[nindent=0pt]{T}{he} idea of a future where personal transportation is handled by autonomous vehicles is increasingly in the public consciousness however there is a range of challenges that need to be addressed from legal, security and ethical \citep{gmReport} to maturity concerns that out to the 2030s, `autonomous vehicles will be expensive novelties' \citep{vicTransportImplications}. Autonomous driving is not a binary capability however, rather a scale with increasing levels of autonomy. The automation levels identified by the US National Highway Traffic Safety Administration \citep{automationVisionForSafety} outlined in table \ref{t:automationLevels}. While true full automation may be many years off, there is an undeniable increase in the cognitive assistance and partial automation technologies in consumer vehicles. As an example the 2019 Kia Sorento includes active lane keeping assist (lane detection and steering) and adaptive cruise control (autonomous acceleration and braking based off radar distance to leading vehicles) \citep{kia}. 
 
-\lettrine[nindent=0pt]{\textbf{G}}{\textbf{eneral background.}} Autonomous vehicles in general - self driving autopilot etc for personal travel. Wider applications include cognitive assistance and autonomous logistics (refs? Has this been done?). 
-
-
-Data fusion is the process of combining data from several sources into a single unified description of a situation \citep{gpsInsFusion}. Self driving vehicles rely on sensor and data fusion to achieve the four capabilities required of autonomous driving; car navigation system, path planning, environment perception and car control \citep{keyTechSelfDriving}. This project touches on a fusion of the first three capabilities to localise navigation information. 
-
-Autonomous driving is not a binary capability, rather a scale with increasing levels of autonomy. The automation levels identified by the US National Highway Traffic Safety Administration \citep{automationVisionForSafety} outlined in table \ref{t:automationLevels}.
 
 \begin{table}% no placement specified: defaults to here, top, bottom, page
  \begin{center}
@@ -116,29 +111,36 @@ Autonomous driving is not a binary capability, rather a scale with increasing le
  \end{center}
 \end{table}
 
-
-In order for an autonomous vehicle to navigate effectively there are a few key challenges. The vehicle must have a mechanism to sense the local environment \textbf{TODO: Lane detection, road detection etc. Intersection control} as well as transient aspects such as other vehicles and on road obstacles.
-
-\textbf{In addition to ?manual? CV technicues, Deep Convolutional Neural Networks have also been shown to be effective for road detection \citep{deepRoadSegmentation} PLUS MORE? }
-
+In order for an autonomous vehicle to navigate effectively there are a few key challenges. The vehicle must have a mechanism to sense the local environment for example lane and road detection as well as transient aspects such as other vehicles and on road obstacles. There are many Computer Vision techniques that can assist in providing an understanding of the environment. Direct techniques such as edge and line detection are widely used however Deep Convolutional Neural Networks have also been shown to be effective for road detection \citep{deepRoadSegmentation}.
 
 In addition to the local area, the vehicle must also have the ability to reconcile navigation data with the current location. A supporting concept to this is that of map matching which calculates out the vehicle location by using the geographical information from sensors such as GPS position and intertial data and the map information from the mapping service \citep{keyTechSelfDriving}. Current high end self driving vehicles require high fidelity 3D maps to operate effectively. Despite this, position localisation improvements have been achieved using a data fusion of GPS and intertial navigation system data \citep{gpsInsFusion} correlating a back lane mark registry (BLMR) supported with CV, GPS and inertial data with map data \citep{lowCostSensorNav} and through use of Kalman filters and LIDAR in more complex environments \citep{robotLIDARSLAM}.
 
-\textbf{Scope and Similar work}. Requirement for robust navigation data. Ability to extend tech requires more agile approach. SIMILAR WORK - MIT local navigation goal \citep{mitLocalNavDriving} requires use of LIDAR, also uses OSM data. 
+This process of combining data from several sources into a single unified description of a situation is known as data fusion \citep{gpsInsFusion}. Self driving vehicles rely on sensor and data fusion to achieve the four capabilities required of autonomous driving; car navigation system, path planning, environment perception and car control \citep{keyTechSelfDriving}. This project touches on elements of the first three capabilities in order to localise navigation information. The localisation of navigation data will be achieved by the use of GPS position data and computer vision techniques to correlate data from preloaded maps. 
 
-\textbf{Why I am doing it }
-Using CV to align position with map service will allow greater cognitive assistance and automation of tasks without the requirement for significant prior mapping. Benefit: Augmented reality google maps (eventually autopilot). Automated logistics movements (eg military).
+The ability to use computer vision to align GPS positioning with mapping service data will allow greater cognitive assistance in driver included tasks without the requirement for significant prior mapping. As augmented reality technology increases this will also allow driver aides such as navigation routes overlayed onto the visible road. In addition to the cognitive assistance, the ability to localise a navigation route allows the automation of certain tasks such as military field logistics supply lines. A true complete solution will rely on sensor fusion from a suit of complimentary sensors supporting each other and providing redundancy. The idea of local navigation goals has been explored with the use of Open Street Map data and LIDAR for road mapping with promising success \citep{mitLocalNavDriving} however the ability for a single camera system to facilitate navigation data localisation assists in both system redundancy and lowering the financial and technical barriers to implementation.
 
-A true solution will rely on sensor fusion from a suit of complimentary sensors supporting each other and providing redundancy. This project focusses on investigating a lower tech solution...... Ability for single camera to achieve this assists in redundancy and simplicity of BBBBBBBBB.
+\subsection{Terminology}
+
+The following abbreviations and definitions are used throughout this report:
+
+\begin{easylist}[itemize]
+	& \textbf{Computer Vision (CV)}. Techniques to allow machines to `see'; processing visual images of the world and deriving understanding.
+	& \textbf{WORD (abbrev)}. Definition definition
+	& \textbf{WORD (abbrev)}. Definition definition
+	& \textbf{WORD (abbrev)}. Definition definition
+	& \textbf{WORD (abbrev)}. Definition definition
+	& \textbf{WORD (abbrev)}. Definition definition
+	& \textbf{WORD (abbrev)}. Definition definition
+	& \textbf{TODO: External Program, Simulation `tick'}
+\end{easylist}
 
 \subsection{Project aim}
 
 The aim of this project is to investigate localising navigation data from a GPS feed to the observed road via a vehicle mounted camera. A subordinate aim as part of this is to develop a simulation that will provide sensor data to an external program for processing. 
 
-GPS route data is held as encoded polylines which represents a road as a series of connected points \citep{googleMapPolyline}. The approach for the positional localisation is to use the vehicle GPS position as a fuzzy input location and detected road features to identify an accurate position of the vehicle and identify the GPS route on forward facing video feed. This sets the conditions for autonomous control of the vehicle based on a programmed nagivation route. 
+GPS route data is held as encoded polylines which represents a road as a series of connected points (nodes) \citep{googleMapPolyline}. The approach for the positional localisation is to use the vehicle GPS position as an approximate input location and detected road features to determine an accurate position of the vehicle and identify the GPS route on forward facing video feed. This sets the conditions for autonomous control of the vehicle based on a programmed nagivation route. 
 
-A subordinate aim to the project is the development of a simulation which provides a sensor data, such as location and video feeds from a simulated vehicle. This simulation will allow both the generation of a large and varied data set for testing as well as allow the ability to provide control feedback for the simulated vehicle based off the processing of the sensor data.
-\textbf{TODO: Come up with better term than 'external program'. TERMS: External Program, Simulation `tick', Computer vision CV}
+A subordinate aim to the project is the development of a simulation which provides a sensor data, such as GPS location and video feeds from a simulated vehicle. This simulation will allow both the generation of a large and varied data set for testing as well as allow the ability to provide control feedback for the simulated vehicle based off the processing of the sensor data.
 
 The data flow is anticipated to be as follows:
 \begin{easylist}[itemize]
@@ -166,8 +168,7 @@ The scope and deliverables have been identified as follows:
 	&& Support simulation of GPS route guidance
 \end{easylist}
 
-\textbf{TODO: Reference the automation table as target}
-
+Based on the levels outlined in table \ref{t:automationLevels} the intended level is to level 2 or 3 for cognitive assistance and in automated remote logistics applications such as autonomously traversing known routes in a military field setting to level 4.
 
 \section{TODO: Project management}
 
