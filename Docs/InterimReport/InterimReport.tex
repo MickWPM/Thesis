@@ -97,12 +97,19 @@
 
 \textbf{Other lit review related stuff}
 
-\textbf{Scope and Similar work}. Requirement for robust navigation data. Ability to extend tech requires more agile approach. SIMILAR WORK - MIT local navigation goal \citep{mitLocalNavDriving}. Using CV to align position with map service will allow greater cognitive assistance and automation of tasks without the requirement for significant prior mapping. Benefit -> Augmented reality google maps (eventually autopilot). Automated logistics movements (eg military).
+In order for an autonomous vehicle to navigate effectively there are a few key challenges. The vehicle must have a mechanism to sense the local environment \textbf{TODO: Lane detection, road detection etc. Intersection control} as well as transient aspects such as other vehicles and on road obstacles.
 
-\textbf{Road detection lit review} 
-Deep CNN for road detection \citep{deepRoadSegmentation}
+\textbf{In addition to ?manual? CV technicues, Deep Convolutional Neural Networks have also been shown to be effective for road detection \citep{deepRoadSegmentation} PLUS MORE? }
 
-\textbf{Autonomous navigation lit review}
+
+In addition to the local area, the vehicle must also have the ability to reconcile navigation data with the current location. \textbf{TODO: Map matching / Nav localisation}.
+
+\textbf{Scope and Similar work}. Requirement for robust navigation data. Ability to extend tech requires more agile approach. SIMILAR WORK - MIT local navigation goal \citep{mitLocalNavDriving} requires use of LIDAR, also uses OSM data. 
+
+\textbf{Why I am doing it }
+Using CV to align position with map service will allow greater cognitive assistance and automation of tasks without the requirement for significant prior mapping. Benefit: Augmented reality google maps (eventually autopilot). Automated logistics movements (eg military).
+
+A true solution will rely on sensor fusion from a suit of complimentary sensors supporting each other and providing redundancy. This project focusses on investigating a lower tech solution...... Ability for single camera to achieve this assists in redundancy and simplicity of BBBBBBBBB.
 
 \subsection{Project aim}
 
@@ -123,7 +130,7 @@ The data flow is anticipated to be as follows:
 	& External program returns control data (as applicable) to simulation for next `tick'
 \end{easylist}
 
-\subsection{Scope and Deliverables}
+\subsection{Scope and Deliverables}\label{s:scope}
 
 The scope of the project is deliberately kept constrained initially. This is to focus on the specific problem of localising a navigation route without losing development effort to supporting elements. While the scope is initially narrowly defined it can be extended towards the end of the project as time and opportunity allow.
 
@@ -156,9 +163,9 @@ TODO:  Intersection detection, Curve matching (splines etc) and/or Map matching,
 
 \subsection{TODO: Gantt Chart discussion}
 
-\section{TODO: Current work}
+\section{Current work}
 
-The bulk of the initial effort has been developing technical competency within informing disciplines. \textbf{BLAH}
+The bulk of the initial effort has been developing technical competency within informing disciplines. This includes both the CV technical competency development and addressing the simulation technical risks. Additionally to these aspects, familiarity projects were conducted on neural networks to consolidate the basic theory for potential future use. The projects consisted of developing neuroevolution based solutions for both a physics based ball balancing challenge over the duration of 5 minutes and custom cloned version of the mobile game `flappy bird'. Both solutions used a simple feedforward neural network coded in C\# without the use of any existing libraries with the networks evolving using a custom built genetic algorithm. The CV and simulation aspects are discussed in more detail in the following subsections.
 
 \subsection{Computer Vision}
 
@@ -166,13 +173,20 @@ The bulk of the initial effort has been developing technical competency within i
 
 Before any effective computer vision approaches can be implemented a robust base of understanding of digital image processing is required. \textbf{TODO: Definition of CV, DIP}. In order to develop a robust understanding of DIP concepts study was undertaken using a range of publicly available resources. The main resource used for structured learning was the Spring 2015 offering of ECSE-4540 at Rensselaer Polytechnic Institute by Rich Radke which has the full set of recorded lectures freely available online. Basic algorithms were implemented from first principles in MATLAB which reinforced the internalisation of the concepts. More advanced computer vision concepts were subsequently researched and tested within Python using OpenCV functionality which is discussed further in this section (subsections \ref{s:pythonVc} and \ref{s:openCV}). 
 
-Simple lane detection approaches for straight lanes using the Hough Transform were implemented with varying levels of success. The final experiment involved lane detection on a video feed using a rolling average of the lower section of the most recent 5 frames of video as input to the lane detection for each frame. The lane detection approach involved identifying straight lines using the Hough Transform of the Canny edge detected area of interest after a low pass filter had been applied. The Hough lines were then chosen based on strength with the strongest line for each angle (side of the lane) chosen. The output consisted of the averaged area of interest with the detected lane lines in red overlayed onto the original frame. An example frame from the video output is included as figure \ref{f:simpleLaneDetectionHough}.
+Simple lane detection approaches for straight lanes using the Hough Transform were implemented with varying levels of success. It was noted that the simple approaches suffered when the dashed lane line was faint in comparison with other linear features and when the road was cast in shadow. The final experiment to improve on detection involved lane detection on a video feed using a rolling average of the lower area of interest of the most recent 5 frames of video as input to the lane detection for each frame. The lane detection approach involved identifying straight lines using the Hough Transform of the Canny edge detected area of interest after a low pass filter had been applied. The Hough lines were then chosen based on strength with the strongest line for each angle (side of the lane) chosen. The output consisted of the averaged area of interest with the detected lane lines in red overlayed onto the original frame. An example frame from the video output is included as figure \ref{f:simpleLaneDetectionHough}.
 
-\begin{figure}[htb]% order of placement preference: here, top, bottom
-	\includegraphics{early_lane_detection_experiment.png}
+%\begin{figure}[htb]% order of placement preference: here, top, bottom
+%	\includegraphics{early_lane_detection_experiment.png}
+%	\caption{Still from video feed lane detection experiment}
+%	\label{f:simpleLaneDetectionHough}
+%\end{figure}
+
+\begin{wrapfigure}{r}{0.5\textwidth} %this figure will be at the right
+	\centering
+	\includegraphics[width=0.5\textwidth, height=0.5\textwidth]{early_lane_detection_experiment.png}
 	\caption{Still from video feed lane detection experiment}
 	\label{f:simpleLaneDetectionHough}
-\end{figure}
+\end{wrapfigure}
 
 \textbf{THE FLOW OF CV IN LANE DETECTION involves correcting the image for camera lenses before inverse perspective mapping to get a `birds eye view' of the road. From this top down perspective, road/lane analysis can be conducted properly.} An inverse perspective mapping calibration was developed using the interprocess communication implementation discussed in section \ref{s:IPC} \textbf{TODO: THIS ISNT REFERENCING THE FULL SECTION - SHOULD BE III-B-2, NOT JUST 2}. This calibration consists of still image of a checkerboard pattern on the horizontal plane within the simulation taken from the perspective of the camera. Corners of the checkerboard are manually identified in pixel space and the inverse perspective matrix is calculated based on the current old (perspective) and desired new (inverse perspective) positions. Automated identification of checkerboard corners is possible however the simulation camera rotation with reference to the horizontal plane is fixed therefore only a single calibration is required. The input and output of the inverse perspective mapping calibration undertaken is included as figure \ref{f:inverse_perspective_calibration}.
 
@@ -182,7 +196,7 @@ Simple lane detection approaches for straight lanes using the Hough Transform we
 	\label{f:inverse_perspective_calibration}
 \end{figure}
 
-Key considerations within the Computer Vision implementation descision process are in the following subsections.
+Key considerations within the Computer Vision implementation decision process are in the following subsections.
 
 \subsubsection{Open CV}\label{s:openCV}
 
@@ -196,30 +210,35 @@ While implementing all functions manually has merit for further reinforcement of
 	& Increase familiarity with available tools for future use
 \end{easylist}
 
-\subsubsection{Python vs C++} \label{s:pythonVc}
+\subsubsection{Language choice} \label{s:pythonVc}
 
 Given the choice of OpenCV for the CV framework the options considered for the core language were C++ or Python. C++ has the advantage of being `lower level' however the OpenCV Python interface compiles down to the same C++ code so the only performance gains would be in the general program code as opposed to the CV implementations. Simulation engine considerations also played a part, as discussed in section \ref{s:simEngineChoice}, Unreal Engine uses C++ which would allow simulation code to talk directly to the OpenCV interface.
 
 Despite the above advantages, C++ comes with an increased complexity and any speed gains require a robust understanding (and implementation) of memory management. By contrast, Python presents a lower barrier to entry while maintaining the OpenCV C++ vectorised optimisation. In addition, libraries such as numpy within Python present fast vectorised operations for arrays. The descision to use Unity for the simulation engine as discussed in section \ref{s:simEngineChoice} removed the major benefit of the C++ interface thus Python was determined to be the preferred language.
 
-\subsubsection{TODO: Alternate approaches to lane detection}
-CNN discussion with references?
-Should this go in future work?!!?
+\subsection{Simulation system}
 
-\subsection{TODO: Simulation system}
+A significant element of the project deliverable is the development of the simulation system to provide sensor outputs. The intent of the simulation is to provide a pipeline of sensor feeds and potentially a \textbf{interface to control a simulated vehicle based off BLAH} with scope of the simulation as discussed in section \ref{s:scope}. \textbf{TODO: ?scope? IPC?} Key elements of the simulation system are discussed in the following subsections.
 
-Intent of simulation
-What it is trying to do
-IPC
 
-\subsubsection{TODO: Simulation engine} \label{s:simEngineChoice}
-%Home rolled vs Unreal (C++ so can talk direct to OpenCV C++) vs Unity 
+\subsubsection{Simulation engine} \label{s:simEngineChoice}
 
-Full custom engine: overhead of implementation of 3D visuals incl texturing, models (import). Large time commitment for negligable benefit
-Unity: Professional 3D engine used in games and CG. Very comfortable with workflow. Uses C\# which is comfortable language but does not talk directly to OpenCV: requires IPC development
-Unreal: Professional 3D engine used in games and CG. C++ code allows direct talking to OpenCV. C++ requires language famil and more importantly, learning curve for engine
+Two courses of action were available for the implementation of the simulation engine; a full custom engine or use an existing game engine for the base. For the existing game engine option, Unreal and Unity were both considered. A full custom engine allows fine grain control over the implementation the specific requirements of the simulation however has significant overheads including the implementation of 3D visuals including rendering, texturing and importing of 3D models. It was determined that this represented a very large time commitment for negligable benefit.
 
-Unity chosen due to ability to `hit the ground running' due to workflow and language familiarity. Accept technical risk of IPC implementation.
+Both Unity and Unreal are professional 3D engine used in commercial games and computer graphics applications. They are well established and have a robust set of supporting tools. Specific considerations for each engine are as follows:
+
+\begin{easylist}
+	& Unity
+	&& Personal experience with workflow; very comfortable
+	&& Personal experience with C\# which is used for scripting within the engine
+	&& No C\# interface with OpenCV therefore interprocess communication will need to be developed between the OpenCV processing implementation and the simulation engine.
+	& Unreal
+	&& New, unfamiliar workflow
+	&& Lack of familiarity and comfort with C++ which is used for scripting within the engine. `Blueprint' system does allow a visual programming approach although that represents an additional compenancy to be developed
+	&& C++ code allows direct interface with OpenCV
+\end{easylist}
+
+When considering the above factors and the OpenCV considerations discussed in section \ref{s:openCV}, Unity was chosen due to the ability to `hit the ground running' based on workflow and language familiarity. It was noted that this accepts a large technical risk of IPC implementation however it was deemed to be the preferred option.
 
 \subsubsection{Interprocess Communication (IPC)} \label{s:IPC}
 
@@ -235,33 +254,51 @@ The Python process casts the byte stream as a byte array and reshapes the data t
 
 A simple calibration was established using three coloured cubes (Red, Green and Blue) in Unity to confirm colour channel and axis orientation correctness. A still from the colour image IPC calibration undertaken is included as figure \ref{f:unity_calibration}. \textbf{TODO: Fix image - border? Also shrink and put in/near text}
 
-\begin{figure}[htb]% order of placement preference: here, top, bottom
- \includegraphics{unity_calibration.png}
- \caption{Still from calibration of colour image IPC pipeline between Unity and Python}
- \label{f:unity_calibration}
-\end{figure}
+%\begin{figure}[htb]% order of placement preference: here, top, bottom
+% \includegraphics{unity_calibration.png}
+% \caption{Still from calibration of colour image IPC pipeline between Unity and Python}
+% \label{f:unity_calibration}
+%\end{figure}
 
+%[width=50mm,scale=0.5]
+\begin{wrapfigure}{r}{0.5\textwidth} %this figure will be at the right
+	\centering
+	\includegraphics[width=0.5\linewidth, height=0.5\linewidth]{unity_calibration.png}
+	\caption{Still from calibration of colour image IPC pipeline between Unity and Python}
+	\label{f:unity_calibration}
+\end{wrapfigure}
 
-\subsubsection{TODO: Simulation time dilation}\label{sect:timedilation}
+\subsubsection{Simulation time dilation}\label{sect:timedilation}
 
-It was determined that the simulation had a requirement to dynamically scale simulation time based on the external processing in order to ensure the simulation effectiveness regardless of the data processing time requirement. \textbf{TODO: Allows }
+While the initial design aimed for realtime simulation and processing it was quickly determined that the simulation had a requirement to dynamically scale simulation time. This scaling is based on the external processing in order to ensure the simulation effectiveness regardless of the data processing time requirement and allows both the simulation to be effective on lower end computers and the number of sensors to scale without affecting simulation quality.
 
-%\section{Results}
-%Is this required?
-%\subsection{Computer vision}
-
+The implementation of time dilation involved a simulation controller that runs the simulation for a set time based off the desired sensor processing rate. After this time has elapsed, the sensor data is collated and sent to the external processing program via the IPC process outlined above. On completion of the data processing, the external program sends an acknowledgement in return which triggers the next simulation tick. This has been implemented and tested by sleeping the processing thread for several seconds each tick.
 
 \section{TODO: Future work}
 
-\subsection{TODO: Lane line detection}
+The work completed thus far has solved some key technical challenges required \textbf{TODO: }
+
+\subsection{TODO: Road detection}
+
+\subsubsection{TODO: Lane line detection}
 
 Detect the curve of the lane and identify intersections
 Curve detection options - sliding window REF LINK %https://www.spiedigitallibrary.org/conference-proceedings-of-spie/0852/0000/Progress-In-Road-Intersection-Detection-For-Autonomous-Vehicle-Navigation/10.1117/12.968232.short?SSO=1
 
-\subsection{TODO: Intersection detection}
+CNN discussion with references?
+
+\subsubsection{TODO: Intersection detection}
 
 \subsection{TODO: GPS Data matching}
+Curve matching (splines etc) and/or Map matching, 
 
+\subsection{TODO: Simulation}
+
+Road network
+GPS sensor
+GPS nav route definition
+
+extensions: Sensor external definitions
 %
 %\begin{table}[t] % no placement specified: defaults to here, top, bottom, page
 % \begin{center}
