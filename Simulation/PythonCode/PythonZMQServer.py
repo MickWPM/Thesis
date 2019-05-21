@@ -15,7 +15,7 @@ socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
 print("Listening")
 
-images_to_save = 100
+images_to_save = 200
 imgNum = 0
 images = []
 while imgNum < images_to_save:
@@ -65,14 +65,14 @@ print("DONE")
 # Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 #fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
-vid_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/unity_output.avi'
+vid_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/Videos/unity_output.avi'
 out = cv2.VideoWriter(vid_path, 
                         fourcc, 20, (DIMENSION, DIMENSION), True)
 
 for i in range(0, imgNum):
-    name = 'img_' + str(i) + '.png'
+    path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/Images/'
+    name = path + 'img_' + str(i) + '.png'
     #images[i].save(name)
-    cv2.imwrite(name, images[i])
     print("saving " + name)
 
     if i < imgNum / 2:
@@ -82,6 +82,7 @@ for i in range(0, imgNum):
         edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
         vid_frame = edges
 
+    cv2.imwrite(name, vid_frame)
     out.write(vid_frame)
 
 out.release()

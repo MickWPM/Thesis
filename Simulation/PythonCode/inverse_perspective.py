@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/Images/'
 im_path = 'PerspectiveTest.png'
 img = cv2.imread(im_path)
 
@@ -28,6 +29,6 @@ img_b = cv2.copyMakeBorder(birds_eye,10,10,5,10,cv2.BORDER_CONSTANT)
 
 img_combine = np.hstack((img_a, img_b))
 cv2.imshow('Inverse Perspective Example',img_combine)
-cv2.imwrite("Output/InversePerspectiveEg.png", img_combine)
+cv2.imwrite(folder_path + "InversePerspectiveEg.png", img_combine)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
