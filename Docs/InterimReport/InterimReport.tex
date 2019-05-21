@@ -170,20 +170,31 @@ The scope and deliverables have been identified as follows:
 
 Based on the levels outlined in table \ref{t:automationLevels} the intended level is to level 2 or 3 for cognitive assistance and in automated remote logistics applications such as autonomously traversing known routes in a military field setting to level 4.
 
-\section{TODO: Project management}
+\section{Project management}
 
 \subsection{Project Methodology}
-\textbf{TODO: Cut the extra crap from here - just talk about how it flows in general and leave the rest for the current work part}
 
-The initial state of the project consisted of autonomous vehicles as the general area of focus, as a result the first phase of the project was the identification of the `problem area' and narrowing of scope. A broad reading of relevant research and industry articles identified the ability to navigate in arbitrary areas as a candidate problem area and the scope was refined as outlined in section \ref{sect:intro}. 
+The initial state of the project was the field of autonomous vehicles as the general area of focus. As a result the preliminary phase of the project was the identification of the `problem area' and narrowing of scope. A broad reading of relevant research and industry articles identified the ability to navigate in arbitrary areas as a candidate problem area and the scope was refined as outlined in section \ref{sect:intro}. 
 
-This project is being undertaken in an area of study that is a new field for the author. As a result the early focus was on developing base competencies in digital image processing and general computer vision. This included a variety of tools and \textbf{TODO: Talk about the analysis of CV options. This included lane detection}
+This project is being undertaken in an area of study that is a new field for the author. As a result the early focus was on developing base competencies in digital image processing and general computer vision. This included both an understanding of the theory and mathematics behind DIP and CV tools and familiarity with implementation options. This extended into more specific areas such as straight lane detection.
 
-In parallel with the CV competency development, research and experimentation on key technical risk elements of the simulation was conducted. \textbf{TODO: These include.....}
+In parallel with the CV competency development, research and experimentation on key technical risk elements of the simulation was conducted. The core technical risk was the ability for simulation code to communicate with sensor processing code. The aim was to keep these two code bases separate to allow other individuals to use the simulation for relevant purposes without being tied in to the aims of this project.
 
-TODO:  Intersection detection, Curve matching (splines etc) and/or Map matching, 
+Once the core competancies have been developed and the supporting tool options have been analysed the focus will split between agile development of the simulation and the development of the external processing program. The simulation development will consist of `sprint' periods designed around providing incremental functionality, prioritised as needs arise. The development of the external processing forms the specific primary aim and will include the following core milestones:
 
-\subsection{TODO: Gantt Chart discussion}
+\begin{easylist}[itemize]
+	& Curved lane detection
+	& Intersection detection and identification of discrete roads
+	& Mapped road position estimation based off the GPS position and nearby road map nodes (accounting for GPS inaccuracy)
+	& Map matching, specifically some form of curve or spline matching to correlate the estimated map position with the identified road features
+	& Consolodation of return data. This may include:
+	&& Overlaying the navigation route directly to the video feed
+	&& Providing control inputs to the vehicle for autonomous driving of the route
+\end{easylist}
+
+Additional considerations which will be addressed as part of the simulation development include the data structure representation of the GPS maps and navigation routes. These will both be in line with the OSM data structures but may be simplified to specifically the required data for ease of processing in testing. Simplification of data will only occur where it is feasible that the OSM (or similar) data format can be transformed into the used data format with sufficient preprocessing. \textbf{TODO: ie. Using only information that is present in the OSM or similar data}
+
+\subsection{TODO: Gantt Chart discussion (Is this a subsection or just another para?)}
 
 \section{Current work}
 
