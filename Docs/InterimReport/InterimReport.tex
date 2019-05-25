@@ -1,5 +1,6 @@
 \documentclass[]{aiaa-tc}% insert '[draft]' option to show overfull boxes
 
+\usepackage[toc,page]{appendix} 
  \usepackage{varioref}%  smart page, figure, table, and equation referencing
  \usepackage{wrapfig}%   wrap figures/tables in text (i.e., Di Vinci style)
  \usepackage{threeparttable}% tables with footnotes
@@ -15,8 +16,9 @@
 % \usepackage[dvips]{dropping}% alternative dropped capital package
 % \usepackage[colorlinks]{hyperref}%  hyperlinks [must be loaded after dropping]
 %\usepackage{makeidx}
-\graphicspath{{Images/}}
 
+
+\graphicspath{{Images/}}
 %\usepackage[colorlinks]{hyperref}
 %\hypersetup{colorlinks = false}
 \usepackage{url}
@@ -43,16 +45,16 @@
   }
 
  % Data used by 'handcarry' option
- \AIAApapernumber{YEAR-NUMBER}
- \AIAAconference{Conference Name, Date, and Location}
- \AIAAcopyright{\AIAAcopyrightD{YEAR}}
+ %\AIAApapernumber{YEAR-NUMBER}
+ %\AIAAconference{Conference Name, Date, and Location}
+ %\AIAAcopyright{\AIAAcopyrightD{YEAR}}
 
  % Define commands to assure consistent treatment throughout document
- \newcommand{\eqnref}[1]{(\ref{#1})}
- \newcommand{\class}[1]{\texttt{#1}}
- \newcommand{\package}[1]{\texttt{#1}}
- \newcommand{\file}[1]{\texttt{#1}}
- \newcommand{\BibTeX}{\textsc{Bib}\TeX}
+% \newcommand{\eqnref}[1]{(\ref{#1})}
+% \newcommand{\class}[1]{\texttt{#1}}
+% \newcommand{\package}[1]{\texttt{#1}}
+% \newcommand{\file}[1]{\texttt{#1}}
+% \newcommand{\BibTeX}{\textsc{Bib}\TeX}
 
 %\makeindex
 
@@ -62,7 +64,6 @@
 
 
 \begin{abstract}
-Is an abstract required for the interim report? What is the wording style for it?
 The aim of this project is to investigate localising navigation data from a GPS feed to the observed road via a vehicle mounted camera. A subordinate aim as part of this is to develop a simulation that will provide sensor data to an external program for processing. 
 The early focus for this project was developing core competencies in Image Processing and Computer Vision techniques which feed in to the design of the localisation system architecture. OpenCV in Python will be used for the sensor analysis which includes GPS position data, navigation route information and video feed from a simulated vehicle.
 The simulation design and tool analysis was conducted with the key technical risks addressed. The simulation is being developed in Unity and requires inter process communication between the Unity process and the external Python process. This has been developed using the ZeroMQ library and the simulation uses dynamic time scaling to ensure that sensor data processing occurs at a desired rate. The simulation development has now entered an agile design approach with iterative functionality improvements to be delivered.
@@ -96,7 +97,7 @@ The navigation localisation problem has key technical risks in curved lane and i
 \newpage
 \section{Introduction} \label{sect:intro}
 %\index{}
- \textbf{TODO: REFERENCES DO REFERENCING THE FULL SECTION - SHOULD BE III-B-2, NOT JUST 2}
+ \textbf{TODO: REFERENCES DO REFERENCING THE FULL SECTION - SHOULD BE III-B-2, NOT JUST 2.}
  
 \lettrine[nindent=0pt]{T}{he} idea of a future where personal transportation is handled by autonomous vehicles is increasingly in the public consciousness however there is a range of challenges that need to be addressed from legal, security and ethical issues \citep{gmReport} to maturity concerns that out to the 2030s, `autonomous vehicles will be expensive novelties' \citep{vicTransportImplications}. Autonomous driving is not a binary capability however, rather a scale with increasing levels of autonomy. For context, the automation levels identified by the US National Highway Traffic Safety Administration \citep{automationVisionForSafety} are outlined in table \ref{t:automationLevels}. While it may be decades before true level 5 automation is developed, there is an undeniable increase in the cognitive assistance and partial automation technologies in consumer vehicles. As an example the 2019 Kia Sorento includes active lane keeping assist (lane detection and steering) and adaptive cruise control (autonomous acceleration and braking based off radar distance to leading vehicles) \citep{kia}, aligning to level 2 automation. 
 
@@ -222,16 +223,17 @@ Additional considerations which will be addressed as part of the simulation deve
 
 The bulk of the initial effort has been developing technical competency within informing disciplines. This includes both the CV technical competency development and addressing the simulation technical risks. Additionally to these aspects, familiarity projects were conducted on neural networks to consolidate the basic theory for potential future use. These projects consisted of developing neuroevolution based solutions for both a physics based ball balancing challenge over the duration of 5 minutes and custom cloned version of the mobile game `flappy bird'. Both solutions used a simple feedforward neural network coded in C\# without the use of any existing libraries with the networks evolving using a custom built genetic algorithm. The CV and simulation aspects are discussed in more detail in the following subsections.
 
-\subsection{Computer Vision}\label{s:currentWork_CV}
-
-Before any effective computer vision approaches can be implemented a robust base of understanding of digital image processing is required. In order to develop a robust understanding of DIP concepts study was undertaken using a range of publicly available resources. The main resource used for structured learning was the Spring 2015 offering of ECSE-4540 at Rensselaer Polytechnic Institute in New York by Rich Radke which has the full set of recorded lectures freely available online. Basic algorithms were implemented from first principles in MATLAB which reinforced the internalisation of the concepts. More advanced computer vision concepts were subsequently researched and tested within Python using OpenCV functionality which is discussed further in this section (subsections \ref{s:pythonVc} and \ref{s:openCV}). 
-
-\begin{wrapfigure}{r}{0.5\textwidth} %this figure will be at the right
+\begin{wrapfigure}{R}{0.5\textwidth} %this figure will be at the right
 	\centering
 	\includegraphics[width=0.5\textwidth, height=0.5\textwidth]{early_lane_detection_experiment.png}
 	\caption{Still from video feed lane detection experiment. Lower area of interest where frames are averaged visible in the bottom central part of the image}
 	\label{f:simpleLaneDetectionHough}
 \end{wrapfigure}
+\subsection{Computer Vision}\label{s:currentWork_CV}
+
+
+Before any effective computer vision approaches can be implemented a robust base of understanding of digital image processing is required. In order to develop a robust understanding of DIP concepts study was undertaken using a range of publicly available resources. The main resource used for structured learning was the Spring 2015 offering of ECSE-4540 at Rensselaer Polytechnic Institute in New York by Rich Radke which has the full set of recorded lectures freely available online. Basic algorithms were implemented from first principles in MATLAB which reinforced the internalisation of the concepts. More advanced computer vision concepts were subsequently researched and tested within Python using OpenCV functionality which is discussed further in this section (subsections \ref{s:pythonVc} and \ref{s:openCV}). 
+
 
 The Hough Transform was used to detect straight lanes with varying levels of success. The Hough Tranform converts a global detection problem in image space into a local peak detection problem in a parameter space \citep{surveyOfHT}. If lines in an image are represented by the orientation, $\theta$, and length $\rho$ of a line from the image origin to the line along the line's normal vector, straight lines in an image can be represented by a single point in Hough space \citep{houghPaper}. The Hough Tranform can be viewed as an evidence gathering procedure. Each image point votes for all parameter combinations that could have produced it, if it were part of the sought-after shape \citep{surveyOfHT} and the resulting thresholded peaks in Hough space correspond to the lines in an image. After edge detection is applied, the combination of all lane edge pixels result in peaks in Hough space which correspond to the line representing the edge of the road. Angle thresholds and non maximum supression was used to identify the most likely lane line.
 
@@ -307,23 +309,6 @@ Once the IPC approach was confirmed, the data handling pipeline between the Unit
 
 The Python process casts the byte stream as a byte array and reshapes the data to a 3D array. The fourth element of each colour value is removed, resulting in a final data structure consisting of a 2D array of 3 element vectors of bytes which is the required data structure for OpenCV processing operations. 
 
-A simple calibration was established using three coloured cubes (Red, Green and Blue) in Unity to confirm colour channel and axis orientation correctness. A still from the colour image IPC calibration undertaken is included as figure \ref{f:unity_calibration}.
-
-%\begin{figure}[htb]% order of placement preference: here, top, bottom
-% \includegraphics{unity_calibration.png}
-% \caption{Still from calibration of colour image IPC pipeline between Unity and Python}
-% \label{f:unity_calibration}
-%\end{figure}
-
-%[width=50mm,scale=0.5]
-\begin{wrapfigure}{r}{0.5\textwidth} %this figure will be at the right
-	\centering
-	\includegraphics[width=0.5\linewidth, height=0.5\linewidth]{unity_calibration.png}
-	\caption{Still from calibration of colour image IPC pipeline between Unity and Python}
-	\label{f:unity_calibration}
-\end{wrapfigure}
-\textbf{TODO: REMOVE THE FIGURE FOR COLOUR IMAGE CALIBRATION???}
-
 \subsubsection{Simulation time dilation}\label{sect:timedilation}
 
 While the initial design aimed for realtime simulation and processing it was quickly determined that the simulation had a requirement to dynamically scale simulation time. This scaling is based on the external processing in order to ensure the simulation effectiveness regardless of the data processing time requirement and allows both the simulation to be effective on lower end computers and the number of sensors to scale without introducing additional time complexity.
@@ -392,7 +377,7 @@ Once the skeleton has been obtained it can be matched to the possible intersecti
 
 The final step involves correlating the GPS positional data, features from video sensor feed and the navigation data to localise the navigation data to the vehicle position. Static route map matching at its most trivial relates a GPS position to the nearest point on a polyline. It is anticipated that this will be the first step in the localisation to approximate the position on the navigation route. 
 
-After this approximation, the road and intersection detection will be correlated with the GPS data to fully localise the position. An indication of how model based intersection detection \citep{modelBasedIntersection} may be implemented which will facilitate localisation is included as appendix \ref{app:modelDetection}.
+After this approximation, the road and intersection detection will be correlated with the GPS data to fully localise the position. An indication of how model based intersection detection \citep{modelBasedIntersection} may be implemented which will facilitate localisation is included as appendix \ref{app:modelDetection}. \textbf{TODO: Do we need this??}
 
 %\begin{wrapfigure}{r}{0.5\textwidth} %this figure will be at the right
 %	\centering
@@ -456,7 +441,7 @@ The main technical risks for the simulation have been successfully addressed and
 \section*{Appendices}
 \ref{app:ganttChart} - Gantt chart \\
 
-\textbf{TODO: Hough transform? Straight lane detection approach?}
+\ref{app:briefOverviewOfLaneDetection} - A brief overview of a simple approach to lane detection \\
 
 \ref{app:slidingWindow} - Sliding window detection for curved roads \\
 
@@ -472,9 +457,18 @@ The main technical risks for the simulation have been successfully addressed and
 \bibliography{InterimReferences}
 %\bibliographystyle{aiaa}
 
+
 \appendix
+\pagestyle{empty}
 \includepdf[angle=-90,scale=0.9,pages=1,pagecommand=\section{Gantt Chart for Research Project}\label{app:ganttChart}]{GanttChart.pdf} 
+
+%\includepdf[angle=0,scale=0.8,pages=1-,pagecommand=\section{A brief overview of a simple approach to lane detection}\label{app:briefOverviewOfLaneDetection}]{briefOverviewOfLaneDetection.pdf} 
+
+\includepdf[pages=1,scale=.8,pagecommand={\section{A brief overview of a simple approach to lane detection}\label{app:briefOverviewOfLaneDetection}},linktodoc=true]{briefOverviewOfLaneDetection.pdf}
+\includepdf[pages=2-,scale=.8,pagecommand={},linktodoc=true]{briefOverviewOfLaneDetection.pdf}
+
 \includepdf[angle=-90,scale=0.9,pages=1,pagecommand=\section{Sliding window detection for curved roads}\label{app:slidingWindow}]{curvedLaneDetection.pdf} 
+
 \includepdf[angle=-90,scale=0.9,pages=1,pagecommand=\section{Model based intersection detection approach}\label{app:modelDetection}]{modelBasedDetection.pdf} 
 
 
