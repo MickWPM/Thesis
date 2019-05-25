@@ -127,6 +127,9 @@ The idea of local navigation goals has been explored with the use of Open Street
 
 The ability to use computer vision to align GPS positioning with mapping service data will allow greater cognitive assistance in driver included tasks without the requirement for significant prior mapping. As augmented reality technology increases this also allows for more immersive driver aides such as navigation routes overlayed onto the visible road. In addition to the cognitive assistance, the ability to localise a navigation route opens the possibility for the automation of certain tasks which do not rely on complex tracking of other vehicles and pedestrians, for example routine military field logistics supply lines. A true complete solution will rely on sensor fusion from a suit of complimentary sensors supporting each other and providing redundancy. 
 
+
+\textbf{TODO: More specific research is discussed in the relevant current and future work areas as applicable}
+
 \subsection{Terminology}
 
 The following abbreviations and definitions are used throughout this report:
@@ -185,6 +188,8 @@ The scope and deliverables have been identified as follows:
 	&& Support simulated GPS tracking data
 	&& Support simulation of GPS route guidance
 \end{easylist}
+\textbf{TODO: SCOPE eg: The intersecting road must be of similar color to the road where the vehicle is traveling. The system must be able to identify the location and geometry of the lane in front of the vehicle.The system must be able to identify any intersecting roads on either the driver or passenger side of the vehicle and determine its distance from the camera.}
+
 
 Based on the levels outlined in table \ref{t:automationLevels} the intended level is to level 2 or 3 for cognitive assistance and in automated remote logistics applications such as autonomously traversing known routes in a military field setting to facilitate the ability to control to level 4 autonomy.
 
@@ -228,7 +233,9 @@ Before any effective computer vision approaches can be implemented a robust base
 	\label{f:simpleLaneDetectionHough}
 \end{wrapfigure}
 
-Simple lane detection approaches for straight lanes using the Hough Transform were implemented with varying levels of success. It was noted that the simple approaches suffered when the dashed lane line was faint in comparison with other linear features and when the road was cast in intermittent shadow. The final experiment to improve on detection involved lane detection on a video feed using a rolling average of a lower area of interest of the most recent 5 frames of video as input to the lane detection for each frame. The lane detection approach involved identifying straight lines using the Hough Transform of the Canny edge detected area of interest after a low pass filter had been applied. The Hough lines were then chosen based on strength with the strongest line for each angle (side of the lane) chosen. The output consisted of the averaged area of interest with the detected lane lines in red overlayed onto the original frame. An example frame from the video output is included as figure \ref{f:simpleLaneDetectionHough}.
+The Hough Transform was used to detect straight lanes with varying levels of success. The Hough Tranform converts a global detection problem in image space into a local peak detection problem in a parameter space \citep{surveyOfHT}. If lines in an image are represented by the orientation, $\theta$, and length $\rho$ of a line from the image origin to the line along the line's normal vector, straight lines in an image can be represented by a single point in Hough space \citep{houghPaper}. The Hough Tranform can be viewed as an evidence gathering procedure. Each image point votes for all parameter combinations that could have produced it, if it were part of the sought-after shape \citep{surveyOfHT} and the resulting thresholded peaks in Hough space correspond to the lines in an image. After edge detection is applied, the combination of all lane edge pixels result in peaks in Hough space which correspond to the line representing the edge of the road. Angle thresholds and non maximum supression was used to identify the most likely lane line.
+
+It was noted that the simple approaches suffered when the dashed lane line was faint in comparison with other linear features and when the road was cast in intermittent shadow. The final experiment to improve on detection involved lane detection on a video feed using a rolling average of a lower area of interest of the most recent 5 frames of video as input to the lane detection for each frame. The lane detection approach involved identifying straight lines using the Hough Transform of the Canny edge detected area of interest after a low pass filter had been applied. The Hough lines were then chosen based on strength with the strongest line for each angle (side of the lane) chosen. The output consisted of the averaged area of interest with the detected lane lines in red overlayed onto the original frame. An example frame from the video output is included as figure \ref{f:simpleLaneDetectionHough}. \textbf{TODO: Overview of this approach as appendix???}. 
 
 %\begin{figure}[htb]% order of placement preference: here, top, bottom
 %	\includegraphics{early_lane_detection_experiment.png}
@@ -236,7 +243,9 @@ Simple lane detection approaches for straight lanes using the Hough Transform we
 %	\label{f:simpleLaneDetectionHough}
 %\end{figure}
 
-The basic approach to lane detection using CV involves correcting the image for camera lenses before inverse perspective mapping to get a `birds eye view' of the road. From this top down perspective, road/lane analysis can be conducted properly. An inverse perspective mapping calibration was developed using the interprocess communication implementation discussed in section \ref{s:IPC}. This calibration consists of still image of a checkerboard pattern on the horizontal plane within the simulation taken from the perspective of the camera. Corners of the checkerboard are manually identified in pixel space and the inverse perspective matrix is calculated based on the current old (perspective) and desired new (inverse perspective) positions. Automated identification of checkerboard corners is possible however the simulation camera rotation with reference to the horizontal plane is fixed therefore only a single calibration is required. The input and output of the inverse perspective mapping calibration undertaken is included as figure \ref{f:inverse_perspective_calibration}.
+Inverse perspective mapping is `a geometrical transform that attempts to remove the perspective effect present in an image captured by a camera pitched down towards a road' \citep{intersectionDetectionSingleCamera}, allowing a birds eye view of the scene by weighing each pixel according to its information content \citep{stereoIPM}. Inverse perspective mapping has many uses within the autonomous driving realm including vanishing point detection  \citep{ipmVanishingPoint}, attitude noise reduction \citep{ipmAttitudeNoise}, distance determination \citep{ipmDistanceDetermination}, regularizing optical flow \citep{ipmOpticalFlow} including for improving relative velocity determination \citep{ipmOpticalFlowSpeed} and detailed depth information in stereo \citep{stereoIPM}. Importantly though, inverse perspective mapping is a key part of for lane and obstacle detection \citep{ipmOpticalFlow} \citep{ipmDistanceDetermination} \citep{ipmBasedLaneDetectionApproach} \citep{ipmVanishingPoint}.
+
+The basic approach to lane detection using CV then involves correcting the image for camera lenses before inverse perspective mapping to get a `birds eye view' of the road. From this top down perspective, road/lane analysis can be conducted properly. An inverse perspective mapping calibration was developed using the interprocess communication implementation discussed in section \ref{s:IPC}. This calibration consists of still image of a checkerboard pattern on the horizontal plane within the simulation taken from the perspective of the camera. Corners of the checkerboard are manually identified in pixel space and the inverse perspective matrix is calculated based on the current old (perspective) and desired new (inverse perspective) positions. Automated identification of checkerboard corners is possible however the simulation camera rotation with reference to the horizontal plane is fixed therefore only a single calibration is required. The input and output of the inverse perspective mapping calibration undertaken is included as figure \ref{f:inverse_perspective_calibration}.
 
 \begin{figure}[htb]% order of placement preference: here, top, bottom
 	\includegraphics{InversePerspectiveEg.png}
@@ -313,6 +322,7 @@ A simple calibration was established using three coloured cubes (Red, Green and 
 	\caption{Still from calibration of colour image IPC pipeline between Unity and Python}
 	\label{f:unity_calibration}
 \end{wrapfigure}
+\textbf{TODO: REMOVE THE FIGURE FOR COLOUR IMAGE CALIBRATION???}
 
 \subsubsection{Simulation time dilation}\label{sect:timedilation}
 
@@ -341,7 +351,9 @@ The work completed thus far has solved some key technical challenges required, i
 
 \subsubsection{Lane detection}
 
-Detection of straight lane lines has been completed in the familiarisation activities conducted as discussed in section \ref{s:currentWork_CV} and demonstrated in figure \ref{f:simpleLaneDetectionHough} however a more complex challenge is identifying a curved lane. The current approach being investigated is lane edge detection via polynomial fitting of edge pixels detected by sliding window. 
+Detection of straight lane lines has been completed in the familiarisation activities conducted as discussed in section \ref{s:currentWork_CV} and demonstrated in figure \ref{f:simpleLaneDetectionHough}. Alternative approaches to lane detection which may be considered include k-means clustering \citep{ipmBasedLaneDetectionApproach} road classification from histogram based segmentation \citep{histogramSegmentationRoadClassification} road surface mapping from near field driving surface models \citep{darpaChallengeRoadDetection}, matching road curvature models to detected lane boundaries \citep{intersectionDetectionSingleCamera}  and open uniform B-spline model lane fitting \citep{ipmBasedLaneDetectionApproach}.
+
+A more complex challenge is identifying a curved lane. The current approach being investigated is lane edge detection via polynomial fitting of edge pixels detected by sliding window. 
 
 The sliding window detection process is as follows:
 \begin{easylist}[itemize]
@@ -367,11 +379,14 @@ In addition to the sliding window detection, supervised convolutional neural net
 
 \subsubsection{Intersection detection}
 
+The SCARF (Supervised Classification Applied to Road Following) approach of using Gaussian colour models to identify road surface before road model matching \citep{scarf} and UNSCARF (UnSupervised Classification Applied to Road Following) which uses feature identification, clustering and edge detection and road model matching \citep{unscarf} have both demonstrated an ability to detect lanes and intersections in non ideal conditions using a dual camera setup, although not in real time \citep{scarfAndUnscarfPresented}. A data driven model using a `virtual camera' supported by model based intersection matching has also shown promise \citep{alvinnVC} however this requires prior information to reconstruct virtual images. Alternatively, once a binary road surface map is obtained, row based histograms can be used to identify intersection locations by interpolation between intersection models \citep{intersectionDetectionSingleCamera}.
+
 Intersection detection presents a more challenging prospect than simple lane detection. The simplifying assumption of a single left and right lane edge is removed when intersections are introduced. One example of effective intersection detection as it applies to this project is model based recognition which matches intersection models to a series of road boundary points \citep{modelBasedIntersection}. The advantage of this method is edge detected pixels can be used as the boundary points and the intersection model can be built reasonably simply using the OSM map data.
 
 An alternate approach is using skeletonisation of the road binary mask. When the full road surface is represented by a binary mask, skeletonisation will reduce each road to a single pixel line. Intersections of the pixel lines will represent the intersection midpoint with each skeleton arm representing a road surface entering the intersection. Skeletonisation can be achieved by morphological erosion/thinning operations or by obtaining the medial axis transform via the distance transform.
 
 Once the skeleton has been obtained it can be matched to the possible intersection orientations in a similar way to the model based recognition initially outlined. It is assessed at this stage that the skeletonisation is likely a redundant step however it is an option if the model based approach proves unreliable. The technical risk of this aspect is medium.
+
 
 \subsection{Navigation localisation}
 
@@ -429,6 +444,8 @@ The main technical risks for the simulation have been successfully addressed and
 
 
 
+
+
 %\section{Recommendations}
 %This section should discuss and recommend directions for future work that will build on and extend your research and perhaps resolve some of the issues that you have encountered in your work.
 %
@@ -437,8 +454,9 @@ The main technical risks for the simulation have been successfully addressed and
 %
 \newpage
 \section*{Appendices}
-
 \ref{app:ganttChart} - Gantt chart \\
+
+\textbf{TODO: Hough transform? Straight lane detection approach?}
 
 \ref{app:slidingWindow} - Sliding window detection for curved roads \\
 
