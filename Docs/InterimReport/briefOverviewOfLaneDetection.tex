@@ -31,26 +31,35 @@
 		& Isolate the area of interest in the frame as the image data to be operated on, \textit{$I$}
 		& Convert the pixels in \textit{$I$} from RGB to greyscale, \textit{$I_g$}
 		& Identify edge pixels from \textit{$I_g$} using an edge detection algorithm, resulting in a binary edge map, \textit{$E$}
-		&& Optionally low pas filter (blur) and/or threshold the image data prior
+		&& Optionally preprocess image data by low pass filtering (blur) prior
 		& Transform the edge pixels, \textit{$E$} into Hough space \textit{$H$}
-		& Identify a set of lines of interest \textit{$L$} by thresholding \textit{$H$} to an appropriate level
-		& For each lane line, left and right:
-		&& From a subset of lines in \textit{$L$} representing lines withing angle of interest for the lane (ie. limit the lines to the expected angle range), select the line with the highest value (vote count).
+		& Identify a set of lines of interest \textit{$l$} by thresholding \textit{$H$} to an appropriate level
+		& For each lane/road edge, left and right:
+		&& From a subset of lines in \textit{$l$} representing lines within an angle of interest for the lane edge (ie. limit the lines to the expected angle range), select the line with the highest value (vote count).
 	\end{easylist}
 
 	The end result of this approach, assuming the road lines are adequately marked, is a line either side of the lane representing the approximated lane lines. Note that the above approach did not include inverse perspective mapping. This is a technique that provides a `birds eye view' of the image by transforming the pixels and is commonly used in lane detection however is not required in this simple case.
 	
 	\section{Isolation of image data \textit{$I$}}
-	
-	Image data is stored as a two dimensional array of colours (usually represented by a three element vector for Red, Blue and Green channels). Isolation of the data in the region of interest is as simple as selecting a subrange of the array in the relevant area. A simple example of this is shown in figure \ref{pixelSubset} where the subset from a to b and c to n
-	
-	\begin{wrapfigure}{r}{0.35\textwidth}
-		\begin{center}
-			\includegraphics[width=0.34\textwidth]{pixelSubset}
-		\end{center}
+	%\setlength{\columnsep}{0pt}%
+	\setlength{\intextsep}{0pt}%
+	\begin{wrapfigure}{h!}{0.35\textwidth}
+		\includegraphics[width=0.34\textwidth]{pixelSubset}
 		\caption{Subset of pixels from the full image array}
 		\label{pixelSubset}
 	\end{wrapfigure}
+	
+	Image data is stored as a two dimensional array of colours (usually represented by a three element vector for Red, Blue and Green channels). Isolation of the data in the region of interest is as simple as selecting a subrange of the array in the relevant area. A simple example of this is shown in figure \ref{pixelSubset} where the subset from $(a,c)$ to $(b,n)$ is defined as the region of interest. In this case the image data to be operated on, \textit{$I$} would be a new array with the values $(a,c)$ to $(b,n)$. Conversion to greyscale is simply a weighted average of the channels, with different algorithm implementations weighting channels in different ratios.
+	
+%	\begin{wrapfigure}{r}{0.35\textwidth}
+%		\begin{center}
+%			\includegraphics[width=0.34\textwidth]{pixelSubset}
+%		\end{center}
+%		\caption{Subset of pixels from the full image array}
+%		\label{pixelSubset}
+%	\end{wrapfigure}
+
+
 
 %	\begin{figure}
 %		\centering
@@ -60,11 +69,10 @@
 %	\end{figure}
 %	
 	
-	Conversion to greyscale is simply a weighted average of the channels, with different algorithm implementations.
 	
 	\section{Development of binary edge map \textit{$E$}}
 	
-	 The binary edge map is developed using an edge detection algorithm. There are many of these but one the simplest involves filtering with a sobel operator. At the simplest level the Sobel operator is a 3x3 filter (or kernal) with positive coefficients on one side, negative coefficients on the other and zeroes in the middle. An example of a vertical line detection Sobel operator is below as equation \ref{sobelOp}. The binary edge map is created by taking the absolute value of the filtered result and thresholding it over a certain value. For example if the absolute value of a filtered pixel is greater than 150, consider it an edge. \\
+	 The binary edge map is developed using an edge detection algorithm. There are many of these but one the simplest involves filtering with a sobel operator. At the most basic level the Sobel operator is a 3x3 filter (or kernal) with positive coefficients on one side, negative coefficients on the other and zeroes in the middle. An example of a vertical line detection Sobel operator is below as equation \ref{sobelOp}. The binary edge map is created by taking the absolute value of the filtered result for each pixel and thresholding it over a certain value. For example if the absolute value of a filtered pixel is greater than 150, consider it an edge. \\
 
 	\begin{equation}\label{sobelOp}
 		\begin{bmatrix} 
@@ -74,7 +82,7 @@
 		\end{bmatrix}
 	\end{equation}
 	 	 
-	 Applying a filter is similar to a form of 2D convolution. The filter is in the form of an odd dimensioned 2D array of coefficients. The central point of the filter is placed over the pixel being considered at $(x,y)$ and the value of the new pixel,  $(x',y')$ is the summation of all the elementwise products of the relevant coefficients of the filter and the corresponding image area. As an example in figure \ref{filter}, a Sobel filter to detect vertical lines is being applied to example pixels. The top left pixel is in a region of change and would be considered an edge pixel after thresholding. The lower right pixel is in an area of relatively constant values and after thresholding would be not considered an edge.
+	 Applying a filter is similar to a form of 2D convolution. The filter is in the form of an odd dimensioned 2D array of coefficients. The central point of the filter is placed over the pixel being considered at $(x,y)$ and the value of the new pixel,  $(x',y')$ is the summation of all the elementwise products of the relevant coefficients of the filter and the corresponding image area. This occurs for all pixels in the image; it can be considered that the filter is `sliding' over the image pixel by pixel. As an example in figure \ref{filter}, a Sobel filter to detect vertical lines is being applied to example pixels. The top left pixel is in a region of change and would be considered an edge pixel after thresholding, note the value of the pixel is capped at a ceiling of 255 in this instance. The lower right pixel is in an area of relatively constant values and after thresholding would be not considered an edge.
 	
 	\begin{figure}
 		\centering
@@ -83,14 +91,11 @@
 		\label{filter}
 	\end{figure}
 
-	It is important to note that while the Sobel operator is a simple edge detection approach, this treatment has been at the most basic level. The horizontal and vertical kernals can be combined to develop a dual horizontal and vertical edge detector and a similar theory can be used to develop a detector sensitive to specific edge orientations. Additionally the sign of the filtered output carries additional information that is not being considered here. Even so, one easy identifiable shortfall is the fact that regions of constant change will produce multiple edge pixels after thresholding. The Canny Edge detector is an improved (albeit computationally slower) approach which includes non maximum suppression to develop a more refined edge map. These considerations are more complex and outside the scope of this brief overview.	
+	It is important to note that while the Sobel operator is a simple edge detection approach, this treatment has been at the most basic level. Horizontal and vertical kernals can be combined to develop a dual horizontal and vertical edge detector and a similar theory can be used to develop a detector sensitive to specific edge orientations. The Sobel operator approximates the gradient of the intensity thus the sign of the filtered output carries additional information that is not being considered here. Even so, one easy identifiable shortfall is the fact that regions of change over multiple pixels (`wide' edges) may produce multiple edge pixels after thresholding. The Canny Edge detector is an improved (albeit computationally slower) approach which includes non maximum suppression to develop a more refined edge map. These considerations are more complex and outside the scope of this brief overview.	
 	
 	
 	\section{Line detection using Hough Transform}
-	
-	
-	\subsection{Hough transform theory}	
-	
+		
 	\begin{wrapfigure}{r}{0.35\textwidth}
 		\begin{center}
 			\includegraphics[width=0.34\textwidth]{HoughLineSpace}
@@ -109,7 +114,7 @@
 %	\end{figure}
 
 	
-	A single pixel in image space is represented as a single sinusiodal line in Hough space. This represents all the combinations of $\theta$ and $\rho$ that would result in a line passing through this point. Each point in Hough space is then considered as a `voting bin' where each pixel considered in the binary edge map `votes' for lines it could belong to. In the case of a single pixel, there would be one `vote' at each point in Hough space that the sinusiodal line corresponds to. This is demonstrated visually in figure \ref{HoughBasics}.
+	A single pixel in image space is represented as a single sinusiodal line in Hough space. This represents all the combinations of $\theta$ and $\rho$ that would result in a line passing through the pixel location in image space. Each point in Hough space is then considered as a `voting bin' where each pixel considered in the binary edge map `votes' for lines it could belong to. In the case of a single pixel, there would be one `vote' at each point in Hough space that the sinusiodal line corresponds to. This is demonstrated visually in figure \ref{HoughBasics}.
 	
 	\begin{figure}
 		\centering
@@ -126,7 +131,7 @@
 %		\label{HoughBasics}
 %	\end{wrapfigure}
 	
-	If we then consider two pixels in image space, there is only a single possible line that could pass through both points. As per figure \ref{HoughBasics}, each individual pixel is transformed into a single line in Hough space but as there are two lines, there is a point where they intersect. This is demonstrated visually in figure \ref{HoughBasics2}. Investigating the Hough space `bins' would show many bins with a single vote but one bin with two votes. This bin represents a peak in Hough space and corresponds to the $\theta$ and $\rho$ value which would result in a line passing through the two pixels.
+	If we then consider two pixels in image space, there is only a single possible line that could pass through both points. As per figure \ref{HoughBasics}, each individual pixel is transformed into a single line in Hough space but as there are two lines, there is a point where they intersect. This is demonstrated visually in figure \ref{HoughBasics2}. Investigating the Hough space `bins' would show multiple bins with a single vote (corresponding to the two sinusiodal Hough space lines) however one bin with two votes; ocurring at the location where the Hough space lines cross as both pixels place a `vote' at that location. This bin represents a peak in Hough space and corresponds to the $\theta$ and $\rho$ value which would result in a line passing through the two pixels.
 	
 	
 
