@@ -18,9 +18,19 @@ public class AxleInfo
 
 public class SimpleCarController : MonoBehaviour
 {
+    public float velocity;
+
     public List<AxleInfo> axleInfos;
     public float maxMotorTorque;
     public float maxSteeringAngle;
+
+    Rigidbody rb;
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody>();
+        rb.centerOfMass = Vector3.up * 0.3f;
+    }
+
 
     public void ApplyLocalPositionToVisuals(WheelCollider collider, Transform visualWheel)
     {
@@ -35,8 +45,11 @@ public class SimpleCarController : MonoBehaviour
         visualWheel.transform.rotation = rotation;
     }
 
+    
     public void FixedUpdate()
     {
+        velocity = rb.velocity.magnitude * 3.6f;
+
         float motor = maxMotorTorque * Input.GetAxis("Vertical");
         float steering = maxSteeringAngle * Input.GetAxis("Horizontal");
 
