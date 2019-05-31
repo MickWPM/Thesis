@@ -45,13 +45,16 @@ public class SimpleCarController : MonoBehaviour
         visualWheel.transform.rotation = rotation;
     }
 
+    public void SetControlStatus(float motor, float steering)
+    {
+        this.motor = maxMotorTorque * motor;
+        this.steering = maxSteeringAngle * steering;
+    }
     
+    float motor, steering;
     public void FixedUpdate()
     {
         velocity = rb.velocity.magnitude * 3.6f;
-
-        float motor = maxMotorTorque * Input.GetAxis("Vertical");
-        float steering = maxSteeringAngle * Input.GetAxis("Horizontal");
 
         foreach (AxleInfo axleInfo in axleInfos)
         {

@@ -5,9 +5,11 @@ using UnityEngine;
 public class GPSData : SensorData
 {
     public readonly Vector3 position;
-    public GPSData(Sensor sensor, Vector3 position) : base(sensor)
+    public readonly float speedKPH;
+    public GPSData(Vector3 position, float speedKPH)
     {
         this.position = position;
+        this.speedKPH = speedKPH;
     }
 
     public override string ToString()

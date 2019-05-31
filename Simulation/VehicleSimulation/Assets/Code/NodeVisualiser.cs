@@ -5,15 +5,28 @@ using UnityEditor;
 
 public class NodeVisualiser : MonoBehaviour
 {
-    public List<Vector3> nodes = new List<Vector3>();
+    public List<RoadNode> nodes = new List<RoadNode>();
     public Transform fromPos;
+
+    public NavigationSystem navSystemToTest;
 
     private void Start()
     {
         nodes = GetNodesFromPos(fromPos.position);
+        SetNavRoute();
+
+        navSystemToTest.NavigationRouteCompleteEvent += SetNavRoute;
     }
 
-    private void OnDrawGizmosSelected()
+    [ContextMenu("SetNavRoute")]
+    public void SetNavRoute()
+    {
+        NavigationRoute navigationRoute = new NavigationRoute();
+        navigationRoute.waypoints = GetAllNodes();
+        navSystemToTest.CurrentRoute = navigationRoute;
+    }
+
+    private void OnDrawGizmos()
     {
         for (int i = 0; i < transform.childCount; i++)
         {
@@ -28,15 +41,15 @@ public class NodeVisualiser : MonoBehaviour
         }
     }
 
-    public List<Vector3> GetNodesFromPos(Vector3 currentPos)
+    public List<RoadNode> GetNodesFromPos(Vector3 currentPos)
     {
-        List<Vector3> nodes = GetAllNodes();
+        List<RoadNode> nodes = GetAllNodes();
         float minDist = float.MaxValue;
         int nodeIndex = -1;
 
         for (int i = 0; i < nodes.Count; i++)
         {
-            float thisDist = Vector3.Distance(currentPos, nodes[i]);
+            float thisDist = Vector3.Distance(currentPos, nodes[i].position);
             if (thisDist > minDist)
                 continue;
 
@@ -49,14 +62,14 @@ public class NodeVisualiser : MonoBehaviour
         return nodes;
     }
 
-    public List<Vector3> GetAllNodes()
+    public List<RoadNode> GetAllNodes()
     {
-        List<Vector3> nodes = new List<Vector3>(transform.childCount);
+        List<RoadNode> nodes = new List<RoadNode>(transform.childCount);
         Transform[] childTransforms = GetComponentsInChildren<Transform>();
 
         for (int i = 1; i < childTransforms.Length; i++)
         {
-            nodes.Add(transform.GetChild(i-1).position);
+            nodes.Add(new RoadNode( transform.GetChild(i-1).position));
         }
 
         return nodes;

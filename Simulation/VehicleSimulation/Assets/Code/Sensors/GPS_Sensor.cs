@@ -2,38 +2,56 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GPS_Sensor : Sensor
+public class GPS_Sensor : MonoBehaviour, Sensor
 {
-    public delegate Vector3 GPSErrorFunction(float deltaTime);
-    public delegate Vector3 GPSPositionFunction(float deltaTime);
-
-    GPSErrorFunction errorFunc;
-    GPSPositionFunction positionFunction;
+    [SerializeField] protected bool useMonoUpdate = true;
+    [SerializeField] float updateTime = 0f; //Only needed if we arent using the mono update
     GPSData data;
+    [SerializeField]
+    Transform _positionTransform;
+    public Transform PositionTransform { get => _positionTransform; protected set => _positionTransform = value; }
+    public GPSData CurrentData { get => data; }
 
-    public GPS_Sensor(GPSErrorFunction errorFunc, Transform target) : base()
+    Vector3 previousPosition = Vector3.zero;
+
+    void Awake()
     {
-        Init(errorFunc, (float deltaTime) => { return target.position; });
+        if (PositionTransform == null)
+        {
+            PositionTransform = transform;
+        }
+        previousPosition = PositionTransform.position;
     }
 
-    public GPS_Sensor(GPSErrorFunction errorFunc, GPSPositionFunction positionFunc) : base()
+    float timeSinceLastUpdate = 0;
+
+
+    void Update()
     {
-        Init(errorFunc, positionFunc);
+        if (useMonoUpdate)
+        {
+            Tick(Time.deltaTime);
+        } else
+        {
+            timeSinceLastUpdate += Time.deltaTime;
+            if (timeSinceLastUpdate > updateTime)
+            {
+                Tick(timeSinceLastUpdate);
+                timeSinceLastUpdate = 0;
+            }
+        }
     }
 
-    void Init(GPSErrorFunction errorFunc, GPSPositionFunction positionFunc)
+    public event System.Action<SensorData> GPSTickEvent;
+    public SensorData Tick(float deltaTime)
     {
-        this.errorFunc = errorFunc;
-        this.positionFunction = positionFunc;
-        Debug.Log("GPS called");
-    }
+        //TODO: This might be better in fixed delta time calc?
+        float speedKPH = 3.6f * (PositionTransform.position - previousPosition).magnitude / deltaTime;
 
-    public override SensorData Tick(float deltaTime)
-    {
-        Debug.Log("GPS Tick");
-        //Fill in data
-        data = new GPSData(this, positionFunction(deltaTime));
-
+        data = new GPSData(PositionTransform.position, speedKPH);
+        
+        GPSTickEvent?.Invoke(data);
+        previousPosition = PositionTransform.position;
         return data;
     }
 }
