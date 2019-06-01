@@ -7,6 +7,7 @@ import numpy as np
 #from PIL import Image
 #import struct
 import cv2
+import inverse_perspective as ip
 
 DIMENSION = 512
 
@@ -15,7 +16,9 @@ socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
 print("Listening")
 
-images_to_save = 200
+VID_FPS = 30
+VID_SECONDS = 20
+images_to_save = VID_FPS*VID_SECONDS
 imgNum = 0
 images = []
 while imgNum < images_to_save:
@@ -62,25 +65,30 @@ while imgNum < images_to_save:
 
 print("DONE")
 
+DIMS = (1054,532)
 # Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 #fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
 vid_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/Videos/unity_output.avi'
 out = cv2.VideoWriter(vid_path, 
-                        fourcc, 20, (DIMENSION, DIMENSION), True)
+                        fourcc, VID_FPS, DIMS, True)
 
+folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/'
+matrix = ip.GetCameraMatrix(folder_path,True)
 for i in range(0, imgNum):
     path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/Images/'
     name = path + 'img_' + str(i) + '.png'
     #images[i].save(name)
     print("saving " + name)
 
-    if i < imgNum / 2:
-        vid_frame = images[i]
-    else:
-        edges = cv2.Canny(images[i], 150, 180)
-        edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
-        vid_frame = edges
+    vid_frame = ip.GetBirdsEye(matrix, images[i], return_combo_img= True)
+
+    # if i < imgNum / 2:
+    #     vid_frame = images[i]
+    # else:
+    #     edges = cv2.Canny(images[i], 150, 180)
+    #     edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
+    #     vid_frame = edges
 
     cv2.imwrite(name, vid_frame)
     out.write(vid_frame)

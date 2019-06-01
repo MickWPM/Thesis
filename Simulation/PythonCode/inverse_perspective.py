@@ -2,11 +2,8 @@ import cv2
 import numpy as np
 
 
-folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/'
-im_path = 'unityCamCalibration.png'
-img = cv2.imread(im_path)
 
-def GetCameraMatrix(load_from_file = False):
+def GetCameraMatrix(folder_path, load_from_file = False):
     if load_from_file:
         matrix = np.load(folder_path + "unityCameraInverseMatrix.npy")
         return matrix
@@ -44,16 +41,31 @@ def GetCameraMatrix(load_from_file = False):
     matrix = np.load(folder_path + "unityCameraInverseMatrix.npy")
     return matrix
 
+def GetBirdsEye(matrix, img, resolution = (512,512), return_combo_img = False):
+    birds_eye = cv2.warpPerspective(img, matrix, resolution)
+    img_a = cv2.copyMakeBorder(img,10,10,10,5,cv2.BORDER_CONSTANT)
+    img_b = cv2.copyMakeBorder(birds_eye,10,10,5,10,cv2.BORDER_CONSTANT)
+    img_combine = np.hstack((img_a, img_b))
+    # RETURN COMBINE
+    if return_combo_img:
+        return img_combine
+    return birds_eye
 
-matrix = GetCameraMatrix(load_from_file=False)
-birds_eye = cv2.warpPerspective(img, matrix, (512,512))
 
-img_a = cv2.copyMakeBorder(img,10,10,10,5,cv2.BORDER_CONSTANT)
-img_b = cv2.copyMakeBorder(birds_eye,10,10,5,10,cv2.BORDER_CONSTANT)
 
-img_combine = np.hstack((img_a, img_b))
+def main():
+    print("IN WRONG CLASS")
+    folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/'
+    im_path = 'InversePerspective/unityCamCalibration.png'
+    img = cv2.imread(im_path)
 
-cv2.imshow('Inverse Perspective Example',img_combine)
-cv2.imwrite(folder_path + "InversePerspectiveEg.png", img_combine)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    matrix = GetCameraMatrix(load_from_file=False)
+    img_combine = GetBirdsEye(matrix, img, return_combo_img= True)
+
+    cv2.imshow('Inverse Perspective Example',img_combine)
+    cv2.imwrite(folder_path + "InversePerspectiveEg.png", img_combine)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+
+if __name__ == "__main__": main()
