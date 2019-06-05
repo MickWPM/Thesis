@@ -43,7 +43,7 @@ public class HelloClient : MonoBehaviour
         _helloRequester.Start();
         data = new byte[renderTexture.height * renderTexture.width];
 
-        SimulationController.Instance.OnSimTickComplete += OnSimTickComplete;
+        SimulationController.Instance.OnSimTickCompleteEvent += OnSimTickComplete;
         commsInit = true;
         Debug.Log("START COMMS");
     }
@@ -54,7 +54,7 @@ public class HelloClient : MonoBehaviour
             return;
 
         _helloRequester.Stop();
-        SimulationController.Instance.OnSimTickComplete -= OnSimTickComplete;
+        SimulationController.Instance.OnSimTickCompleteEvent -= OnSimTickComplete;
         commsInit = false;
         Debug.Log("STOP COMMS");
     }

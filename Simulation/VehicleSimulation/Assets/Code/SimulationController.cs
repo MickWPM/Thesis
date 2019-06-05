@@ -5,7 +5,8 @@ using UnityEngine;
 public class SimulationController : MonoBehaviour
 {
     public static SimulationController Instance;
-    public event System.Action OnSimTickComplete;
+    public event System.Action OnSimTickStartEvent;
+    public event System.Action OnSimTickCompleteEvent;
 
     // Start is called before the first frame update
     void Awake()
@@ -54,8 +55,8 @@ public class SimulationController : MonoBehaviour
     {
         Time.timeScale = 0;
         simulating = false;
-        if (OnSimTickComplete != null)
-            OnSimTickComplete();
+        if (OnSimTickCompleteEvent != null)
+            OnSimTickCompleteEvent();
     }
 
     bool nextTickTriggered = false;
@@ -70,5 +71,7 @@ public class SimulationController : MonoBehaviour
         Time.timeScale = 1;
         thisSim = 0;
         simulating = true;
+        if (OnSimTickStartEvent != null)
+            OnSimTickStartEvent();
     }
 }
