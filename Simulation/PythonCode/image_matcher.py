@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import road_feature_tracking as tracker
 
 def process_image(im, im_mask):
     im_raw = cv2.resize(im, (64, 64))
@@ -124,29 +125,29 @@ def DoMaskCheck():
 
 
 
-def DoOpticalFlow():
+def TestOpticalFlow(show_flow_points=False):
+    feature_coord = (296, 158)
     im_names = ['img_83.png', 'img_85.png', 'img_87.png', 'img_89.png']
     images = []
     for i in range(0, len(im_names)):
-        images.append( cv2.imread('img_matching/'+im_names[i], 0) )
+        im = cv2.imread('img_matching/'+im_names[i], 0)
+        _, im = cv2.threshold(im, 200, 240, cv2.THRESH_BINARY)
+        images.append( im )
+    flow_mask = np.zeros(images[0].shape, dtype=np.uint8)
+    flow_mask[60:300,140:380] = 1
 
-
-
-    flow_points = cv2.goodFeaturesToTrack(images[0], 6, 0.01, 0.01)
-    for i in range(0, (len(images)-1)):
-        p1, _st, _err = cv2.calcOpticalFlowPyrLK(images[i], images[i+1], flow_points, None, **lk_params)
-        print('Points:' + str(p1))
-        flow_points = p1
+    for i in range(1, (len(images))):
+        feature_coord, optical_features = tracker.GetUpdatedRoadFeatureLocation(images[i-1], images[i], feature_coord, flow_mask=flow_mask)
+        im = images[i].copy()
+        if show_flow_points:
+            for point in optical_features:
+                cv2.circle(im, tuple(point[0]), 3, (125, 125, 125))
+        cv2.circle(im, feature_coord, 5, (0,0,0))
+        cv2.imshow("Flow IMG", im)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 #DoMaskCheck()
 
-#https://github.com/opencv/opencv/blob/master/samples/python/lk_track.py
-lk_params = dict( winSize  = (15, 15),
-                  maxLevel = 2,
-                  criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 
-feature_params = dict( maxCorners = 500,
-                       qualityLevel = 0.3,
-                       minDistance = 7,
-                       blockSize = 7 )
-DoOpticalFlow()
+TestOpticalFlow(True)
