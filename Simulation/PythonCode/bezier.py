@@ -20,8 +20,8 @@ def add_points_visual(image, point_list, radius=7, colour=(255,0,0), write_point
             i += 1
 
 def get_p1_from_pc(p0,pc,p2,t=0.5, return_int=True):
-    x = (pc[0] - p0[0]*t*t - p2[0]*t*t)/t
-    y = (pc[1] - p0[1]*t*t - p2[1]*t*t)/t
+    x = (pc[0] - (1-t)*(1-t)*p0[0] - p2[0]*t*t)/(2*t*(1-t))
+    y = (pc[1] - (1-t)*(1-t)*p0[1] - p2[1]*t*t)/(2*t*(1-t))
     if return_int:
         x = int(x)
         y = int(y)
@@ -51,6 +51,65 @@ def write_text(img, bottomLeftCornerOfText, text, font= cv2.FONT_HERSHEY_SIMPLEX
         fontColor,
         lineType)
 
+
+def create_t_demo():
+    IM_HEIGHT = 512
+    IM_WIDTH = 512
+
+    frame_delay = 30
+    t_ticks = 100
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter('output.avi', fourcc, 30.0, (IM_HEIGHT, IM_WIDTH))
+
+    for tt in range(t_ticks,t_ticks*2):
+        t = tt/(t_ticks*3)
+        im = create_base_img(height=IM_HEIGHT, width=IM_WIDTH)
+        point_offsets = []
+        point_offsets.append((10,-20))
+        point_offsets.append((-10,20))
+        point_offsets.append((10,-20))
+        points = []
+        points.append((64*4,100*4))
+        points.append((64*4,64*4))
+        points.append((20*4,64*4))
+
+        pc = points[1]
+        p1 = get_p1_from_pc(points[0], pc, points[2], t=t)
+        points.append(p1)
+        add_points_visual(im, points, write_point_text=True, offset=(10,-20), offsets=point_offsets)
+
+        draw_bezier(im, points[0], p1, points[2])
+        write_text(im, (10,30), ('t : '+str(round(t, 2))))
+        cv2.imshow("Image", im)
+        cv2.waitKey(frame_delay)
+        out.write(im)
+        
+
+    for tt in range(t_ticks,t_ticks*2):
+        t = 1-tt/(t_ticks*3)
+        im = create_base_img(height=IM_HEIGHT, width=IM_WIDTH)
+        point_offsets = []
+        point_offsets.append((10,-20))
+        point_offsets.append((-10,20))
+        point_offsets.append((10,-20))
+        points = []
+        points.append((64*4,100*4))
+        points.append((64*4,64*4))
+        points.append((20*4,64*4))
+
+        pc = points[1]
+        p1 = get_p1_from_pc(points[0], pc, points[2], t=t)
+        points.append(p1)
+        add_points_visual(im, points, write_point_text=True, offset=(10,-20), offsets=point_offsets)
+
+        draw_bezier(im, points[0], p1, points[2])
+        write_text(im, (10,30), ('t : '+str(round(t, 2))))
+        cv2.imshow("Image", im)
+        cv2.waitKey(frame_delay)
+        out.write(im)
+
+    out.release()
+    cv2.destroyAllWindows()
 
 def create_demo():
     IM_HEIGHT = 512
@@ -127,4 +186,4 @@ def show_ideal():
 
 if __name__ == "__main__": 
     print("Bezier demo being saved")
-    show_ideal()
+    create_t_demo()

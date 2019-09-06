@@ -247,7 +247,7 @@ The formula for the basic Quadratic Bezier curve is outlined as equation \ref{eq
 
 \begin{align}
 \textbf{B}(t) &= (1-t)^2p_0 + 2t(1-t)p_1 + t^2p_2 \label{eq:quadratic_bezier} \\
-p_1 &= (p_c - t^2p_0 - t^2p_2)/t \label{eq:quadratic_bezier_constraint} \\
+p_1 &= (p_c - (1-t)^2p_0 - t^2p_2)/(2t(1-t)) \label{eq:quadratic_bezier_constraint} \\
 p_{mid} &= (1-a)p_1 + ap_c \label{eq:interpolated_p1}
 \end{align}
 
