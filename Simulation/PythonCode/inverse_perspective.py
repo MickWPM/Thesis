@@ -1,13 +1,12 @@
 import cv2
 import numpy as np
 
+def LoadCameraMatrix(folder_path):
+    matrix = np.load(folder_path + "unityCameraInverseMatrix.npy")
+    return matrix
 
 
-def GetCameraMatrix(folder_path, load_from_file = False):
-    if load_from_file:
-        matrix = np.load(folder_path + "unityCameraInverseMatrix.npy")
-        return matrix
-
+def CreateCameraMatrix(folder_path):
     show_guides = False
 
     a = (223,264)
@@ -35,8 +34,8 @@ def GetCameraMatrix(folder_path, load_from_file = False):
     pts1 = np.float32([(178,261), (330,261), (484,289), (18,289)])
     #pts2 = np.float32([newTopLeft, newTopRight, newBottomRight, newBottomLeft])
     pts2 = np.float32([(l,u), (r,u), (r,b), (l,b)])
-    #matrix = cv2.getPerspectiveTransform(pts1, pts2)
-    #np.save(folder_path + "unityCameraInverseMatrix", matrix)
+    matrix = cv2.getPerspectiveTransform(pts1, pts2)
+    np.save(folder_path + "unityCameraInverseMatrix", matrix)
 
     matrix = np.load(folder_path + "unityCameraInverseMatrix.npy")
     return matrix
@@ -57,10 +56,11 @@ def main():
     print("IN WRONG CLASS")
     folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/'
     im_path = 'InversePerspective/unityCamCalibration.png'
+    im_path = 'InversePerspective/sce_c.png'
     img = cv2.imread(im_path)
 
-    matrix = GetCameraMatrix(load_from_file=False)
-    img_combine = GetBirdsEye(matrix, img, return_combo_img= True)
+    matrix = LoadCameraMatrix(folder_path)
+    img_combine = GetBirdsEye(matrix, img, return_combo_img= False)
 
     cv2.imshow('Inverse Perspective Example',img_combine)
     cv2.imwrite(folder_path + "InversePerspectiveEg.png", img_combine)
