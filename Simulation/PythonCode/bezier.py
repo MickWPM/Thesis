@@ -98,7 +98,33 @@ def create_demo():
     out.release()
     cv2.destroyAllWindows()
 
+def show_ideal():
+    IM_HEIGHT = 512
+    IM_WIDTH = 512
+    im = create_base_img(height=IM_HEIGHT, width=IM_WIDTH)
+    point_offsets = []
+    point_offsets.append((10,-20))
+    point_offsets.append((-10,20))
+    point_offsets.append((10,-20))
+    points = []
+    points.append((64*4,100*4))
+    points.append((64*4,64*4))
+    points.append((20*4,64*4))
+
+    pc = points[1]
+    p1 = get_p1_from_pc(points[0], pc, points[2])
+    points.append(p1)
+    add_points_visual(im, points, write_point_text=True, offset=(10,-20), offsets=point_offsets)
+
+    a=0.6
+    p_mid = (int(((1-a)*p1[0]+a*pc[0])), int(((1-a)*p1[1]+a*pc[1])))
+    draw_bezier(im, points[0], p_mid, points[2])
+    
+    cv2.imshow("Image", im)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 
 if __name__ == "__main__": 
     print("Bezier demo being saved")
-    create_demo()
+    show_ideal()
