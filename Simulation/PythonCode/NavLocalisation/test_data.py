@@ -4,10 +4,13 @@ Implements required methods for nav_localisation data getter:
     feature_available, feature = get_next_feature()
     frame = get_next_frame()
     ipm = get_inverse_perspective_matrix()    #Matrix for frame inverse perspective mapping
+    ipm_mask = get_ipm_mask()                 #Mask for inverse perspective mapped image (for road surface detection masking)
 """
 
 import glob     #Reading directory of test images
 import cv2
+
+HISTOGRAM_WINDOW = ((245, 440), (267, 504))
 
 TEST_FEATURES = []
 def get_next_feature():
@@ -30,6 +33,10 @@ def get_next_frame():
 def get_inverse_perspective_matrix():
     print("TODO: ADD IN IPM HERE!!!! ADD DOCSTRING ONLY WHEN THIS IS IMPLEMENTED")
     return None
+
+def get_ipm_mask():
+    _, thresh = cv2.threshold(TEST_IMAGES[0], 1, 255, cv2.THRESH_BINARY)
+    return thresh[:, :, 0]
 
 def init_features():
     """Initialise features by loading them into TEST_FEATURES list"""
@@ -69,8 +76,13 @@ def test_get_next_frame(show_all_images = False):
     if img is None:
         print("NO IMAGES LOADED")
         return
-    counter = 1
+    print("IPM MASK")
+    ipm_mask = get_ipm_mask()
+    cv2.imshow("IPM Mask", ipm_mask)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
     print("First Image")
+    counter = 1
     cv2.imshow("First Image", img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
