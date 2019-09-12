@@ -46,10 +46,9 @@ class RoadSurfaceDetector:
         #convolution_disc = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
         cv2.filter2D(road_surface, -1, self.convolution_kernel, road_surface)
         if self.ipm_mask is not None:
-            print(road_surface.shape)
-            print(self.ipm_mask.shape)
             road_surface = cv2.bitwise_and(road_surface, self.ipm_mask)
 
+        #To visualise detected road
         # threshold and binary AND
         _, thresh = cv2.threshold(road_surface, 150, 255, 0)
         thresh = cv2.merge((thresh, thresh, thresh))
@@ -58,7 +57,7 @@ class RoadSurfaceDetector:
             new_frame = cv2.cvtColor(new_frame, cv2.COLOR_HSV2BGR)
         road_surface_visualised = cv2.bitwise_and(new_frame, thresh)
         
-        return road_surface
+        return road_surface, road_surface_visualised
 
 if __name__ == "__main__":
     print("main surface detection")

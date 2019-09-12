@@ -16,7 +16,7 @@ socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
 print("Listening")
 
-VID_FPS = 30
+VID_FPS = 20
 VID_SECONDS = 20
 images_to_save = VID_FPS*VID_SECONDS
 imgNum = 0
@@ -65,7 +65,7 @@ while imgNum < images_to_save:
 
 print("DONE")
 
-DIMS = (1054,532)
+DIMS = (images[0].shape[0], images[0].shape[1])
 # Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 #fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
@@ -74,14 +74,19 @@ out = cv2.VideoWriter(vid_path,
                         fourcc, VID_FPS, DIMS, True)
 
 folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/'
-matrix = ip.GetCameraMatrix(folder_path,True)
+
 for i in range(0, imgNum):
     path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/Images/'
-    name = path + 'img_' + str(i) + '.png'
+    num = str(i)
+    if i < 10:
+        num = "00" + str(i)
+    elif i < 100:
+        num = "0" + str(i)
+    name = path + 'img_' + num + '.png'
     #images[i].save(name)
     print("saving " + name)
 
-    vid_frame = ip.GetBirdsEye(matrix, images[i], return_combo_img= True)
+    vid_frame = images[i]
 
     # if i < imgNum / 2:
     #     vid_frame = images[i]

@@ -5,11 +5,12 @@ Workflow:
 """
 
 import cv2
+import numpy as np
 import test_data as td
 import feature_tracker
 import road_surface_detection
 
-PROCESSING_RESOLUTION = (256, 256)
+PROCESSING_RESOLUTION = (512, 512)
 
 def get_next_frame(get_frame_method):
     frame = get_frame_method()
@@ -18,27 +19,93 @@ def get_next_frame(get_frame_method):
 
 def inverse_perspective_frame(frame, ipm):
     """Inverse perspective mapping on current frame"""
-    #birds_eye = cv2.warpPerspective(frame, ipm, PROCESSING_RESOLUTION)
-    birds_eye = frame
-    print("TMP - NOT doing IPM")
+    birds_eye = cv2.warpPerspective(frame, ipm, PROCESSING_RESOLUTION)
+    #birds_eye = frame
+    #print("TMP - NOT doing IPM")
     return birds_eye
 
-def process_frame(frame, ipm, rsd):
+IPM_MASK=None
+FEATURE_IDENTIFIED = False
+CURRENT_FEATURE_MASK = None
+CURRENT_COMBINED_FEATURE_MASK = None
+FEATURE_ROAD_WIDTH_PX = 15
+FEAUTRE_COORD = None
+PREV_ROAD_SURFACE = None
+OPTICAL_FEATURES = None
+def process_frame(frame, feature, ipm, rsd):
+    global FEATURE_IDENTIFIED
+    global CURRENT_FEATURE_MASK
+    global CURRENT_COMBINED_FEATURE_MASK
+    global FEATURE_ROAD_WIDTH_PX
+    global FEAUTRE_COORD
+    global PREV_ROAD_SURFACE
+    global OPTICAL_FEATURES
     ipm_frame = inverse_perspective_frame(frame, ipm)
-    
-    res = rsd.get_road_surface_from_new_frame(frame)
-    
+    #ipm_optical_track = cv2.cvtColor(ipm_frame, cv2.COLOR_BGR2HSV)[:,:,0]
+    optical_track = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    road_surface, road_surface_visualised = rsd.get_road_surface_from_new_frame(ipm_frame)
     #identify road surface
     #feature already id'd?
-    ##Estimate feature position using optical flow from raw image
-    ##Confirm and refine feature estimate
-    ##Update feature if needed (ie. have we passed a 'node')
-    #ELSE
-    ## check feature map against road surface
-    ## IF id'd - Refine estimate
+    if FEATURE_IDENTIFIED:
+        print("FEATURE IDENTIFIED")
+        ##Estimate feature position using optical flow from raw image
+        flow_mask = np.zeros((optical_track.shape[0],optical_track.shape[1]), dtype=np.uint8)
+        flow_mask[feature[0][0]-80:feature[0][0]+80,feature[0][1]-80:feature[0][1]+80] = 1 #THIS USES 80PX AS A FEATURE SPACING - UPDATE TO NOT BE MAGIC
+        flow_mask = None
+        FEAUTRE_COORD, OPTICAL_FEATURES = feature_tracker.GetUpdatedRoadFeatureLocation(PREV_ROAD_SURFACE, optical_track, FEAUTRE_COORD, optical_features=OPTICAL_FEATURES, flow_mask=flow_mask)
+        ##Confirm and refine feature estimate
+        ##Update feature if needed (ie. have we passed a 'node')
+        ## DONT FORGET TO SET FEATURE AS NOT IDENTIFIED WHEN OUTSIDE THE CORNER
+        PREV_ROAD_SURFACE = optical_track.copy()
+        cv2.circle((optical_track.shape[0],optical_track.shape[1]), FEAUTRE_COORD, 25, (255,255,255), -1)
+        cv2.circle(road_surface_visualised,FEAUTRE_COORD, 25, (255,255,255), -1)
+        FEATURE_IDENTIFIED,  mask_probabilities = feature_tracker.check_feature(CURRENT_FEATURE_MASK, road_surface)
+        if not FEATURE_IDENTIFIED:
+            print("LOST FEATURE")
+            #We have lost the feature - are we "on" it?
+            ## If so then follow the interpolated curve
+            #If not then search and panic!
+    else:
+        if CURRENT_FEATURE_MASK is None:
+            CURRENT_FEATURE_MASK, CURRENT_COMBINED_FEATURE_MASK = feature_tracker.get_feature_masks(feature, PROCESSING_RESOLUTION, FEATURE_ROAD_WIDTH_PX)
+        ## check feature map against road surface
+        
+        FEATURE_IDENTIFIED,  mask_probabilities = feature_tracker.check_feature(CURRENT_FEATURE_MASK, road_surface)
+        if FEATURE_IDENTIFIED:
+            print("FEATURE DETECTED! WOO. PRESS A KEY TO CONTINUE")
+            PREV_ROAD_SURFACE = optical_track.copy()
+            FEAUTRE_COORD=feature[0]
+            cv2.circle(optical_track, FEAUTRE_COORD, 25, (255,255,255), -1)
+            cv2.circle(road_surface_visualised,FEAUTRE_COORD, 25, (255,255,255), -1)
+            ## IF id'd - Refine estimate
+                
+    #VISUALISATION
+    store_output((optical_track, road_surface_visualised), ipm)
 
-    cv2.imshow("roi ave", res)
+    cv2.imshow("roi ave", road_surface)
     cv2.waitKey(50)
+
+OUTPUT_IMAGES = []
+def store_output(output, ipm):
+    road_surface, road_surface_visualised = output
+    road_surface_3 = cv2.merge((road_surface, road_surface, road_surface))
+    pm_frame = inverse_perspective_frame(road_surface_visualised, np.linalg.inv(ipm) )
+    img_combine = np.hstack((road_surface_3, pm_frame))
+    OUTPUT_IMAGES.append(img_combine)
+
+VID_FPS = 20
+def save_output():
+    DIMS = (OUTPUT_IMAGES[0].shape[1], OUTPUT_IMAGES[0].shape[0])
+    print(DIMS)
+    # Define the codec and create VideoWriter object
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    vid_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/Videos/nav_localisation.avi'
+    out = cv2.VideoWriter(vid_path, 
+                            fourcc, VID_FPS, DIMS, True)
+    for vid_frame in OUTPUT_IMAGES:
+        out.write(vid_frame)
+    out.release()
+    print("VIDEO SAVED")
 
 def main(data_interface):
     """
@@ -46,23 +113,27 @@ def main(data_interface):
     data_interface: Interface to run data getter methods on
                     Such as get feature, get frame etc
     """
+    global IPM_MASK
     data_interface.init()
     ipm = data_interface.get_inverse_perspective_matrix()
     ipm_mask = data_interface.get_ipm_mask()
+    IPM_MASK = ipm_mask
     rsd = road_surface_detection.RoadSurfaceDetector(data_interface.HISTOGRAM_WINDOW, ipm_mask=ipm_mask)
-    feature_found, feature = data_interface.get_next_feature()
-    if not feature_found:
+    feature = data_interface.get_next_feature()
+    if feature is None:
         print("NO FEATURES FOUND - EXITING")
         return
     frame = data_interface.get_next_frame()
     if frame is None:
         print("NO FRAMES FOUND - EXITING")
         return
-    while (feature_found) and (frame is not None):
-        process_frame(frame, ipm, rsd)
+    while (feature is not None) and (frame is not None):
+        process_frame(frame, feature, ipm, rsd)
         frame = data_interface.get_next_frame()
+    cv2.waitKey(0)
     cv2.destroyAllWindows()
     print("END.")
+    save_output()
 
 
 if __name__ == "__main__":

@@ -9,19 +9,26 @@ Implements required methods for nav_localisation data getter:
 
 import glob     #Reading directory of test images
 import cv2
+import numpy as np
 
 HISTOGRAM_WINDOW = ((245, 440), (267, 504))
 
 TEST_FEATURES = []
+FEATURE_POINT=(255,333-100)
+BOTTOM_POINT=(255,413-100)
+LEFT_POINT=(175, 333-100)
+RIGHT_POINT=(335, 333-100)
+feature_1 = (FEATURE_POINT, BOTTOM_POINT, LEFT_POINT, RIGHT_POINT)
+
 def get_next_feature():
     """
     Get the next road feature (if available)
-    returns feature_available, feature
+    returns feature (None if no feature found)
     """
     if not TEST_FEATURES:
         return False, None
     feature = TEST_FEATURES.pop(0)
-    return True, feature
+    return feature
 
 def get_next_frame():
     """Return the next frame for processing or
@@ -30,9 +37,12 @@ def get_next_frame():
         return TEST_IMAGES.pop(0)
     return None
 
+IPM_PATH = ("D:/GitRepos/Uni/Thesis/Simulation/PythonCode/"
+            "NavLocalisation/TestData/inverse_perspective_matrix.npy")
 def get_inverse_perspective_matrix():
-    print("TODO: ADD IN IPM HERE!!!! ADD DOCSTRING ONLY WHEN THIS IS IMPLEMENTED")
-    return None
+    """Return the saved inverse perspective matrix"""
+    ipm = np.load(IPM_PATH)
+    return ipm
 
 def get_ipm_mask():
     _, thresh = cv2.threshold(TEST_IMAGES[0], 1, 255, cv2.THRESH_BINARY)
@@ -40,9 +50,7 @@ def get_ipm_mask():
 
 def init_features():
     """Initialise features by loading them into TEST_FEATURES list"""
-    TEST_FEATURES.append("Feature1")
-    TEST_FEATURES.append("Feature1")
-    TEST_FEATURES.append("Feature1")
+    TEST_FEATURES.append(feature_1)
 
 TEST_IMAGE_PATH = ("D:/GitRepos/Uni/Thesis/Simulation/PythonCode/"
                    "NavLocalisation/TestData/RouteImages")
@@ -84,6 +92,13 @@ def test_get_next_frame(show_all_images = False):
     print("First Image")
     counter = 1
     cv2.imshow("First Image", img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    ipm = get_inverse_perspective_matrix()
+    birds_eye = cv2.warpPerspective(img, ipm, (img.shape[0],img.shape[1]))
+    print("First Image Warped"),
+    counter = 1
+    cv2.imshow("First Image birds_eye", birds_eye)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     while img is not None:
