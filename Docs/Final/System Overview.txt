@@ -1,0 +1,77 @@
+** INTENT
+Identifiable road surface
+
+Not considering traffic or extreme conditions
+
+Intent to have a single camera system to allow cheap autonomous movement in certain conditions and to allow a redundancy in the event of more complex system failure (such as multi camera, LIDAR etc)
+
+Keep system `interpretable' (definition), allow interim products to be used for other things and individual steps as plug and play `black boxes' (with specific interfaces and outputs) to swap out better implementations.
+
+Simulation used to gather data (tested against real???)
+
+** SYSTEM  (**** THIS IS GOOD FOR PRESENTATION TOO***)
+Brief summary of how a human would navigate:
+- Identify the road surface 
+- Keep the vehicle on the road
+- Understand upcoming known features (eg. upcoming T junction) and navigation instructions (take the road to the left)
+- Identify intersection on approach
+- Identify the part of the intersection you need to drive through
+- Track the approaching intersection
+- Pick the driving line through the intersection
+
+
+*** Top down view
+Inverse perspective mapping (THEORY) and camera projection(?) correction (THEORY). Correction not implemented due to minor effects. System robust enough to manage this however the resulting image will be more representative if this is corrected for.
+IPM -> Proceedure (how)
+**** Result
+Example of simulation IPM
+This is akin to developing a mental model of the terrain
+
+*** Local edge detection and mid road alignment
+Hough transform (theory)
+Local `lane keeping' to keep alinged to the road
+This is the main control until intersection traversal commences
+--Averaging improvements?
+**** Live result?
+This is akin to keeping the vehicle on the road
+
+*** Probabalistic road surface detection
+Histogram backprojection background and theory (REF)
+Rolling average .......
+
+
+** RESULTS??? Against real?
+This is identifying the road surface
+
+*** Road feature mask development
+Work Xm back from feature 
+Develop individual masks for approach and feature exits
+Orient to approach vector (THIS ISNT DONE AS YET)
+NOTE that specific mask parts are assigned to desired route
+**** Example
+This is akin to Understanding upcoming features and intended route through feature
+
+*** ID road feature
+Mask matching - probabalistic. Individually for all aspects (approach and routes out)
+
+**** NO DEMO?
+This is akin to identifying an upcoming feature
+
+*** Feature tracking
+Use optical flow to estimate new feature location
+Confirm by masking (bracket otherwise)
+
+**** EXAMPLE (TODO!!!)
+This is akin to tracking the approaching intersection
+
+
+*** Feature driving line development
+Point to point results in instant angle changes - vehicle driving line developed using bezier curves. Resulting bezier curve uset for feature trackcing (TODO: DOES THIS GO BEFORE FEATURE TRACKING????)
+
+**** Example
+This is the `intuitive' driving line taken by an experienced driver - Ideally a single wheel angle through a consistent corner.
+
+
+***??? Complex features?
+
+** Extensions and future work
