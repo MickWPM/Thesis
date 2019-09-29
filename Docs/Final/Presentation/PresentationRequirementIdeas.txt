@@ -1,0 +1,16 @@
+IPM demo 
+
+Histogram example (incl region and histogram)
+Histogram backprojection eg (opencv messi grass eg)
+
+Hough transform basics
+
+Simple demo of road feature matching using small features (eg. 2x6) to show maths
+
+
+
+
+TAKEAWAYS
+BENEFITS:
+Modelling individual legs - new roads etc that dont match model wont confuse it
+Doesnt rely on GPS - can be informed by it but can also just have a queue of features as 'directions'
