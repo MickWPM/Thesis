@@ -69,14 +69,6 @@
 
 
 \begin{abstract}
-ABSTRACT
-\end{abstract}
-
-\newpage
-\tableofcontents
-
-\newpage
-\section{Introduction} \label{sect:intro}
 20\%: Very well organized structure, highly logical sequence of information, facilitating reader’s understanding, appropriate amount of materials presented in all components
 
 20\%: Major extension of scopes stated in MoU covered, innovative and sound methodology used. AND/OR Very strong justifications are given for the change of scope/methodology used (if any). The changes also greatly improved the project scope and/or the methodology used
@@ -87,7 +79,20 @@ ABSTRACT
 20\%: Outcomes achieved well exceed project expectations, excellent conclusion and critical reflection shown. Excellent and in‐depth analysis and deductions are made and good synthesis shown
 
 20\%: Excellent writing that reaches journal paper requirements, mature and professional writing style, excellent/creative used of photos, charts, diagrams etc that greatly enhance the presentation quality, \textbf{concise and excellent literature review }and referencing
+\end{abstract}
 
+\newpage
+\tableofcontents
+
+\newpage
+\section{Introduction} \label{sect:intro}
+\textbf{TODOTODO:!!! UNDULATION IPM TESTING!!!}
+
+Gen points to cover:
+\begin{easylist}
+	& Focus on high tech systems - This is a focus on lowest barrier to entry and maintaining a redundancy option
+	& Implemented using OpenCV. Used Sim data and confirmed with dashcam data
+\end{easylist}
 
 %\index{}
 % 
@@ -118,46 +123,64 @@ ABSTRACT
 %
 %In general, the ability to use computer vision to align GPS positioning with mapping service data will allow greater cognitive assistance in driver included tasks without the requirement for significant prior mapping. As augmented reality technology increases this also allows for more immersive driver aides such as navigation routes overlayed onto the visible road. In addition to the cognitive assistance, the ability to localise a navigation route opens the near future possibility for the automation of certain tasks in a military setting, for example routine field logistics supply transport. A true complete solution will rely on sensor fusion from a suit of complimentary sensors supporting each other and providing redundancy. 
 
-\subsection{Terminology}
+Arousal, background/need
+This paper reviews a method for navigation localisation and driving line identification for an autonomous vehicle using a single camera system.\textbf{TOOD: After a brief review of related works (\textit{Do we do this in the intro instead??}) a high level overview of the system is given. Subsequent sections investigate discrete elements of the system in order, Road surface detection, route feature matching and route feature tracking. \textit{Additional output options are then briefly covered}. A general discussion including limitation and opportunities follows before concluding remarks.}
 
-\hl{The following abbreviations and definitions are used throughout this report:}
+\textbf{, scope/intent. }It should be noted that the developed method does not account for road traffic. The use of this method is envisaged to be automation of tasks in remote areas such as logistics in large properties such as farms. Alternatively this method provides a single camera redundancy which may assist the capability to `limp home' in the event of main sensor system failures in more complex autonomous vehicles.
+
+%\textbf{TODO: Terminology?}
+%\subsection{Terminology}
+%
+%\hl{The following abbreviations and definitions are used throughout this report:}
+%
+%
+%\begin{easylist}[itemize]
+%	& \textbf{Computer Vision (CV)}. Techniques to allow machines to `see'; processing visual images of the world and deriving understanding.
+%	& \textbf{Digital Image Processing (DIP)}. Use of computer algorithms to perform processing on digital images.
+%	& \textbf{Navigation localisation}. Translating an overall navigation route into a local navigation goal.
+%	& \textbf{Simulation}. The custom built autonomous vehicle simulation which provides sensor feed outputs.
+%	& \textbf{External processing}. In the context of this report two programs are discussed, the simulation and `external processing'. External processing refers to the standalone code which performs the computational calculations for navigation localisation.
+%	& \textbf{Simulation tick}. One period of simulation processing. This is aligned to a specified update frequency that the external processing is running at `in simulation'.
+%	& \textbf{Interprocess Communication (IPC)}. The passage of data from simulation to external processes.
+%	& \textbf{Open Street Maps (OSM)}. `A collaborative project to create a free editable map of the world' \citep{osmDataFormat}. Comparable to Google maps.
+%	& \textbf{Polyline}. A line defined by node coordinates. The line is drawn through all nodes in order, starting at the first and terminating at the last.
+%\end{easylist}
+
+%%
+%%\subsection{Project aim}
+%%
+%%\hl{The aim of this project is to} investigate localising navigation data from a GPS feed to the observed road via a vehicle mounted camera. Mapping service GPS route data is often held as polylines which represents a road as a series of connected points or nodes \citep{googleMapPolyline}, \citep{osmDataFormat}. The approach for positional localisation is to use the vehicle GPS position as an approximate input location mapped to the closest point on a route. Detected road features are then used to determine an accurate position of the vehicle and identify the navigation route on forward facing video feed. This sets the conditions for autonomous control of the vehicle based on a programmed navigation route.
+%%
+%
+%\subsection{Scope and Deliverables}\label{s:scope}
+%
+%\hl{The scope of the project is deliberately kept constrained initially. This is to focus on the specific problem of localising a navigation route without losing development effort to supporting elements. The scope and deliverables have been identified as follows:}
+%\begin{easylist}[itemize]
+%	& The solution must be able to reconcile GPS and CV data to identify the current location and required direction to travel through intersections based on a navigation route.
+%	& \textbf{Limitation of road complexity.} There is a requirement for road/lane detection as part of this project (to marry up with the GPS polyline data) however optimised road detection is not the main focus of the project. Further as the project purely uses the output data of lane detection, it can be considered a `black box' and implementations can be swapped out as more advanced options are identified. The initial limitations on scope of road detection includes:
+%	&& Limit road detection to easily detectable road surface.
+%	&& Limit roads to single lane.
+%	&& All roads considered will be of similar local colour and type.
+%	& \textbf{Simulation deliverable requirements.} In addition to providing data for this project the intent is for the simulation to be held as an asset within SEIT for use in subsequent student projects in this area. The basic requirements for the simulation are:
+%	&& Ability to provide 3D video feed of simulated driving to external program.
+%	&& Support simulated GPS tracking data.
+%	&& Support simulation of GPS route guidance.
+%\end{easylist}
 
 
-\begin{easylist}[itemize]
-	& \textbf{Computer Vision (CV)}. Techniques to allow machines to `see'; processing visual images of the world and deriving understanding.
-	& \textbf{Digital Image Processing (DIP)}. Use of computer algorithms to perform processing on digital images.
-	& \textbf{Navigation localisation}. Translating an overall navigation route into a local navigation goal.
-	& \textbf{Simulation}. The custom built autonomous vehicle simulation which provides sensor feed outputs.
-	& \textbf{External processing}. In the context of this report two programs are discussed, the simulation and `external processing'. External processing refers to the standalone code which performs the computational calculations for navigation localisation.
-	& \textbf{Simulation tick}. One period of simulation processing. This is aligned to a specified update frequency that the external processing is running at `in simulation'.
-	& \textbf{Interprocess Communication (IPC)}. The passage of data from simulation to external processes.
-	& \textbf{Open Street Maps (OSM)}. `A collaborative project to create a free editable map of the world' \citep{osmDataFormat}. Comparable to Google maps.
-	& \textbf{Polyline}. A line defined by node coordinates. The line is drawn through all nodes in order, starting at the first and terminating at the last.
-\end{easylist}
+\textbf{TODO: In lieu of scope/deliverables etc, include a cover letter in deliverables outlining the additional work done/??}
+
+\section{Related works}
+\textbf{TODO: ADD in nav localisation general?}
+
+\citet{ipmForLaneTracking} outlined the effectiveness of Inverse Perspective Mapping for lane detection 
+
+Histogram backprojection has been used for basic \citep{histBackObjectTracking} and multi model object tracking \citep{histBackMultiObjectTrack}, \citep{histBackObjectMultiLighting} , image indexing \citep{histBackImageIndexing} and region of interest detection \citep{histBackObjectOfInterestDetection}. It has been used with sensor fusion including thermal mapping for road detection \citep{histBackThermal} and to effectively refine spatial fuzzy clustering road detection \citep{histBackRefineShadows}.
+
+\citet{moncularLaneDetectAndTrack} outlined an approach involving the use of a Support Vector Machine to segment image road pixels from non-road pixels and an identification of road edges and control points defining the road curve. This approach is somewhat less interpretable however provides a suitable alternate and possibly more robust option for road detection. Additionally the input and output interfaces are the same as in this system which allows the option to `sub in' this approach if it is preferred. The histogram based approach has the theoretical benefit that it is able to adjust to varying road surfaces `on the fly' as opposed to requiring prior training.(*Both systems can be used for redundancy?)\textbf{TODO: Some of this can be extracted to discussion?}
 
 
-\subsection{Project aim}
 
-\hl{The aim of this project is to} investigate localising navigation data from a GPS feed to the observed road via a vehicle mounted camera. Mapping service GPS route data is often held as polylines which represents a road as a series of connected points or nodes \citep{googleMapPolyline}, \citep{osmDataFormat}. The approach for positional localisation is to use the vehicle GPS position as an approximate input location mapped to the closest point on a route. Detected road features are then used to determine an accurate position of the vehicle and identify the navigation route on forward facing video feed. This sets the conditions for autonomous control of the vehicle based on a programmed navigation route.
-
-
-\subsection{Scope and Deliverables}\label{s:scope}
-
-\hl{The scope of the project is deliberately kept constrained initially. This is to focus on the specific problem of localising a navigation route without losing development effort to supporting elements. The scope and deliverables have been identified as follows:}
-\begin{easylist}[itemize]
-	& The solution must be able to reconcile GPS and CV data to identify the current location and required direction to travel through intersections based on a navigation route.
-	& \textbf{Limitation of road complexity.} There is a requirement for road/lane detection as part of this project (to marry up with the GPS polyline data) however optimised road detection is not the main focus of the project. Further as the project purely uses the output data of lane detection, it can be considered a `black box' and implementations can be swapped out as more advanced options are identified. The initial limitations on scope of road detection includes:
-	&& Limit road detection to easily detectable road surface.
-	&& Limit roads to single lane.
-	&& All roads considered will be of similar local colour and type.
-	& \textbf{Simulation deliverable requirements.} In addition to providing data for this project the intent is for the simulation to be held as an asset within SEIT for use in subsequent student projects in this area. The basic requirements for the simulation are:
-	&& Ability to provide 3D video feed of simulated driving to external program.
-	&& Support simulated GPS tracking data.
-	&& Support simulation of GPS route guidance.
-\end{easylist}
-
-
-\section{Project management}
 ??????
 
 %\subsection{Project Methodology}
@@ -182,46 +205,98 @@ ABSTRACT
 %
 %Additional considerations which will be addressed as part of the simulation development include the data structure representation of the GPS maps and navigation routes. These will both be in line with the OSM data structures but may be simplified to specifically the required data for ease of processing in testing. Simplification of data will only occur where it is feasible that the OSM (or similar) data format can be transformed into the used data format with sufficient preprocessing ie. only information that is present in, or able to be derived from, the OSM or similar data will be used.
 
-\section{SOLUTION overview}
-\textbf{TODO: Reword title}
-\textbf{TODO: Discuss the basic overview, relate to human?}
+\section{System overview}
 
+The solution developed is deliberately an inherently interpretable system; at all key stages in the navigation localisation process a human observer can understand intermediate products and the logic of how they were derived. More importantly, this allows the entire system to be considered as a modular series. As improved systems, approaches and algorithms are developed, assuming they ahdere to the same input and output data interface, they can be seamlessly swapped in. Additionally the intermediate products are available for use in other systems that may be integrated.
+
+As a high level overview, the system involves inverse perspective mapping to develop a `top down' projection of the vehicle camera image. An averaged histogram of local road pixels is used to develop a probabalistic road surface map using histogram backprojection. An image mask of the upcoming route feature \textbf{(what is a `feature')} is developed using GPS mapping data and is overlaid on the detected road surface. The feature is deemed detected when the proportion of feature mask covered by road surface is above a threshold \textbf{TODO: track these parameters}. Once initially detected, the feature position is updated in subsequent video frames using a mean optical flow between frames and confirmed by remasking. A driving line through the feature can be developed and tracked by using a Bezier curve of the desired route through the feature once the initial feature model has been detected.
+
+The discrete elements of the system with input and output as follows:
 
 \begin{easylist}[itemize]
-	& ????
-	&& \textbf{TODO? Explain - Inverse perspective mapping and camera lens distortion correction}
-	& Probabilistic road surface detection
-	&& \textbf{TODO? Explain - Rolling average histogram for road surface estimation}
-	& Local orientation to road edges
-	&& \textbf{TODO? Explain - Hough transform (IS THIS NEEDED?)}
-	& Route feature matching
-	&& \textbf{TODO? Explain - Matching piecewise model to detected road surface by masking}
-	& Optical flow tracking
-	&& \textbf{TODO? Explain - Using image `flow' to track feature positions for subsequent frame matching and cornering}
-	& Driving path curve matching
-	&& \textbf{TODO? Explain - Bezier curves based off feature points}
+	& \textbf{Road surface detection}. 
+	&& \textbf{Input: }Camera feed. 
+	&& \textbf{Output: }`top down' road surface map. 
+
+	
+	& \textbf{Route feature matching}. 
+	&& \textbf{Input:} `top down' road surface map. 
+	&& \textbf{Output: }Position in image of target road feature, if detected.
+%	&& Route model mask matching
+%	&& 
+%	
+%	&& \textbf{TODO? Explain - Inverse perspective mapping and camera lens distortion correction}
+%	& Probabilistic road surface detection
+%	&& \textbf{TODO? Explain - Rolling average histogram for road surface estimation}
+%	& Local orientation to road edges
+%	&& \textbf{TODO? Explain - Hough transform (IS THIS NEEDED?)}
+%	& Route feature matching
+%	&& \textbf{TODO? Explain - Matching piecewise model to detected road surface by masking}
+%	& Optical flow tracking
+%	&& \textbf{TODO? Explain - Using image `flow' to track feature positions for subsequent frame matching and cornering}
+%	& Driving path curve matching
+%	&& \textbf{TODO? Explain - Bezier curves based off feature points}
+	& \textbf{Route feature tracking}. 
+	&& \textbf{Input: }Detected location of target route feature and relevant image. 
+	&& \textbf{Output: }Updated location of target route feature in subsequent image frame.
 \end{easylist}
 
-\subsection{??? IPM, camera correction}
-Preliminaries 
+
+\section{Road Surface Detection}
+
+In order to localise navigation elements a reasonable estimate of the current road surface is required. This is achieved via Inverse Perspective Mapping (IPM) and histogram backprojection. These aspects are discussed in detail in the following subsections.
+
+Inverse perspective mapping of camera image.
+Probabilistic road surface detection.
+\subsection{Inverse perspective mapping}
+
+Inverse perspective mapping is a well established technique that involves a matrix transformation operation to remap pixels from a camera perspective to a `top down' view \citep{compVisionTextbook}. An example of the technique applied to an image from the simulation used is included as figure \ref{f:ipmSim}. It is notable that inverse perspective mapping assumes the perspective image is from a flat plane \citep{ipmForLaneTracking} however it is notable that in most circumstances the road plane can be considered approximately linear about a vehicle position. Further the system developed is robust enough to tolerate introduced error by reasonable undulation. \citep{extendedIPM} have discussed an inverse perspective mapping approach that removes the flat plane assumption however it relies on stereo camera so is out of scope for this system. This approach may be more resiliant and should be considered in the event a stereo camera system is being developed.
 
 
+\begin{wrapfigure}{R}{0.5\textwidth} %this figure will be at the right
+	\centering
+	\includegraphics[width=0.5\textwidth, height=0.5\textwidth]{RoadDetection/ipmSim.png}
+	\caption{Example image from simulation with inverse perspective mapping applied.}
+	\label{f:ipmSim}
+\end{wrapfigure}
+
+It can be noted that the inverse perspective mapped image has a `null' area in the bottom edges due to the perspective shift. This is used to develop an `IPM mask' which is used in later stages to ensure that any feature matching attempts are not penalised by the zero values in this area as discussed in section \ref{sect:route_feature_matching}. \textbf{TODO: MAKE SURE THIS IS EXPANDED ON IN THE REFERENCED SECTION}
 
 \subsection{Probabilistic road surface detection}
-\textbf{TODO: Define area of interest in camera (IMAGE)}
-\textbf{TODO: Maintain rolling average of area of interest and calculate histogram of this region}
+
+While the road detection approach considered can be used with both the inverse perspective mapped image and the raw camera perspective image, in this instance it was applied after IPM had been conducted. \textbf{TODO: IS IT BETTER BEFORE? IS IT BETTER AFTER!!?}
+
+Initially a road surface area of interest is defined, based off the near portion of road surface from the vehicle front. While this relies on the assumption that the vehicle starts on a road surface, it has the benefit of flexibility in detecting dynamic road surfaces. \textbf{TODO: TEST THIS.} A histogram of this area is used to inform a rolling average histogram \textbf{TODO: ?? Or a general map?}. This is histogram is backprojected over the image; a probability is determined for each pixel in the image to belong to the defined histogram. An example of the detected road surface from a live camera feed \textbf{TODO: Perspective or IPM???} is included as figure \ref{f:histRoadLive}
+
+
 \textbf{TODO: Histogram backprojection (SIMULATION AND/OR LIVE IMAGE EXMAPLES, LIVE OF VARYING ROAD TYPES)}
 \textbf{TODO: Thresholding vs raw probabilities??? Raw probabilities with `upgraded probabilities based on thresholding???}
 
-\subsection{Local road edge orientation}
-\textbf{TODO: Hough? IS THIS NEEDED?!?!?}
+%\begin{wrapfigure}{h}{0.5\textwidth} %this figure will be at the right
+%	\centering
+%	\includegraphics[width=0.5\textwidth]{RoadDetection/histRoadLive.png}
+%	\caption{Detected road surface from live camera.}
+%	\label{f:histRoadLive}
+%\end{wrapfigure}
 
-\subsection{Route feature matching}\label{sect:route_feature_matching}
+\begin{figure}
+	\includegraphics[width=0.5\textwidth]{RoadDetection/histRoadLive.png}
+	\caption{Detected road surface from live camera.}
+	\label{f:histRoadLive}
+\end{figure}
+
+\citet{histBackRefineShadows} outline a shortfall with this style of road surface detection is that it can be prone to error when the road surface has little colour difference to the surrounding environment. The approach suggested in that case includes the use of thermal sensing so is not applicable for this system. If the system is required to operate in a more difficult to segment environment a more robust road detection approach may be needed. 
+
+
+\section{Route Feature Matching}\label{sect:route_feature_matching}
+
 \textbf{TODO: `Feature' definition}
-\textbf{TODO: Feature mask creation}
+\textbf{TODO: Feature mask creation (include the IPM mask)}
 \textbf{TODO: Piecewise feature matching}
 \textbf{TODO: Feature center point determination}
 
+
+\section{Road Feature Tracking}
 
 \subsection{Optical flow tracking}
 \textbf{TODO: Optical flow theory}
@@ -229,42 +304,61 @@ Preliminaries
 \textbf{TODO: Confirm using route feature matching as per section \ref{sect:route_feature_matching} }
 
 \subsection{Driving path curve matching}
+%Once the path is developed, the approach used in section \ref{sect:route_feature_matching} is used to match the developed path to the detected road surface. The developed path is then used for subsequent matching and to facilitate driving control.
+
 \textbf{TODO: DO we need to create control points near intersection for p0 and p2 or do the poly line points work ok? I imagine we will need to artificially create these entry/exit points from the feature!!! This can be done simply by moving X meters along the approach/exit line to determine entry/exit control points}
 
 The real challenge in this problem is that most route features require more than a simple maintenance of central position such as turning at an intersection. In order to effectively identify a path through a route feature, a driving path is developed using bezier curves.
 
-\subsubsection{Bezier curve theory}
-\textbf{TODO: ADD THIS AS APPENDIX??!?}
-A Bezier curve is a parametric curve defined by a series of control points with the position on the curve defined by a variable $t$ ranging between 0 and 1, corresponding to the start and the end of the curve. Quadratic Bezier curves consist of three control points ($p_0$, $p_1$ and $p_2$) resulting in a quadratic equation with respect to the variable $t$. \textbf{TODO: Keep going}
+\section{Additional optional outputs}
 
-\textbf{TODO: IS THIS MID POINT INTERPOLATION REQUIRED? OR DOES SETTING `IDEAL' CONTROL POINTS FIX IT?}
-The formula for the basic Quadratic Bezier curve is outlined as equation \ref{eq:quadratic_bezier}. This will result in a curve as per the curve in figure \ref{fig:quadratic_bezier_simple}. A shortfall with this approach is it will result in `cutting' of the corner as the point $p_1$ is the center point of the feature. This can be addressed by \hl{using what was $p_1$ as the central point $p_c$ to calculate a middle control point to force the curve through this point}. If a constraint is added that $\textbf{B}(t)=p_c$ for some value of $t$, it is then possible to solve for the required $p_1$ to fit this constraint. The free parameter in this instance is the value of $t$ where the curve passes through $p_c$. Setting $t=0.5$ and solving for $p_c$ will set the curve to pass through $p_c$ at the mid point which was deemed suitable in this instance. The equation to force the $p_c$ constraint is included as equation \ref{eq:quadratic_bezier_constraint} and the result of forcing the constraint  $\textbf{B}(0.5)=p_c$ is visualised in figure \ref{fig:quadratic_bezier_center_point}.
+\subsection{Local road edge orientation}
+Edge detection and Hough Transforms to identify main edges. Averaged position represents a general central point to the road which can be used as a standing control input.
 
+Edge detection through Support Vector Machine \cite{moncularLaneDetectAndTrack}
 
-\begin{figure}[!tbp]
-	\centering
-	\begin{minipage}[b]{0.4\textwidth}
-		\includegraphics[width=\textwidth]{bezier/quadratic_bezier_curve.png}
-		\caption{Quadratic Bezier curve from control points ($p_0$, $p_1$ and $p_2$)}
-		\label{fig:quadratic_bezier_simple}
-	\end{minipage}
-	\hfill
-	\begin{minipage}[b]{0.45\textwidth}
-		\includegraphics[width=\textwidth]{bezier/quadratic_bezier_curve_central_point.png}
-		\caption{Quadratic Bezier curve from control points ($p_0$, $p_1$ and $p_2$) constrained to pass through $p_c$}
-		\label{fig:quadratic_bezier_center_point}
-	\end{minipage}
-\end{figure}
+\section{ Discussion?}
+\textbf{TODOTODO:!!! UNDULATION IPM TESTING!!!}
 
+\textbf{TODO: Discuss Kalman filtering for position estimation}
 
-\begin{align}
-\textbf{B}(t) &= (1-t)^2p_0 + 2t(1-t)p_1 + t^2p_2 \label{eq:quadratic_bezier} \\
-p_1 &= (p_c - (1-t)^2p_0 - t^2p_2)/(2t(1-t)) \label{eq:quadratic_bezier_constraint} \\
-p_{mid} &= (1-a)p_1 + ap_c \label{eq:interpolated_p1}
-\end{align}
+\textbf{TODO: System designed to work off GPS informed however can use features as `directions'}
 
-It is clear the developed both path curves in both figures \ref{fig:quadratic_bezier_simple} and \ref{fig:quadratic_bezier_center_point} are not an ideal solution. As a result the final approach was to use a weighted interpolation between $p_c$ and $p_1$ where $a$ is a weighting between 0 and 1 for $p_c$ as the middle control point position; when $a=0$, $p_c$ will have full weighting over the calculated $p_1$ as the middle control point. \textbf{TODO: a = 0.5}
+\section{Concluding remarks}
 
+%
+%\subsubsection{Bezier curve theory}
+%\textbf{TODO: ADD THIS AS APPENDIX??!?}
+%A Bezier curve is a parametric curve defined by a series of control points with the position on the curve defined by a variable $t$ ranging between 0 and 1, corresponding to the start and the end of the curve. Quadratic Bezier curves consist of three control points ($p_0$, $p_1$ and $p_2$) resulting in a quadratic equation with respect to the variable $t$. \textbf{TODO: Keep going}
+%
+%\textbf{TODO: IS THIS MID POINT INTERPOLATION REQUIRED? OR DOES SETTING `IDEAL' CONTROL POINTS FIX IT?}
+%The formula for the basic Quadratic Bezier curve is outlined as equation \ref{eq:quadratic_bezier}. This will result in a curve as per the curve in figure \ref{fig:quadratic_bezier_simple}. A shortfall with this approach is it will result in `cutting' of the corner as the point $p_1$ is the center point of the feature. This can be addressed by \hl{using what was $p_1$ as the central point $p_c$ to calculate a middle control point to force the curve through this point}. If a constraint is added that $\textbf{B}(t)=p_c$ for some value of $t$, it is then possible to solve for the required $p_1$ to fit this constraint. The free parameter in this instance is the value of $t$ where the curve passes through $p_c$. Setting $t=0.5$ and solving for $p_c$ will set the curve to pass through $p_c$ at the mid point which was deemed suitable in this instance. The equation to force the $p_c$ constraint is included as equation \ref{eq:quadratic_bezier_constraint} and the result of forcing the constraint  $\textbf{B}(0.5)=p_c$ is visualised in figure \ref{fig:quadratic_bezier_center_point}.
+%
+%
+%\begin{figure}[!tbp]
+%	\centering
+%	\begin{minipage}[b]{0.4\textwidth}
+%		\includegraphics[width=\textwidth]{bezier/quadratic_bezier_curve.png}
+%		\caption{Quadratic Bezier curve from control points ($p_0$, $p_1$ and $p_2$)}
+%		\label{fig:quadratic_bezier_simple}
+%	\end{minipage}
+%	\hfill
+%	\begin{minipage}[b]{0.45\textwidth}
+%		\includegraphics[width=\textwidth]{bezier/quadratic_bezier_curve_central_point.png}
+%		\caption{Quadratic Bezier curve from control points ($p_0$, $p_1$ and $p_2$) constrained to pass through $p_c$}
+%		\label{fig:quadratic_bezier_center_point}
+%	\end{minipage}
+%\end{figure}
+%
+%
+%\begin{align}
+%\textbf{B}(t) &= (1-t)^2p_0 + 2t(1-t)p_1 + t^2p_2 \label{eq:quadratic_bezier} \\
+%p_1 &= (p_c - (1-t)^2p_0 - t^2p_2)/(2t(1-t)) \label{eq:quadratic_bezier_constraint} \\
+%p_{mid} &= (1-a)p_1 + ap_c \label{eq:interpolated_p1}
+%\end{align}
+%
+%It is clear the developed both path curves in both figures \ref{fig:quadratic_bezier_simple} and \ref{fig:quadratic_bezier_center_point} are not an ideal solution. As a result the final approach was to use a weighted interpolation between $p_c$ and $p_1$ where $a$ is a weighting between 0 and 1 for $p_c$ as the middle control point position; when $a=0$, $p_c$ will have full weighting over the calculated $p_1$ as the middle control point. \textbf{TODO: a = 0.5}
+%
 
 
 %\begin{wrapfigure}{R}{0.5\textwidth} %this figure will be at the right
@@ -274,9 +368,6 @@ It is clear the developed both path curves in both figures \ref{fig:quadratic_be
 %	\label{f:simpleLaneDetectionHough}
 %\end{wrapfigure}
 
-\subsubsection{Path matching}
-
-Once the path is developed, the approach used in section \ref{sect:route_feature_matching} is used to match the developed path to the detected road surface. The developed path is then used for subsequent matching and to facilitate driving control.
 
 %\section{Current work}\label{s:currentWork}
 %
