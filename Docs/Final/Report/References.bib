@@ -118,4 +118,18 @@
   url      = {https://doi.org/10.1186/s13640-018-0260-3},
 }
 
+@InBook{explainableCNNBookChapter,
+  pages     = {173--193},
+  title     = {Explainable Deep Driving by Visualizing Causal Attention},
+  publisher = {Springer International Publishing},
+  year      = {2018},
+  author    = {Kim, Jinkyu and Canny, John},
+  editor    = {Escalante, Hugo Jair and Escalera, Sergio and Guyon, Isabelle and Bar{\'o}, Xavier and G{\"u}{\c{c}}l{\"u}t{\"u}rk, Ya{\u{g}}mur and G{\"u}{\c{c}}l{\"u}, Umut and van Gerven, Marcel},
+  address   = {Cham},
+  isbn      = {978-3-319-98131-4},
+  abstract  = {Deep neural perception and control networks are likely to be a key component of self-driving vehicles. These models need to be explainable---they should provide easy-to-interpret rationales for their behavior---so that passengers, insurance companies, law enforcement, developers etc., can understand what triggered a particular behavior. Here, we explore the use of visual explanations. These explanations take the form of real-time highlighted regions of an image that causally influence the network's output (steering control). Our approach is two-stage. In the first stage, we use a visual attention model to train a convolutional network end-to-end from images to steering angle. The attention model highlights image regions that potentially influence the network's output. Some of these are true influences, but some are spurious. We then apply a causal filtering step to determine which input regions actually influence the output. This produces more succinct visual explanations and more accurately exposes the network's behavior. We demonstrate the effectiveness of our model on three datasets totaling 16 h of driving. We first show that training with attention does not degrade the performance of the end-to-end network. Then we show that the network highlights interpretable features that are used by humans while driving, and causal filtering achieves a useful reduction in explanation complexity by removing features which do not significantly affect the output.},
+  booktitle = {Explainable and Interpretable Models in Computer Vision and Machine Learning},
+  doi       = {10.1007/978-3-319-98131-4_8},
+}
+
 @Comment{jabref-meta: databaseType:bibtex;}

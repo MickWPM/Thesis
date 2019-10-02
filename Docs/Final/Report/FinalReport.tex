@@ -81,8 +81,8 @@
 20\%: Excellent writing that reaches journal paper requirements, mature and professional writing style, excellent/creative used of photos, charts, diagrams etc that greatly enhance the presentation quality, \textbf{concise and excellent literature review }and referencing
 \end{abstract}
 
-\newpage
-\tableofcontents
+%\newpage
+%\tableofcontents
 
 \newpage
 \section{Introduction} \label{sect:intro}
@@ -206,8 +206,8 @@ Histogram backprojection has been used for basic \citep{histBackObjectTracking} 
 %Additional considerations which will be addressed as part of the simulation development include the data structure representation of the GPS maps and navigation routes. These will both be in line with the OSM data structures but may be simplified to specifically the required data for ease of processing in testing. Simplification of data will only occur where it is feasible that the OSM (or similar) data format can be transformed into the used data format with sufficient preprocessing ie. only information that is present in, or able to be derived from, the OSM or similar data will be used.
 
 \section{System overview}
-
-The solution developed is deliberately an inherently interpretable system; at all key stages in the navigation localisation process a human observer can understand intermediate products and the logic of how they were derived. More importantly, this allows the entire system to be considered as a modular series. As improved systems, approaches and algorithms are developed, assuming they ahdere to the same input and output data interface, they can be seamlessly swapped in. Additionally the intermediate products are available for use in other systems that may be integrated.
+\citep{explainableCNNBookChapter} discusses the importance of explainable and interpretable systems and propose a system to allow interpretability of deep neural perception and control networks. The solution discussed in this paper is developed to be deliberately an inherently interpretable system; at all key stages in the navigation localisation process a human observer can understand intermediate products and the logic of how they were derived. 
+More importantly, this allows the entire system to be considered as a modular series. As improved systems, approaches and algorithms are developed, assuming they ahdere to the same input and output data interface, they can be seamlessly swapped in. Additionally the intermediate products are available for use in other systems that may be integrated.
 
 As a high level overview, the system involves inverse perspective mapping to develop a `top down' projection of the vehicle camera image. An averaged histogram of local road pixels is used to develop a probabalistic road surface map using histogram backprojection. An image mask of the upcoming route feature \textbf{(what is a `feature')} is developed using GPS mapping data and is overlaid on the detected road surface. The feature is deemed detected when the proportion of feature mask covered by road surface is above a threshold \textbf{TODO: track these parameters}. Once initially detected, the feature position is updated in subsequent video frames using a mean optical flow between frames and confirmed by remasking. A driving line through the feature can be developed and tracked by using a Bezier curve of the desired route through the feature once the initial feature model has been detected.
 
@@ -256,7 +256,7 @@ Inverse perspective mapping is a well established technique that involves a matr
 \begin{wrapfigure}{R}{0.5\textwidth} %this figure will be at the right
 	\centering
 	\includegraphics[width=0.5\textwidth, height=0.5\textwidth]{RoadDetection/ipmSim.png}
-	\caption{Example image from simulation with inverse perspective mapping applied.}
+	\caption{Example image from simulation (left) with inverse perspective mapping applied (center) and derived IPM mask (right).}
 	\label{f:ipmSim}
 \end{wrapfigure}
 
@@ -290,8 +290,21 @@ Initially a road surface area of interest is defined, based off the near portion
 
 \section{Route Feature Matching}\label{sect:route_feature_matching}
 
-\textbf{TODO: `Feature' definition}
-\textbf{TODO: Feature mask creation (include the IPM mask)}
+The system matches route `features' based on points defining relevant road segments. While GPS mapping data format can vary the general common factor is roads defined by a series of points. These points can be used to develop a model of the road and in this case, key features. Features considered involved road intersections such as T junctions and side roads. A model of the feature was developed by linear interpolation between defined points
+\textbf{TODO: LOOK FOR REFS HERE?}
+\subsection{Feature mask development}
+
+In order to develop a feature model, the feature point (node central to the intersection in this case) was placed as a starting point on the middle of a blank mask. The feature mask is then developed by linearly connecting adjoining nodes \textbf{TODO: Width is hyperparameter}. It is important to not at this stage that the feature mask consists of multiple part masks; each connection to the feature point is kept as an independent mask. The width of these connections is scaled to the desired projected width for vehicle movement. \textbf{TODO: Once the mask is developed it is then rotated so the approach line is vertical at the base of the image; this ensures the feature mask orientation will match the detected road orientation.} An overview of the feature mask creation is included as figure \ref{f:featureMaskDevelopment}. The final step in developing the feature mask is to relate it to the non-null areas of the inverse perspective mapped image. This is done using a bitwise AND operation between the developed feature mask and the inverse perspective map mask. The purpose of this step is to ensure that portions of mask features such as side streets are not considered if they fall outside the inverse projected image space. \textbf{TODO: FIGURE EXPLAINING THIS}
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1\textwidth]{FeatureMatching/featureMaskDevelopment.png}
+	\caption{Process of developing feature mask developed feature nodes. Nodes are placed (left) and individually connected to inbound and outbound nodes (center left). A resulting mask is combined with the IPM mask (null area shown as TODOODODODO THIS) (center right) to obtain the final model mask (right)}
+	\label{f:featureMaskDevelopment}
+\end{figure}
+
+\subsection{Feature mask matching}
+
 \textbf{TODO: Piecewise feature matching}
 \textbf{TODO: Feature center point determination}
 
@@ -301,6 +314,7 @@ Initially a road surface area of interest is defined, based off the near portion
 \subsection{Optical flow tracking}
 \textbf{TODO: Optical flow theory}
 \textbf{TODO: Frame by frame tracking - estimation of feature center point}
+\textbf{TODO: Frame by frame tracking - UPDATE FEATURE ORIENTATION AT NODES}
 \textbf{TODO: Confirm using route feature matching as per section \ref{sect:route_feature_matching} }
 
 \subsection{Driving path curve matching}
@@ -316,6 +330,8 @@ The real challenge in this problem is that most route features require more than
 Edge detection and Hough Transforms to identify main edges. Averaged position represents a general central point to the road which can be used as a standing control input.
 
 Edge detection through Support Vector Machine \cite{moncularLaneDetectAndTrack}
+
+While it was not explicitly considered as a feature, any road feature with a sharp enough angle between points can be used. This is particularly helpful if an aim is to identify a `true' position outside GPS error as sharp bends in a road can be used as additional features.
 
 \section{ Discussion?}
 \textbf{TODOTODO:!!! UNDULATION IPM TESTING!!!}
