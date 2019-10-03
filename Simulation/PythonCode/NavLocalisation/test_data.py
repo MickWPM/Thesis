@@ -45,7 +45,8 @@ def get_inverse_perspective_matrix():
     return ipm
 
 def get_ipm_mask():
-    _, thresh = cv2.threshold(TEST_IMAGES[0], 1, 255, cv2.THRESH_BINARY)
+    birds_eye = cv2.warpPerspective(TEST_IMAGES[0], get_inverse_perspective_matrix(), (TEST_IMAGES[0].shape[0],TEST_IMAGES[0].shape[1]))
+    _, thresh = cv2.threshold(birds_eye, 1, 255, cv2.THRESH_BINARY)
     return thresh[:, :, 0]
 
 def init_features():

@@ -305,3 +305,6 @@ Docs/InterimReport/InterimReport.pdf
 Simulation/PythonCode/NavLocalisation/tempCodeRunnerFile.py
 Simulation/PythonCode/tempCodeRunnerFile.py
 *.pyc
+Simulation/PythonCode/NavLocalisation/__pycache__/feature_tracker.cpython-37.pyc
+Simulation/PythonCode/NavLocalisation/__pycache__/road_surface_detection.cpython-37.pyc
+Simulation/PythonCode/NavLocalisation/__pycache__/test_data.cpython-37.pyc
