@@ -24,65 +24,101 @@ def inverse_perspective_frame(frame, ipm):
     #print("TMP - NOT doing IPM")
     return birds_eye
 
+temp_DetectedNum = 0
 IPM_MASK=None
 FEATURE_IDENTIFIED = False
 CURRENT_FEATURE_MASK = None
 CURRENT_COMBINED_FEATURE_MASK = None
 FEATURE_ROAD_WIDTH_PX = 15
 FEAUTRE_COORD = None
+FEAUTRE_COORD_FLOW = (0,0)
 PREV_ROAD_SURFACE = None
 OPTICAL_FEATURES = None
+RECORD_FRAME_OUTPUT = True
 def process_frame(frame, feature, ipm, rsd):
+    global temp_DetectedNum
     global FEATURE_IDENTIFIED
+    global FEAUTRE_COORD_FLOW
     global CURRENT_FEATURE_MASK
     global CURRENT_COMBINED_FEATURE_MASK
     global FEATURE_ROAD_WIDTH_PX
     global FEAUTRE_COORD
     global PREV_ROAD_SURFACE
     global OPTICAL_FEATURES
+    global RECORD_FRAME_OUTPUT
     ipm_frame = inverse_perspective_frame(frame, ipm)
-    #ipm_optical_track = cv2.cvtColor(ipm_frame, cv2.COLOR_BGR2HSV)[:,:,0]
-    optical_track = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    ipm_output = ipm_frame.copy()
+    
+    optical_track = cv2.cvtColor(ipm_frame, cv2.COLOR_BGR2GRAY)
+    #optical_track = cv2.cvtColor(ipm_frame, cv2.COLOR_BGR2HSV)[:,:,0]
+
+
     road_surface, road_surface_visualised = rsd.get_road_surface_from_new_frame(ipm_frame)
     #identify road surface
     #feature already id'd?
     if FEATURE_IDENTIFIED:
         print("FEATURE IDENTIFIED")
         ##Estimate feature position using optical flow from raw image
-        flow_mask = np.zeros((optical_track.shape[0],optical_track.shape[1]), dtype=np.uint8)
-        flow_mask[feature[0][0]-80:feature[0][0]+80,feature[0][1]-80:feature[0][1]+80] = 1 #THIS USES 80PX AS A FEATURE SPACING - UPDATE TO NOT BE MAGIC
-        flow_mask = None
-        FEAUTRE_COORD, OPTICAL_FEATURES = feature_tracker.GetUpdatedRoadFeatureLocation(PREV_ROAD_SURFACE, optical_track, FEAUTRE_COORD, optical_features=OPTICAL_FEATURES, flow_mask=flow_mask)
+        #this is old?
+        #flow_mask = np.zeros((optical_track.shape[0],optical_track.shape[1]), dtype=np.uint8)
+        #flow_mask[feature[0][0]-80:feature[0][0]+80,feature[0][1]-80:feature[0][1]+80] = 1 #THIS USES 80PX AS A FEATURE SPACING - UPDATE TO NOT BE MAGIC
+        #flow_mask = None
+        
+        #If we need more output images to test on
+        #cv2.imwrite("D:\\GitRepos\\Uni\\Thesis\\Simulation\\PythonCode\\Output\\Images\\ipm\\ipm"+str(temp_DetectedNum)+".png", ipm_frame)
+        #cv2.imwrite("D:\\GitRepos\\Uni\\Thesis\\Simulation\\PythonCode\\Output\\Images\\opticaltrack\\track"+str(temp_DetectedNum)+".png", optical_track)
+        temp_DetectedNum += 1
+        #print("DETECTED = ", temp_DetectedNum)
+
+        #FEAUTRE_COORD, OPTICAL_FEATURES = feature_tracker.GetUpdatedRoadFeatureLocation(PREV_ROAD_SURFACE, optical_track, FEAUTRE_COORD, optical_features=OPTICAL_FEATURES, flow_mask=flow_mask)
+        new_feature_coord, OPTICAL_FEATURES = feature_tracker.GetUpdatedRoadFeatureLocationFarneback(PREV_ROAD_SURFACE, optical_track, FEAUTRE_COORD, None)
+        FEAUTRE_COORD_FLOW = (FEAUTRE_COORD_FLOW[0] + new_feature_coord[0] - FEAUTRE_COORD[0],FEAUTRE_COORD_FLOW[1] + new_feature_coord[1] - FEAUTRE_COORD[1])
+        #print("FEAUTRE_COORD_FLOW = ", FEAUTRE_COORD_FLOW)
+        FEAUTRE_COORD = new_feature_coord
         ##Confirm and refine feature estimate
         ##Update feature if needed (ie. have we passed a 'node')
         ## DONT FORGET TO SET FEATURE AS NOT IDENTIFIED WHEN OUTSIDE THE CORNER
         PREV_ROAD_SURFACE = optical_track.copy()
-        cv2.circle((optical_track.shape[0],optical_track.shape[1]), FEAUTRE_COORD, 25, (255,255,255), -1)
-        cv2.circle(road_surface_visualised,FEAUTRE_COORD, 25, (255,255,255), -1)
-        FEATURE_IDENTIFIED,  mask_probabilities = feature_tracker.check_feature(CURRENT_FEATURE_MASK, road_surface)
+        #TODO: THIS SHOULD BE CAST BACK TO PERSPECTIVE MODE IF USED IN PERSPECTIVE IMAGES
+        feature_draw_coord = (int(FEAUTRE_COORD[0]), int(FEAUTRE_COORD[1]))
+        
+        cv2.circle((optical_track.shape[0],optical_track.shape[1]), feature_draw_coord, 25, (255,255,255), -1)
+        cv2.circle(road_surface_visualised,feature_draw_coord, 25, (255,255,255), -1)
+        
+        
+        FEATURE_IDENTIFIED,  mask_probabilities = feature_tracker.check_feature(CURRENT_FEATURE_MASK, road_surface, FEAUTRE_COORD_FLOW)
         if not FEATURE_IDENTIFIED:
             print("LOST FEATURE")
             #We have lost the feature - are we "on" it?
             ## If so then follow the interpolated curve
-            #If not then search and panic!
+            #If not then search and highlight lost
+            RECORD_FRAME_OUTPUT = False
+            cv2.waitKey(0)
     else:
+        cv2.circle(ipm_output,(150,150), 25, (255,255,255), -1)
         if CURRENT_FEATURE_MASK is None:
             CURRENT_FEATURE_MASK, CURRENT_COMBINED_FEATURE_MASK = feature_tracker.get_feature_masks(feature, PROCESSING_RESOLUTION, FEATURE_ROAD_WIDTH_PX)
         ## check feature map against road surface
         
         FEATURE_IDENTIFIED,  mask_probabilities = feature_tracker.check_feature(CURRENT_FEATURE_MASK, road_surface)
         if FEATURE_IDENTIFIED:
-            print("FEATURE DETECTED! WOO. PRESS A KEY TO CONTINUE")
+            print("FEATURE DETECTED! WOO")
             PREV_ROAD_SURFACE = optical_track.copy()
             FEAUTRE_COORD=feature[0]
             cv2.circle(optical_track, FEAUTRE_COORD, 25, (255,255,255), -1)
             cv2.circle(road_surface_visualised,FEAUTRE_COORD, 25, (255,255,255), -1)
+            feature_draw_coord = (int(FEAUTRE_COORD[0]), int(FEAUTRE_COORD[1]))
+            cv2.circle(ipm_output,feature_draw_coord, 25, (255,255,255), -1)
             ## IF id'd - Refine estimate
+            
                 
     #VISUALISATION
-    store_output((optical_track, road_surface_visualised), ipm)
-
-    cv2.imshow("roi ave", road_surface)
+    
+    #store_output((ipm_output, road_surface_visualised), ipm)
+    if RECORD_FRAME_OUTPUT:
+        store_output((optical_track, road_surface_visualised), ipm)
+    cv2.imshow("roi ave", optical_track)
+    #cv2.imshow("roi ave", road_surface)
     cv2.waitKey(50)
 
 OUTPUT_IMAGES = []
@@ -92,6 +128,7 @@ def store_output(output, ipm):
     pm_frame = inverse_perspective_frame(road_surface_visualised, np.linalg.inv(ipm) )
     img_combine = np.hstack((road_surface_3, pm_frame))
     OUTPUT_IMAGES.append(img_combine)
+    
 
 VID_FPS = 20
 def save_output():
@@ -107,7 +144,10 @@ def save_output():
     out.release()
     print("VIDEO SAVED")
 
+
 def main(data_interface):
+    startframe = 100
+    curframe = 0
     """
     Entry point for program
     data_interface: Interface to run data getter methods on
@@ -128,7 +168,9 @@ def main(data_interface):
         print("NO FRAMES FOUND - EXITING")
         return
     while (feature is not None) and (frame is not None):
-        process_frame(frame, feature, ipm, rsd)
+        curframe += 1
+        if curframe > startframe:
+            process_frame(frame, feature, ipm, rsd)
         frame = data_interface.get_next_frame()
     cv2.waitKey(0)
     cv2.destroyAllWindows()
