@@ -83,13 +83,10 @@ def save_output(filename="optical_flow_test.avi", save_shape=None):
     out = cv2.VideoWriter(vid_path, 
                             fourcc, VID_FPS, save_shape, True)
     for vid_frame in OUTPUT_IMAGES:
-        print(vid_frame.shape)
         if len(vid_frame.shape) == 2:
-            print("A")
             vid_frame_3 = cv2.merge((vid_frame, vid_frame, vid_frame))
             out.write(vid_frame_3)
         else:
-            print("B")
             out.write(vid_frame)
     out.release()
     print("VIDEO SAVED")
@@ -111,15 +108,15 @@ def TestOpticalFlow(show_flow_points=False, save_vid=False):
         if show_flow_points and optical_features is not None:
             #for point in optical_features:
              #   cv2.circle(im, tuple(point[0]), 4, (125, 125, 125), thickness=-1)
-            im = draw_flow(im, optical_features, line_scale=1.5)
+            im = draw_flow(im, optical_features, step=25, line_scale=2.5)
         cv2.circle(im, (int(feature_coord[0]), int(feature_coord[1])), 5, (0,0,255), thickness=3)
         
-        im = im[286:, 206-10:306+10]
-        im = cv2.resize(im, (im.shape[1]*3, im.shape[0]*3)) 
-        print(im.shape)
+        #im = im[286:, 206-10:306+10]
+        #im = cv2.resize(im, (im.shape[1]*3, im.shape[0]*3)) 
+
         cv2.imshow("Flow IMG", im)
         OUTPUT_IMAGES.append(im)
-        cv2.waitKey(10)
+        cv2.waitKey(30)
     
     if save_vid:
         save_output('optical_flow_trails.avi')

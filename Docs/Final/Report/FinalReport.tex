@@ -241,6 +241,7 @@ The discrete elements of the system with input and output as follows:
 	&& \textbf{Output: }Updated location of target route feature in subsequent image frame.
 \end{easylist}
 
+\textbf{TODO: Examples in this paper will consider a the approach to a T junction in simulation}
 
 \section{Road Surface Detection}
 
@@ -251,12 +252,12 @@ In order to localise navigation elements a reasonable estimate of the current ro
 Inverse perspective mapping is a well established technique that involves a matrix transformation operation to remap pixels from a camera perspective to a `top down' view \citep{compVisionTextbook}. An example of the technique applied to an image from the simulation used is included as figure \ref{f:ipmSim}. Inverse perspective mapping assumes the perspective image is from a flat plane \citep{ipmForLaneTracking} and while this is not the case in route traversal, in most circumstances the road plane can be considered approximately linear about a vehicle position. Further the system developed is robust enough to tolerate introduced error by reasonable undulation. \citep{extendedIPM} have discussed an inverse perspective mapping approach that removes the flat plane assumption however it relies on stereo camera so is out of scope for this system. This approach may be more resiliant and should be considered in the event a stereo camera system is being developed.
 
 
-\begin{wrapfigure}{R}{0.5\textwidth} %this figure will be at the right
+\begin{figure}
 	\centering
-	\includegraphics[width=0.5\textwidth, height=0.5\textwidth]{RoadDetection/ipmSim.png}
+	\includegraphics[width=0.95\textwidth]{RoadDetection/ipmSim.png}
 	\caption{Example image from simulation (left) with inverse perspective mapping applied (center) and derived IPM mask (right).}
 	\label{f:ipmSim}
-\end{wrapfigure}
+\end{figure}
 
 It can be noted that the inverse perspective mapped image has a `null' area in the bottom edges due to the perspective shift. This is used to develop an `IPM mask' which is used in later stages to ensure that any feature matching attempts are not penalised by the zero values in this area as discussed in section \ref{sect:route_feature_matching}. \textbf{TODO: MAKE SURE THIS IS EXPANDED ON IN THE REFERENCED SECTION}
 
@@ -334,9 +335,19 @@ The benefits of optical flow tracking in a smaller region of interest of the inv
 	& Optical flow space is in the same space as the feature matching allowing a direct application of mean flow to the new estimated position.
 \end{easylist}
 
-\textbf{TODO: EXAMPLE OF OPTICAL FLOW TRACKING???}
+A visual example of optical flow output for a small selection of pixels is included as figure \ref{f:optical_flow_trails}. It can be seen from this image that not all flow vectors are uniform and in particular at the edges of the mask there are large distortions. These distortions are expected due to the discontinuity and do not affect the result as the system only considers the optical flow from a range of pixels to the direct front of the vehicle. The average of these more uniform flow vectors is used to provide an effective estimate of the updated feature location.
+
+
+\begin{wrapfigure}{h}{0.5\textwidth} %this figure will be at the right
+	\centering
+	\includegraphics[width=0.5\textwidth]{FeatureTracking/optical_flow_trails.png}
+	\caption{Selected optical flow lines visualised. Black tails indicate flow vector from each point.}
+	\label{f:optical_flow_trails}
+\end{wrapfigure}
+
 \textbf{TODO: Frame by frame tracking - UPDATE FEATURE ORIENTATION AT NODES}
 \textbf{TODO: Confirm using route feature matching as per section \ref{sect:route_feature_matching} }
+
 
 \textbf{APPLY IPM MASK TO SHIFTED MASKS}
 
