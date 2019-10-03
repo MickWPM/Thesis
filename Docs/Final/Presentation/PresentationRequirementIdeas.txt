@@ -8,7 +8,8 @@ Hough transform basics
 Simple demo of road feature matching using small features (eg. 2x6) to show maths
 
 
-
+Elementwise multiplication of matrix - Hadamard product
+Show notation on the screen (tech detail showoff - include this on the side where possible)
 
 TAKEAWAYS
 BENEFITS:

@@ -246,8 +246,6 @@ The discrete elements of the system with input and output as follows:
 
 In order to localise navigation elements a reasonable estimate of the current road surface is required. This is achieved via Inverse Perspective Mapping (IPM) and histogram backprojection. These aspects are discussed in detail in the following subsections.
 
-Inverse perspective mapping of camera image.
-Probabilistic road surface detection.
 \subsection{Inverse perspective mapping}
 
 Inverse perspective mapping is a well established technique that involves a matrix transformation operation to remap pixels from a camera perspective to a `top down' view \citep{compVisionTextbook}. An example of the technique applied to an image from the simulation used is included as figure \ref{f:ipmSim}. Inverse perspective mapping assumes the perspective image is from a flat plane \citep{ipmForLaneTracking} and while this is not the case in route traversal, in most circumstances the road plane can be considered approximately linear about a vehicle position. Further the system developed is robust enough to tolerate introduced error by reasonable undulation. \citep{extendedIPM} have discussed an inverse perspective mapping approach that removes the flat plane assumption however it relies on stereo camera so is out of scope for this system. This approach may be more resiliant and should be considered in the event a stereo camera system is being developed.
@@ -294,7 +292,7 @@ The system matches route `features' based on points defining relevant road segme
 \textbf{TODO: LOOK FOR REFS HERE?}
 \subsection{Feature mask development}
 
-In order to develop a feature model, the feature point (node central to the intersection in this case) was placed as a starting point on the middle of a blank mask. The feature mask is then developed by linearly connecting adjoining nodes \textbf{TODO: Width is hyperparameter}. It is important to not at this stage that the feature mask consists of multiple part masks; each connection to the feature point is kept as an independent mask. The width of these connections is scaled to the desired projected width for vehicle movement. \textbf{TODO: Once the mask is developed it is then rotated so the approach line is vertical at the base of the image; this ensures the feature mask orientation will match the detected road orientation.} An overview of the feature mask creation is included as figure \ref{f:featureMaskDevelopment}. The final step in developing the feature mask is to relate it to the non-null areas of the inverse perspective mapped image. This is done using a bitwise AND operation between the developed feature mask and the inverse perspective map mask. The purpose of this step is to ensure that portions of mask features such as side streets are not considered if they fall outside the inverse projected image space. \textbf{TODO: FIGURE EXPLAINING THIS}
+In order to develop a feature model, the feature point (node central to the intersection in this case) was placed as a starting point on the middle of a blank mask. The feature mask is then developed by linearly connecting adjoining nodes \textbf{TODO: Width is hyperparameter}. It is important to not at this stage that the feature mask consists of multiple sub masks; each connection to the feature point is kept as an independent mask. The width of these connections is scaled to the desired projected width for vehicle movement. \textbf{TODO: Once the mask is developed it is then rotated so the approach line is vertical at the base of the image; this ensures the feature mask orientation will match the detected road orientation.} An overview of the feature mask creation is included as figure \ref{f:featureMaskDevelopment}. The final step in developing the feature mask is to relate it to the non-null areas of the inverse perspective mapped image. This is done using a bitwise AND operation between the developed feature mask and the inverse perspective map mask. The purpose of this step is to ensure that portions of mask features such as side streets are not considered if they fall outside the inverse projected image space. \textbf{TODO: FIGURE EXPLAINING THIS}
 
 \begin{figure}
 	\centering
@@ -305,11 +303,24 @@ In order to develop a feature model, the feature point (node central to the inte
 
 \subsection{Feature mask matching}
 
-\textbf{TODO: Piecewise feature matching}
-\textbf{TODO: Feature center point determination}
+Let $P(sub,k)$ be the probability that the k'th sub feature $\textbf{F}_{sub,k}$ is detected and $P(feature)$ be the probability that a feature $\textbf{F}_{route}$ is detected for a given detected road surface $\textbf{R}_{detected}$. $P(sub,k)$ is determined by the summation of the Hadamard product between the feature sub mask and the detected road surface divided by the element sum of the feature sub mask, as outlined in equation \ref{eq:subMaskProbability}. The assessed probability that the route feature is detected is the minimum sub feature probability as per equation \ref{eq:featureProbability}. \textbf{TODO: The probability threshold for $P(feature)$ is a design decision that can be amended based on factors such as noise and road surface detection output (for example probabilistic or binary thresholded).}
+
+\begin{equation}\label{eq:subMaskProbability}
+	P(sub,k) = \frac{\sum_{i,j=1}^{n} (\textbf{R}_{detected} \circ \textbf{F}_{sub,k})_{ij}}{\sum_{i,j=1}^{n} \textbf{F}_{sub,k,ij}}
+\end{equation}
+
+\begin{equation}\label{eq:featureProbability}
+	P(feature) = min\{\textbf{F}_{sub,k}:k=1,...,n\}
+\end{equation}
+
+Initial detection approaches involved using a single full feature mask as per equation \ref{eq:subMaskProbability} in lieu of sub features however this approach is significantly less robust. \textbf{TODO: WHY IS SINGLE MASK BAD}
+
+Once the feature is detected, the center point is then the main feature node location from the initial mask. \textbf{TODO: It is possible to further refine this by `bracketing' either side however assuming the vehicle is central on the road surface the midpoint of the detected feature will be aligned to the midpoint of the route feature.}
 
 
 \section{Road Feature Tracking}
+
+
 
 \subsection{Optical flow tracking}
 \textbf{TODO: Optical flow theory}
@@ -337,6 +348,8 @@ While it was not explicitly considered as a feature, any road feature with a sha
 \textbf{TODOTODO:!!! UNDULATION IPM TESTING!!!}
 
 \textbf{TODO: Discuss Kalman filtering for position estimation}
+
+update frequency and resolution of images
 
 \textbf{TODO: System designed to work off GPS informed however can use features as `directions'}
 
