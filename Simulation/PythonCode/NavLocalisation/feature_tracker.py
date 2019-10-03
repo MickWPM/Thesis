@@ -6,11 +6,12 @@ Feature uses meters as scale
 """
 import numpy as np
 import cv2
+import bezier
 
 #TODO: Where is feature set for initial matching?
 #TODO: scale feature based on distance of IPM image? #TODO: Add distance scaling based off ipm image total distance
 #CURRENTLY IT IS PASSED AS IMAGE COORDINATES WHICH IS NOT THE PROPER WAY!!!
-def get_feature_masks(feature, mask_dimension, road_width_px):
+def get_feature_masks(feature, mask_dimension, road_width_px, include_bezier=True, driving_line_road_px=5, bezier_offset=(0,0)):
     """
     Get the raw feature masks for the approach. 
     """
@@ -19,8 +20,11 @@ def get_feature_masks(feature, mask_dimension, road_width_px):
     col = (255,255,255)
     feature_point = feature[0]
     approach_point = feature[1]
+    exit_point = feature[2]
     cv2.line(to_feature, approach_point, feature_point, col, thickness=road_width_px)
     feature_masks.append(to_feature.astype(np.uint8))
+    print("road_width_px=",road_width_px)
+        
     n = len(feature)
     print(n)
     if len(feature) > 2:
@@ -28,9 +32,19 @@ def get_feature_masks(feature, mask_dimension, road_width_px):
             mask = np.zeros(mask_dimension)
             cv2.line(mask, feature_point, feature[i], col, thickness=road_width_px)
             feature_masks.append(mask.astype(np.uint8))
-        
+    
+    
+    p1 = np.add(feature_point, bezier_offset)
+    p2 = np.add(approach_point, bezier_offset)
+    p3 = np.add(exit_point, bezier_offset)
+    print("driving_line_road_px=",driving_line_road_px)
+    curve_mask=bezier.get_curve_mask(p1, p2, p3, width=driving_line_road_px)[:,:,0]
+    
+    if include_bezier:
+        feature_masks.append(curve_mask)
+
     combined_mask = np.sum(feature_masks, axis=0).astype(np.uint8)
-    return feature_masks, combined_mask
+    return feature_masks, combined_mask, curve_mask
 
 
 
@@ -40,41 +54,18 @@ def update_feature_masks(distance_from_feature, feature, mask_resolution, ipm_di
     """
     pass
 
-def shift_mask(mask, coord_shift):
-    #Shift of negative means point moving to the left so we have to move to the right
-    #So grab from 0 and move to coord
-    
-    #coord_shift = (0,100) #Down 100
-    #coord_shift = (0,-50) #SHOULD BE - Up 100 -- DOESNT WORK
-
-    #coord_shift = (100, 0) #LEFT 100
-    #coord_shift = (-100, 0) #SHOULD BE - Right 100 -- DOESNT WORK
-
-    #coord_shift = (coord_shift[1], coord_shift[0])
-    #x = -50
-    #y = 0
-    
+def shift_mask(mask, coord_shift, ipm_mask=None):    
     if  np.absolute(coord_shift[0]) > 0 and  np.absolute(coord_shift[1]) > 0:
         #Move X to the right
         if coord_shift[0] < 0:
             #Move X to the right and Y UP
             if coord_shift[1] < 0:
-                #mask[0:coord_shift[1], :] = mask[-coord_shift[1]:, :]
-                #mask[coord_shift[1]:, :] = 0
-                #mask[:, -coord_shift[0]:] = mask[:, 0:coord_shift[0]]
-                #mask[:, :-coord_shift[0]] = 0
-                
                 mask[0:coord_shift[1], -coord_shift[0]:] = mask[-coord_shift[1]:, 0:coord_shift[0]]
                 mask[coord_shift[1]:, :-coord_shift[0]] = 0
                 
 
             #Move X to the right and Y Down
             elif coord_shift[1] > 0:
-                #mask[coord_shift[1]:, :] = mask[:-coord_shift[1], :]
-                #mask[0:coord_shift[1], :] = 0
-                #mask[:, -coord_shift[0]:] = mask[:, 0:coord_shift[0]]
-                #mask[:, :-coord_shift[0]] = 0
-                
                 mask[coord_shift[1]:, -coord_shift[0]:] = mask[:-coord_shift[1], 0:coord_shift[0]]
                 mask[0:coord_shift[1], :-coord_shift[0]] = 0
                 
@@ -84,22 +75,12 @@ def shift_mask(mask, coord_shift):
         elif coord_shift[0] > 0:
             #Move X to the left and y UP
             if coord_shift[1] < 0:
-                #mask[0:coord_shift[1], :] = mask[-coord_shift[1]:, :]
-                #mask[coord_shift[1]:, :] = 0
-                #mask[:, 0:-coord_shift[0]] = mask[:, coord_shift[0]:]
-                #mask[:, -coord_shift[0]:] = 0
-                
                 mask[0:coord_shift[1], 0:-coord_shift[0]] = mask[-coord_shift[1]:, coord_shift[0]:]
                 mask[coord_shift[1]:, -coord_shift[0]:] = 0
                 
 
             #Move X to the left and y DOWN
             elif coord_shift[1] > 0:
-                #mask[coord_shift[1]:, :] = mask[:-coord_shift[1], :]
-                #mask[0:coord_shift[1], :] = 0
-                #mask[:, 0:-coord_shift[0]] = mask[:, coord_shift[0]:]
-                #mask[:, -coord_shift[0]:] = 0
-                
                 mask[coord_shift[1]:, 0:-coord_shift[0]] = mask[:-coord_shift[1], coord_shift[0]:]
                 mask[0:coord_shift[1], -coord_shift[0]:] = 0
                 
@@ -129,9 +110,11 @@ def shift_mask(mask, coord_shift):
             mask[coord_shift[1]:, :] = mask[:-coord_shift[1], :]
             mask[0:coord_shift[1], :] = 0
 
+    if ipm_mask is not None:
+        mask = cv2.bitwise_and(mask, mask, mask=ipm_mask)
     return mask
 
-def check_feature(feature_mask, road_surface, coord_shift=(0,0), probability_threshold=0.7):
+def check_feature(feature_mask, road_surface, coord_shift=(0,0), probability_threshold=0.7, ipm_mask=None):
     """
     Considers features elementwise
     """
@@ -151,7 +134,7 @@ def check_feature(feature_mask, road_surface, coord_shift=(0,0), probability_thr
         #mask_unshifted = np.add(mask_unshifted, mask )
 
         if shifted:
-            mask = shift_mask(mask, coord_shift)
+            mask = shift_mask(mask, coord_shift, ipm_mask=ipm_mask)
 
         _, _, feature_masked_image = mask_image(road_surface, mask)
         masked_image = np.add(masked_image, feature_masked_image )
