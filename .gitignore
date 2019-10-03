@@ -302,3 +302,6 @@ sysinfo.txt
 !.vscode/launch.json
 !.vscode/extensions.json
 Docs/InterimReport/InterimReport.pdf
+Simulation/PythonCode/NavLocalisation/tempCodeRunnerFile.py
+Simulation/PythonCode/tempCodeRunnerFile.py
+*.pyc
