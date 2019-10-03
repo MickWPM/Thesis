@@ -338,12 +338,22 @@ The benefits of optical flow tracking in a smaller region of interest of the inv
 \textbf{TODO: Frame by frame tracking - UPDATE FEATURE ORIENTATION AT NODES}
 \textbf{TODO: Confirm using route feature matching as per section \ref{sect:route_feature_matching} }
 
-\subsection{Driving path curve matching}
-%Once the path is developed, the approach used in section \ref{sect:route_feature_matching} is used to match the developed path to the detected road surface. The developed path is then used for subsequent matching and to facilitate driving control.
+\textbf{APPLY IPM MASK TO SHIFTED MASKS}
 
-\textbf{TODO: DO we need to create control points near intersection for p0 and p2 or do the poly line points work ok? I imagine we will need to artificially create these entry/exit points from the feature!!! This can be done simply by moving X meters along the approach/exit line to determine entry/exit control points}
+\subsection{Driving path curve matching}
+
+\textbf{TODO: Bezier curve basics}
+
+\textbf{TODO: Develop curve based on inbound, central and outbound node}
+
+\textbf{TODO: Add to intersection mask to ensure driving line on detected road}
+
+
 
 The real challenge in this problem is that most route features require more than a simple maintenance of central position such as turning at an intersection. In order to effectively identify a path through a route feature, a driving path is developed using bezier curves.
+
+
+\textbf{TODO: DO we need to create control points near intersection for p0 and p2 or do the poly line points work ok? I imagine we will need to artificially create these entry/exit points from the feature!!! This can be done simply by moving X meters along the approach/exit line to determine entry/exit control points}
 
 \section{Additional optional outputs}
 
