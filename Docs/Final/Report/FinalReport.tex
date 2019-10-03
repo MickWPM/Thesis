@@ -179,7 +179,7 @@ Histogram backprojection has been used for basic \citep{histBackObjectTracking} 
 
 \citet{moncularLaneDetectAndTrack} outlined an approach involving the use of a Support Vector Machine to segment image road pixels from non-road pixels and an identification of road edges and control points defining the road curve. This approach is somewhat less interpretable however provides a suitable alternate and possibly more robust option for road detection. Additionally the input and output interfaces are the same as in this system which allows the option to `sub in' this approach if it is preferred. The histogram based approach has the theoretical benefit that it is able to adjust to varying road surfaces `on the fly' as opposed to requiring prior training.(*Both systems can be used for redundancy?)\textbf{TODO: Some of this can be extracted to discussion?}
 
-
+Optical flow LK
 
 ??????
 
@@ -301,7 +301,7 @@ In order to develop a feature model, the feature point (node central to the inte
 	\label{f:featureMaskDevelopment}
 \end{figure}
 
-\subsection{Feature mask matching}
+\subsection{Feature mask matching} 
 
 Let $P(sub,k)$ be the probability that the k'th sub feature $\textbf{F}_{sub,k}$ is detected and $P(feature)$ be the probability that a feature $\textbf{F}_{route}$ is detected for a given detected road surface $\textbf{R}_{detected}$. $P(sub,k)$ is determined by the summation of the Hadamard product between the feature sub mask and the detected road surface divided by the element sum of the feature sub mask, as outlined in equation \ref{eq:subMaskProbability}. The assessed probability that the route feature is detected is the minimum sub feature probability as per equation \ref{eq:featureProbability}. \textbf{TODO: The probability threshold for $P(feature)$ is a design decision that can be amended based on factors such as noise and road surface detection output (for example probabilistic or binary thresholded).}
 
@@ -320,11 +320,21 @@ Once the feature is detected, the center point is then the main feature node loc
 
 \section{Road Feature Tracking}
 
-
+In order to track the detected route features mean optical flow was used to estimate an updated feature node location which was then confirmed using the masking approach discussed in section \ref{sect:route_feature_matching}. In general optical flow options can be considered as sparse where a few key points are tracked, or dense which tracks a large number of points, up to individal pixels (although it should be noted this categorisation represents ends of a continuous range rather than a binary category). 
+\textbf{TODO: Once the feature is tracked???}
 
 \subsection{Optical flow tracking}
-\textbf{TODO: Optical flow theory}
-\textbf{TODO: Frame by frame tracking - estimation of feature center point}
+
+Sparse options \textbf{TODO: eg?} were initially considered for efficiency however the two frame estimation proposed by \citet{opticalFlowSolution} (the `Gunnar Farneb{\"a}ck method') was identified as the prefferred optical tracking approach. The Pyramidal Implementation of the Lucas Kanade Feature Tracker outlined by \citet{opticalFlowLKPyramidal} relies on key tracking points in an image and it is assessed that the random surface textures in this case lack the definition to be tracked effectively via this method. Similar results were identified by \citet{opticalFlowLKvsDenseUAV} when considering moving images of near grass surfaces. The optical flow tracking implemention involved tracking a small subsection of interest from the inverse perspective mapped image converted to greyscale. The Gunnar Farneb{\"a}ck method considers a polynomial expansion to approximate pixel neighbourhood and minimises an error function for an approximated local displacement and performed well in this situation. \textbf{TODO: Results comparing the two? Maybe }
+
+The benefits of optical flow tracking in a smaller region of interest of the inverse perspective map are as follows:
+\begin{easylist}
+	& Allows effective processing of dense optical flow due to a small total number of pixels.
+	& Avoids noisy areas such as extremity pixels which are warped by inverse perspective mapping.
+	& Optical flow space is in the same space as the feature matching allowing a direct application of mean flow to the new estimated position.
+\end{easylist}
+
+\textbf{TODO: EXAMPLE OF OPTICAL FLOW TRACKING???}
 \textbf{TODO: Frame by frame tracking - UPDATE FEATURE ORIENTATION AT NODES}
 \textbf{TODO: Confirm using route feature matching as per section \ref{sect:route_feature_matching} }
 
@@ -346,6 +356,8 @@ While it was not explicitly considered as a feature, any road feature with a sha
 
 \section{ Discussion?}
 \textbf{TODOTODO:!!! UNDULATION IPM TESTING!!!}
+
+simpler approach - just model feature as is in final approach - avoids rotation requirement
 
 \textbf{TODO: Discuss Kalman filtering for position estimation}
 
