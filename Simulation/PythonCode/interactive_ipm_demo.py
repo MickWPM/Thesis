@@ -3,16 +3,18 @@ import numpy as np
 
 IPM_MATRIX=None
 CURRENT_CLICK = False
+IMG_WIDTH = 512
 def on_mouse(event,x,y,flags,param):
     global CURRENT_CLICK
     if event == cv2.EVENT_LBUTTONDOWN and not CURRENT_CLICK:
         CURRENT_CLICK = True
         print("Coords: " + str((x,y)))
-        if x >=512:
-            print("IPM CHANGE")
-            change_ipm_point(x-512,y)
+        if x >=IMG_WIDTH:
+            #print("IPM CHANGE")
+            change_ipm_point(x-IMG_WIDTH,y)
+            #change_ipm_point(x-512,y)
         else:
-            print("IMG CHANGE")
+            #print("IMG CHANGE")
             change_img_point(x,y)
         update_images()
     elif event == cv2.EVENT_LBUTTONUP:
@@ -29,7 +31,7 @@ def change_ipm_point(x,y):
     global INDEX_IPM_POINTS
     POINTS_IPM[INDEX_IPM_POINTS] = (x,y)
     INDEX_IPM_POINTS = (INDEX_IPM_POINTS+1)%4
-    print("INDEX_IPM_POINTS="+str(INDEX_IPM_POINTS) + ". POINTS: " + str(POINTS_IPM))
+    #print("INDEX_IPM_POINTS="+str(INDEX_IPM_POINTS) + ". POINTS: " + str(POINTS_IPM))
     
 
 def change_img_point(x,y):
@@ -37,14 +39,14 @@ def change_img_point(x,y):
     global INDEX_IMG_POINTS
     POINTS_IMG[INDEX_IMG_POINTS] = (x,y)
     INDEX_IMG_POINTS = (INDEX_IMG_POINTS+1)%4
-    print("INDEX_IMG_POINTS="+str(INDEX_IMG_POINTS) + ". POINTS: " + str(POINTS_IMG))
+    #print("INDEX_IMG_POINTS="+str(INDEX_IMG_POINTS) + ". POINTS: " + str(POINTS_IMG))
 
 def update_ipm():
     global IPM_IMG
     if IPM_MATRIX is None:
         IPM_IMG = np.zeros_like(MAIN_IMG)
     else:
-        IPM_IMG = cv2.warpPerspective(MAIN_IMG, IPM_MATRIX, (MAIN_IMG.shape[0], MAIN_IMG.shape[1]))
+        IPM_IMG = cv2.warpPerspective(MAIN_IMG, IPM_MATRIX, (MAIN_IMG.shape[1], MAIN_IMG.shape[0]))
 
 
 def update_images():
@@ -63,19 +65,24 @@ IPM_IMG=None
 DISPLAY_IMG_WITH_POINTS=None
 def main():
     global MAIN_IMG
+    global IMG_WIDTH
     global IPM_IMG
     global DISPLAY_IMG_WITH_POINTS
     global IPM_MATRIX
     print("RUN")
     folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/'
-    im_path = 'InversePerspective/unityCamCalibration.png'
+    im_path = 'InversePerspective/car_dashcam.jpg'
+    #im_path = 'InversePerspective/unityCamCalibration.png'
     #im_path = 'InversePerspective/sce_c.png'
+    
     MAIN_IMG = cv2.imread(folder_path+im_path)
 
     cv2.namedWindow('IPM Demo')
     cv2.setMouseCallback('IPM Demo', on_mouse)
 
     DISPLAY_IMG_WITH_POINTS = MAIN_IMG.copy()
+    IMG_WIDTH = MAIN_IMG.shape[1]
+    print(IMG_WIDTH)
     IPM_IMG = np.zeros_like(MAIN_IMG)
     update_images()
     run = True
@@ -91,7 +98,8 @@ def main():
             print("Matrix calculated")
             update_images()
             
-        
+    
+    np.save(folder_path + "InversePerspective/interactiveInverseMatrix", matrix)
     print("DONE")
     cv2.destroyAllWindows()
 
