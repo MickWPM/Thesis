@@ -209,7 +209,7 @@ Optical flow LK
 \citep{explainableCNNBookChapter} discusses the importance of explainable and interpretable systems and propose a system to allow interpretability of deep neural perception and control networks. The solution discussed in this paper is developed to be deliberately an inherently interpretable system; at all key stages in the navigation localisation process a human observer can understand intermediate products and the logic of how they were derived. 
 More importantly, this allows the entire system to be considered as a modular series. As improved systems, approaches and algorithms are developed, assuming they ahdere to the same input and output data interface, they can be seamlessly swapped in. Additionally the intermediate products are available for use in other systems that may be integrated.
 
-As a high level overview, the system involves inverse perspective mapping to develop a `top down' projection of the vehicle camera image. An averaged histogram of local road pixels is used to develop a probabalistic road surface map using histogram backprojection. An image mask of the upcoming route feature \textbf{(what is a `feature')} is developed using GPS mapping data and is overlaid on the detected road surface. The feature is deemed detected when the proportion of feature mask covered by road surface is above a threshold \textbf{TODO: track these parameters}. Once initially detected, the feature position is updated in subsequent video frames using a mean optical flow between frames and confirmed by remasking. A driving line through the feature can be developed and tracked by using a Bezier curve of the desired route through the feature once the initial feature model has been detected.
+A high level overview of the system is outlined in figure \ref{f:systemOverview}. In general, the system uses inverse perspective mapping to develop a `top down' projection of the vehicle camera image. An averaged histogram of local road pixels is used to develop a probabalistic road surface map using histogram backprojection. An image mask of the upcoming route feature \textbf{(what is a `feature')} is developed using GPS mapping data and is overlaid on the detected road surface. The feature is deemed detected when the proportion of feature mask covered by road surface is above a threshold \textbf{TODO: track these parameters}. Once initially detected, the feature position is updated in subsequent video frames using a mean optical flow between frames and confirmed by remasking. A driving line through the feature can be developed and tracked by using a Bezier curve of the desired route through the feature once the initial feature model has been detected.
 
 The discrete elements of the system with input and output as follows:
 
@@ -241,6 +241,12 @@ The discrete elements of the system with input and output as follows:
 	&& \textbf{Output: }Updated location of target route feature in subsequent image frame.
 \end{easylist}
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.95\textwidth]{systemOverview.png}
+	\caption{High level overview of system stages, inputs and outputs.}
+	\label{f:systemOverview}
+\end{figure}
 \textbf{TODO: Examples in this paper will consider a the approach to a T junction in simulation}
 
 \section{Road Surface Detection}
@@ -260,6 +266,10 @@ Inverse perspective mapping is a well established technique that involves a matr
 \end{figure}
 
 It can be noted that the inverse perspective mapped image has a `null' area in the bottom edges due to the perspective shift. This is used to develop an `IPM mask' which is used in later stages to ensure that any feature matching attempts are not penalised by the zero values in this area as discussed in section \ref{sect:route_feature_matching}. \textbf{TODO: MAKE SURE THIS IS EXPANDED ON IN THE REFERENCED SECTION}
+
+\textbf{TODO: Wider camera FOV helps detection on near approach (better section than this possible though?)}
+
+\textbf{TODO: Maths??}
 
 \subsection{Probabilistic road surface detection}
 
@@ -281,8 +291,8 @@ Initially a road surface area of interest is defined, based off the near portion
 %\end{wrapfigure}
 
 \begin{figure}
-	\includegraphics[width=0.5\textwidth]{RoadDetection/histRoadLive.png}
-	\caption{Detected road surface from live camera.}
+	\includegraphics[width=0.95\textwidth]{RoadDetection/histRoadLive.png}
+	\caption{Detected road surface from inverse perspective mapped live camera.}
 	\label{f:histRoadLive}
 \end{figure}
 
@@ -379,6 +389,8 @@ While it was not explicitly considered as a feature, any road feature with a sha
 
 \section{ Discussion?}
 \textbf{TODOTODO:!!! UNDULATION IPM TESTING!!!}
+
+\textbf{TODO: histogram - rolling average, MAX with known road maps?}
 
 simpler approach - just model feature as is in final approach - avoids rotation requirement
 
