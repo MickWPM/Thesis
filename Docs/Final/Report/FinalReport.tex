@@ -69,17 +69,25 @@
 
 
 \begin{abstract}
-20\%: Very well organized structure, highly logical sequence of information, facilitating reader’s understanding, appropriate amount of materials presented in all components
 
-20\%: Major extension of scopes stated in MoU covered, innovative and sound methodology used. AND/OR Very strong justifications are given for the change of scope/methodology used (if any). The changes also greatly improved the project scope and/or the methodology used
+The ability for an autonomous vehicle to navigate effectively requires an ability to identify road features such as intersections and plan driving routes through them. While high end autonomous vehicles require a fusion of sensor data to work effectively, a single camera minimal solution has the advantage of lowering the barrier to entry and providing a redundancy option in the event that high end autonomous sensors fail.
 
-20\%: Technical content included in report exceeds normal requirement of AQF8 level, some extensions of knowledge of subject matter created
-(D: Strong technical content included in report, full understanding knowledge of subject matter demonstrated, no technical faults found)
+This paper outlines a system developed to identify, track and provide driving line guidance through route features. The system is designed to be interpretable at each stage including interfacing using human understandable inputs and outputs. The system developed uses inverse perspective mapping and histogram backprojection to develop a simple model of the road surface. Route features such as intersections are identified using a feature mask which is compared to the detected road surface. The feature mask is developed from navigation data nodes and includes a bezier curve interpolated driving line. Once detected the feature is tracked using mean optical flow to estimate an updated position which is confirmed using model masking as per the detection stage.
 
-20\%: Outcomes achieved well exceed project expectations, excellent conclusion and critical reflection shown. Excellent and in‐depth analysis and deductions are made and good synthesis shown
+The system is modular with each element being purely defined by input and output format which allows incremental system improvement as improved approaches to individual system functionalities are identified.
 
-20\%: Excellent writing that reaches journal paper requirements, mature and professional writing style, excellent/creative used of photos, charts, diagrams etc that greatly enhance the presentation quality, \textbf{concise and excellent literature review }and referencing
 \end{abstract}
+%
+%20\%: Very well organized structure, highly logical sequence of information, facilitating reader’s understanding, appropriate amount of materials presented in all components
+%
+%20\%: Major extension of scopes stated in MoU covered, innovative and sound methodology used. AND/OR Very strong justifications are given for the change of scope/methodology used (if any). The changes also greatly improved the project scope and/or the methodology used
+%
+%20\%: Technical content included in report exceeds normal requirement of AQF8 level, some extensions of knowledge of subject matter created
+%(D: Strong technical content included in report, full understanding knowledge of subject matter demonstrated, no technical faults found)
+%
+%20\%: Outcomes achieved well exceed project expectations, excellent conclusion and critical reflection shown. Excellent and in‐depth analysis and deductions are made and good synthesis shown
+%
+%20\%: Excellent writing that reaches journal paper requirements, mature and professional writing style, excellent/creative used of photos, charts, diagrams etc that greatly enhance the presentation quality, \textbf{concise and excellent literature review }and referencing
 
 %\newpage
 %\tableofcontents
@@ -252,11 +260,11 @@ The discrete elements of the system with input and output as follows: \textbf{TO
 
 \section{Road Surface Detection}
 
-In order to localise navigation elements a reasonable estimate of the current road surface is required. This is achieved via Inverse Perspective Mapping (IPM) and histogram backprojection. These aspects are discussed in detail in the following subsections.
+In order to localise navigation elements a reasonable estimate of the current road surface is required. This is achieved via Inverse Perspective Mapping (IPM) and histogram backprojection. These aspects are discussed in detail in the following subsections. The road surface detection implemented is a basic road surface detection algorithm and can be outperformed by other more advanced methods. While it was suitable for developing the proof of concept system, more robust alternatives would be suggested in a live system.
 
 \subsection{Inverse Perspective Mapping}\label{s:ipm}
 
-Inverse perspective mapping (IPM) is a well established technique that involves a matrix transformation operation to remap pixels from a camera perspective to a `top down' view \citep{compVisionTextbook}. An example of the technique applied to an image from the simulation used is included as figure \ref{f:ipmSim}. IPM assumes the perspective image is from a flat plane \citep{ipmForLaneTracking} and while this is not the case in route traversal, in most circumstances the road plane can be considered approximately linear about a vehicle position. Further the system developed is robust enough to tolerate introduced error by reasonable undulation. \citep{extendedIPM} have discussed an IPM approach that removes the flat plane assumption however it relies on stereo camera so is out of scope for this system. This approach may be more resilient and should be considered in the event a stereo camera system is being developed.
+Inverse perspective mapping (IPM) is a well established technique that involves a matrix transformation operation to remap pixels from a camera perspective to a `top down' view \citep{compVisionTextbook}. As part of this process the pixel to real world distance of the inverse transformed image is determined based on known distances in the transformed image. An example of the technique applied to an image from the simulation used is included as figure \ref{f:ipmSim}. IPM assumes the perspective image is from a flat plane \citep{ipmForLaneTracking} and while this is not the case in route traversal, in most circumstances the road plane can be considered approximately linear about a vehicle position. Further the system developed is robust enough to tolerate introduced error by reasonable undulation. \citep{extendedIPM} have discussed an IPM approach that removes the flat plane assumption however it relies on stereo camera so is out of scope for this system. This approach may be more resilient and should be considered in the event a stereo camera system is being developed.
 
 
 \begin{figure}
@@ -270,9 +278,15 @@ It can be noted that the inverse perspective mapped image has a `null' area in t
 
 \subsection{Probabilistic road surface detection}
 
-While the road detection approach considered can be used with both the inverse perspective mapped image and the raw camera perspective image, in this instance it was applied after IPM had been conducted. \textbf{TODO: IS IT BETTER BEFORE? IS IT BETTER AFTER!!?}
+While the road detection approach considered can be used with both the inverse perspective mapped image and the raw camera perspective image, in this instance it was applied after IPM had been conducted. It was clear from early tests that a better road surface detection was obtained when the IPM transformation ocurred first. An example of this is included as figure \ref{f:histIPMcompare}. It was also noted that when IPM was applied after road surface detection, probabilities were skewed based off pixel stretching as a result of the IPM transformation. For this reason it was determined that road surface detection should occur after IPM transformation.
 
-Initially a road surface area of interest is defined, based off the near portion of road surface from the vehicle front \textbf{TODO: as shown in fig XXX(IPM vs perspective figure)}. While this relies on the assumption that the vehicle starts on a road surface, it has the benefit of flexibility in detecting dynamic road surfaces. A histogram of this area is used to inform a rolling average histogram which considers the previous five frames. This is histogram is backprojected over the image; a probability is determined for each pixel in the image to belong to the defined histogram. An example of the detected road surface from an IPM transformed live camera feed is included as figure \ref{f:histRoadLive}
+\begin{figure}
+	\includegraphics[width=0.99\textwidth]{RoadDetection/histIPMcompare.png}
+	\caption{Comparison of histogram backprojection conducted after (left) and before (right) IPM transformation. Raw image used (centre) incudes indicative sampling area of interest used.}
+	\label{f:histIPMcompare}
+\end{figure}
+
+Initially a road surface area of interest is defined, based off the near portion of road surface from the vehicle front, as indicated in figure \ref{f:histIPMcompare}. While this relies on the assumption that the vehicle starts on a road surface, it has the benefit of flexibility in detecting dynamic road surfaces. A histogram of this area is used to inform a rolling average histogram which considers the previous five frames. This is histogram is backprojected over the image; a probability is determined for each pixel in the image to belong to the defined histogram. An example of the detected road surface from an IPM transformed live camera feed is included as figure \ref{f:histRoadLive}
 
 %\begin{wrapfigure}{h}{0.5\textwidth} %this figure will be at the right
 %	\centering
@@ -296,7 +310,7 @@ The system matches route `features' based on points defining relevant road segme
 
 \subsection{Feature mask development} \label{s:maskDevelopment}
 
-In order to develop a feature model, the feature point (node central to the intersection in this case) was placed as a starting point centrally on a blank mask. The feature mask is then developed by linearly connecting adjoining node. It is important to not at this stage that the feature mask consists of multiple sub masks; each connection to the feature point is kept as an independent mask. The width of these connections is scaled to the desired projected width for vehicle movement. An overview of the feature mask creation is included as figure \ref{f:featureMaskDevelopment}. The final step in developing the feature mask is to relate it to the non-null areas of the inverse perspective mapped image. This is done using a bitwise AND operation between the developed feature mask and the inverse perspective map mask. The purpose of this step is to ensure that portions of mask features such as side streets are not considered if they fall outside the inverse projected image space. 
+In order to develop a feature model, the feature point (node central to the intersection in this case) was placed as a starting point centrally on a blank mask. The feature mask is then developed by linearly connecting adjoining node. The pixel distance between nodes is defined based on the real world distance between nodes scaled using a pixel to distance ratio that is identified during the IPM process. It is important to note at this stage that the feature mask consists of multiple sub masks; each connection to the feature point is kept as an independent mask. The width of these connections is scaled to the desired projected width for vehicle movement. An overview of the feature mask creation is included as figure \ref{f:featureMaskDevelopment}. The final step in developing the feature mask is to relate it to the non-null areas of the inverse perspective mapped image. This is done using a bitwise AND operation between the developed feature mask and the inverse perspective map mask. The purpose of this step is to ensure that portions of mask features such as side streets are not considered if they fall outside the inverse projected image space. 
 
 \begin{figure}
 	\centering
@@ -424,11 +438,12 @@ An example of a complex approach to a feature is included as figure \ref{f:compl
 
 \section{Concluding remarks}
 
-The resulting system has specified limitations as discussed in section \ref{sect:intro} however within those limitations it performs effectively, in particular the route feature tracking. The `simple' approach of feature detection also works well and the bezier curve driving line provides a control system a constant steering angle for feature traversal.
+The resulting system has specified limitations as discussed in section \ref{sect:intro} and in particular the road surface detection approach represents a basic approximation. In addition to the societal aspects, the focus on interpretable steps has the additional significant benefit of having a clear `plug and play' interface with other systems. As a result, when an improved road surface detection algorithm is identified it can easily be integrated to the system in place of the existing element. 
 
-The focus on interpretable steps has the significant benefit of being `plug and play' with other systems. The weakest element of this system is the simple road surface detection approach. When an improved road surface detection algorithm is identified it can easily be integrated to the system in place of the existing element. 
+Within the identified limitations the system effectively identifies and tracks route features and provides a driving line through the feature. In particular the route feature tracking using optical flow was highly effective. The model mask approach of feature detection provided effective feature matching in non ideal conditions and the bezier curve driving line provides a control system a constant steering angle for feature traversal.
 
-\textbf{TODO: Tie to intro and abstract. Wrap up}
+A system such as the one proposed in this paper provides a low barrier to entry for simple vehiclular navigation automation tasks and offers a final redundancy option in the event that a `high end' autonomous system suffers a significant sensor suite failure.
+
 
 \newpage
 
