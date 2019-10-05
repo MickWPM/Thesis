@@ -86,7 +86,7 @@
 
 \newpage
 \section{Introduction} \label{sect:intro}
-\textbf{TODOTODO:!!! UNDULATION IPM TESTING!!!}
+\textbf{TODO: Look for footnote candidates}
 
 Gen points to cover:
 \begin{easylist}
@@ -206,12 +206,13 @@ Optical flow LK
 %Additional considerations which will be addressed as part of the simulation development include the data structure representation of the GPS maps and navigation routes. These will both be in line with the OSM data structures but may be simplified to specifically the required data for ease of processing in testing. Simplification of data will only occur where it is feasible that the OSM (or similar) data format can be transformed into the used data format with sufficient preprocessing ie. only information that is present in, or able to be derived from, the OSM or similar data will be used.
 
 \section{System overview}
-\citep{explainableCNNBookChapter} discusses the importance of explainable and interpretable systems and propose a system to allow interpretability of deep neural perception and control networks. The solution discussed in this paper is developed to be deliberately an inherently interpretable system; at all key stages in the navigation localisation process a human observer can understand intermediate products and the logic of how they were derived. 
+\textbf{TODO: One or two more refs discussing explainable/interpretable (ethics?)}
+\citep{explainableCNNBookChapter} discuss the importance of explainable and interpretable systems and propose a system to allow interpretability of deep neural perception and control networks. The solution discussed in this paper is developed to be deliberately an inherently interpretable system; at all key stages in the navigation localisation process a human observer can understand intermediate products and the logic of how they were derived. 
 More importantly, this allows the entire system to be considered as a modular series. As improved systems, approaches and algorithms are developed, assuming they ahdere to the same input and output data interface, they can be seamlessly swapped in. Additionally the intermediate products are available for use in other systems that may be integrated.
 
 A high level overview of the system is outlined in figure \ref{f:systemOverview}. In general, the system uses inverse perspective mapping to develop a `top down' projection of the vehicle camera image. An averaged histogram of local road pixels is used to develop a probabalistic road surface map using histogram backprojection. An image mask of the upcoming route feature \textbf{(what is a `feature')} is developed using GPS mapping data and is overlaid on the detected road surface. The feature is deemed detected when the proportion of feature mask covered by road surface is above a threshold \textbf{TODO: track these parameters}. Once initially detected, the feature position is updated in subsequent video frames using a mean optical flow between frames and confirmed by remasking. A driving line through the feature can be developed and tracked by using a Bezier curve of the desired route through the feature once the initial feature model has been detected.
 
-The discrete elements of the system with input and output as follows:
+The discrete elements of the system with input and output as follows: \textbf{TODO: FIX THESE}
 
 \begin{easylist}[itemize]
 	& \textbf{Road surface detection}. 
@@ -252,9 +253,9 @@ The discrete elements of the system with input and output as follows:
 
 In order to localise navigation elements a reasonable estimate of the current road surface is required. This is achieved via Inverse Perspective Mapping (IPM) and histogram backprojection. These aspects are discussed in detail in the following subsections.
 
-\subsection{Inverse perspective mapping}
+\subsection{Inverse Perspective Mapping}
 
-Inverse perspective mapping is a well established technique that involves a matrix transformation operation to remap pixels from a camera perspective to a `top down' view \citep{compVisionTextbook}. An example of the technique applied to an image from the simulation used is included as figure \ref{f:ipmSim}. Inverse perspective mapping assumes the perspective image is from a flat plane \citep{ipmForLaneTracking} and while this is not the case in route traversal, in most circumstances the road plane can be considered approximately linear about a vehicle position. Further the system developed is robust enough to tolerate introduced error by reasonable undulation. \citep{extendedIPM} have discussed an inverse perspective mapping approach that removes the flat plane assumption however it relies on stereo camera so is out of scope for this system. This approach may be more resiliant and should be considered in the event a stereo camera system is being developed.
+Inverse perspective mapping (IPM) \textbf{TODO: Replace as IPM FROM HERE.}is a well established technique that involves a matrix transformation operation to remap pixels from a camera perspective to a `top down' view \citep{compVisionTextbook}. An example of the technique applied to an image from the simulation used is included as figure \ref{f:ipmSim}. Inverse perspective mapping assumes the perspective image is from a flat plane \citep{ipmForLaneTracking} and while this is not the case in route traversal, in most circumstances the road plane can be considered approximately linear about a vehicle position. Further the system developed is robust enough to tolerate introduced error by reasonable undulation. \citep{extendedIPM} have discussed an inverse perspective mapping approach that removes the flat plane assumption however it relies on stereo camera so is out of scope for this system. This approach may be more resiliant and should be considered in the event a stereo camera system is being developed.
 
 
 \begin{figure}
@@ -266,7 +267,6 @@ Inverse perspective mapping is a well established technique that involves a matr
 
 It can be noted that the inverse perspective mapped image has a `null' area in the bottom edges where all pixels are black due to the perspective shift. This is used to develop an `IPM mask' which is used in later stages to ensure that any feature matching attempts are not penalised by the zero values in this area as discussed in section \ref{sect:route_feature_matching}. \textbf{TODO: MAKE SURE THIS IS EXPANDED ON IN THE REFERENCED SECTION}
 
-\textbf{TODO: Wider camera FOV helps detection on near approach (better section than this possible though?)}
 
 \textbf{TODO: Maths??}
 
@@ -274,7 +274,7 @@ It can be noted that the inverse perspective mapped image has a `null' area in t
 
 While the road detection approach considered can be used with both the inverse perspective mapped image and the raw camera perspective image, in this instance it was applied after IPM had been conducted. \textbf{TODO: IS IT BETTER BEFORE? IS IT BETTER AFTER!!?}
 
-Initially a road surface area of interest is defined, based off the near portion of road surface from the vehicle front. While this relies on the assumption that the vehicle starts on a road surface, it has the benefit of flexibility in detecting dynamic road surfaces. \textbf{TODO: TEST THIS.} A histogram of this area is used to inform a rolling average histogram \textbf{TODO: ?? Or a general map?}. This is histogram is backprojected over the image; a probability is determined for each pixel in the image to belong to the defined histogram. An example of the detected road surface from a live camera feed \textbf{TODO: Perspective or IPM???} is included as figure \ref{f:histRoadLive}
+Initially a road surface area of interest is defined, based off the near portion of road surface from the vehicle front. While this relies on the assumption that the vehicle starts on a road surface, it has the benefit of flexibility in detecting dynamic road surfaces. A histogram of this area is used to inform a rolling average histogram \textbf{TODO: ?? Or a general map?}. This is histogram is backprojected over the image; a probability is determined for each pixel in the image to belong to the defined histogram. An example of the detected road surface from a live camera feed \textbf{TODO: Perspective or IPM???} is included as figure \ref{f:histRoadLive}
 
 
 \textbf{TODO: Histogram backprojection (SIMULATION AND/OR LIVE IMAGE EXMAPLES, LIVE OF VARYING ROAD TYPES)}
@@ -378,32 +378,45 @@ A visual example of optical flow output for a small selection of pixels is inclu
 
 Once the mean optical flow has been developed, the estimated feature position is updated and the position delta is also used to update the feature model masks accordingly. Once the model masks have been updated, the IPM mask is applied and the new approximated feature position is confirmed using route feature matching as per section \ref{sect:route_feature_matching}. If the new location of the approaching node is within the curve defined by the driving path, discussed in section \ref{s:drivingPathMatching}, the vehicle has arrived at the tracked feature and the route feature matching can generate the next route feature. In the event the feature is otherwise no longer detected, a bracketing approach can be used to attempt to relocate it.
 
-\section{Additional optional outputs}
+\section{Discussion}
 
 \subsection{Local road edge orientation}
-Edge detection and Hough Transforms to identify main edges. Averaged position represents a general central point to the road which can be used as a standing control input.
 
-Edge detection through Support Vector Machine \cite{moncularLaneDetectAndTrack}
+While vehicle position and orientation on the road is a critical input to a controller, it was not explicitly covered as part of this system. A general approach \textbf{TODO: CITE!} to identify the central point on a road surface is edge detection on the road pixels followed by identifying straight line candidates using the Hough transform. 
 
-While it was not explicitly considered as a feature, any road feature with a sharp enough angle between points can be used. This is particularly helpful if an aim is to identify a `true' position outside GPS error as sharp bends in a road can be used as additional features.
+\begin{easylist}
+	& Identify local window of interest in the near ground to vehicle
+	& Use edge detection (eg. Canny) to identify road edge pixels inside window of interest
+	& Identify candidate lines using Hough Transform
+	& Select strongest candidate lines for left and right portions of the window, corresponding to the estimated left and right road edge lines
+	& Identify road centerline as midline between left and right detected edge lines
+	& Determine desired steering direction based on detected centerline pixel offset from vehicle centerline \footnote{The vehicle centerline will correspond to the image center assuming the camera is position centrally. If the vehicle mounted camera is offset, this `center pixel line' will need to be manually identified and stored prior to operation.}
+\end{easylist}
 
-\section{ Discussion?}
+This approach can be applied to either the camera perspective image or the IPM transformed image. In the former case the perspective effect where the left road edge line will be angled to the right and vice versa for right edges, allowing easy segregation of left and right lines. By contrast the IPM transformed road edges will be parallel. \textbf{TODO: Explain this better}. Alternatively more advanced methods such as the Support Vector Machine approach suggested by \citet{moncularLaneDetectAndTrack} may be more robust. \textbf{TODO: As well as potentially informing the road surface detection.}
 
+
+\subsection{System ??improvements??}
 \textbf{TODOTODO:!!! UNDULATION IPM TESTING! - No significant issues in minor undulations such as hills, speed bumps/ pedestrian crossings etc}
 
 
 \textbf{TODO: histogram - rolling average, MAX with known road maps?}
+
+\textbf{TODO: Wider camera FOV helps detection on near approach}
 
 
 It should be noted that the optical flow estimation of the updated feature position was very effective in testing and once detected, features were not lost until arrival at the feature location. Regardless, as discussed in section \ref{s:roadFeatureTracking} it is important to build in redundancy and any controller implementing this system will need to include suitable actions in the event of complete feature loss.
 
 \textbf{TODO: Frame by frame tracking - UPDATE FEATURE ORIENTATION AT NODES. Once the mask is developed it is then rotated so the approach line is vertical at the base of the image; this ensures the feature mask orientation will match the detected road orientation. Simpler approach used for this system, just model feature as is in final approach - avoids rotation requirement and was effective in testing due to the generally linear approach for features. In the event of features with a complex approach (eg. quick left then right turns - EG!) updating the feature to match the expected approach rotation is likelky to be a requirement)}
 
+
+\subsection{General}
 \textbf{TODO: Discuss Kalman filtering for position estimation}
-
-update frequency and resolution of images
-
+\textbf{update frequency and resolution of images?}
 \textbf{TODO: System designed to work off GPS informed however can use features as `directions'}
+
+While it was not explicitly considered as a feature, any road feature with a sharp enough angle between points can be used. This is particularly helpful if an aim is to identify a `true' position outside GPS error as sharp bends in a road can be used as additional features.
+
 
 \section{Concluding remarks}
 
