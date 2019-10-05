@@ -218,7 +218,6 @@ The discrete elements of the system with input and output as follows:
 	&& \textbf{Input: }Camera feed. 
 	&& \textbf{Output: }`top down' road surface map. 
 
-	
 	& \textbf{Route feature matching}. 
 	&& \textbf{Input:} `top down' road surface map. 
 	&& \textbf{Output: }Position in image of target road feature, if detected.
@@ -303,9 +302,10 @@ Initially a road surface area of interest is defined, based off the near portion
 
 The system matches route `features' based on points defining relevant road segments. While GPS mapping data format can vary the general common factor is roads defined by a series of points. These points can be used to develop a model of the road and in this case, key features. Features considered involved road intersections such as T junctions and side roads. A model of the feature was developed by linear interpolation between defined points
 \textbf{TODO: LOOK FOR REFS HERE?}
-\subsection{Feature mask development}
 
-In order to develop a feature model, the feature point (node central to the intersection in this case) was placed as a starting point on the middle of a blank mask. The feature mask is then developed by linearly connecting adjoining nodes \textbf{TODO: Width is hyperparameter}. It is important to not at this stage that the feature mask consists of multiple sub masks; each connection to the feature point is kept as an independent mask. The width of these connections is scaled to the desired projected width for vehicle movement. \textbf{TODO: Once the mask is developed it is then rotated so the approach line is vertical at the base of the image; this ensures the feature mask orientation will match the detected road orientation.} An overview of the feature mask creation is included as figure \ref{f:featureMaskDevelopment}. The final step in developing the feature mask is to relate it to the non-null areas of the inverse perspective mapped image. This is done using a bitwise AND operation between the developed feature mask and the inverse perspective map mask. The purpose of this step is to ensure that portions of mask features such as side streets are not considered if they fall outside the inverse projected image space. \textbf{TODO: FIGURE EXPLAINING THIS}
+\subsection{Feature mask development}
+\textbf{TODO: THIS SEEMS A BIT POOR?}
+In order to develop a feature model, the feature point (node central to the intersection in this case) was placed as a starting point centrally on a blank mask. The feature mask is then developed by linearly connecting adjoining nodes \textbf{TODO: Width is hyperparameter}. It is important to not at this stage that the feature mask consists of multiple sub masks; each connection to the feature point is kept as an independent mask. The width of these connections is scaled to the desired projected width for vehicle movement. An overview of the feature mask creation is included as figure \ref{f:featureMaskDevelopment}. The final step in developing the feature mask is to relate it to the non-null areas of the inverse perspective mapped image. This is done using a bitwise AND operation between the developed feature mask and the inverse perspective map mask. The purpose of this step is to ensure that portions of mask features such as side streets are not considered if they fall outside the inverse projected image space. \textbf{TODO: FIGURE EXPLAINING THIS}
 
 \begin{figure}
 	\centering
@@ -331,7 +331,7 @@ Initial detection approaches involved using a single full feature mask as per eq
 Once the feature is detected, the center point is then the main feature node location from the initial mask. \textbf{TODO: It is possible to further refine this by `bracketing' either side however assuming the vehicle is central on the road surface the midpoint of the detected feature will be aligned to the midpoint of the route feature.}
 
 
-\section{Road Feature Tracking}
+\section{Road Feature Tracking}\label{s:roadFeatureTracking}
 
 In order to track the detected route features mean optical flow was used to estimate an updated feature node location which was then confirmed using the masking approach discussed in section \ref{sect:route_feature_matching}. In general optical flow options can be considered as sparse where a few key points are tracked, or dense which tracks a large number of points, up to individal pixels (although it should be noted this categorisation represents ends of a continuous range rather than a binary category). 
 \textbf{TODO: Once the feature is tracked???}
@@ -357,13 +357,10 @@ A visual example of optical flow output for a small selection of pixels is inclu
 	\label{f:optical_flow_trails}
 \end{wrapfigure}
 
-\textbf{TODO: Frame by frame tracking - UPDATE FEATURE ORIENTATION AT NODES}
-\textbf{TODO: Confirm using route feature matching as per section \ref{sect:route_feature_matching} }
+Once the mean optical flow has been developed, the estimated feature position is updated and the position delta is also used to update the feature model masks accordingly. Once the model masks have been updated, the IPM mask is applied and the new approximated feature position is confirmed using route feature matching as per section \ref{sect:route_feature_matching}. If the new location of the approaching node is within the curve defined by the driving path, discussed in section \ref{s:drivingPathMatching}, the vehicle has arrived at the tracked feature and the route feature matching can generate the next route feature. In the event the feature is otherwise no longer detected, a bracketing approach can be used to attempt to relocate it.
 
 
-\textbf{APPLY IPM MASK TO SHIFTED MASKS}
-
-\subsection{Driving path curve matching}
+\subsection{Driving path curve matching} \label{s:drivingPathMatching}
 
 \textbf{TODO: Bezier curve basics}
 
@@ -388,11 +385,16 @@ Edge detection through Support Vector Machine \cite{moncularLaneDetectAndTrack}
 While it was not explicitly considered as a feature, any road feature with a sharp enough angle between points can be used. This is particularly helpful if an aim is to identify a `true' position outside GPS error as sharp bends in a road can be used as additional features.
 
 \section{ Discussion?}
-\textbf{TODOTODO:!!! UNDULATION IPM TESTING!!!}
+
+\textbf{TODOTODO:!!! UNDULATION IPM TESTING! - No significant issues in minor undulations such as hills, speed bumps/ pedestrian crossings etc}
+
 
 \textbf{TODO: histogram - rolling average, MAX with known road maps?}
 
-simpler approach - just model feature as is in final approach - avoids rotation requirement
+
+It should be noted that the optical flow estimation of the updated feature position was very effective in testing and once detected, features were not lost until arrival at the feature location. Regardless, as discussed in section \ref{s:roadFeatureTracking} it is important to build in redundancy and any controller implementing this system will need to include suitable actions in the event of complete feature loss.
+
+\textbf{TODO: Frame by frame tracking - UPDATE FEATURE ORIENTATION AT NODES. Once the mask is developed it is then rotated so the approach line is vertical at the base of the image; this ensures the feature mask orientation will match the detected road orientation. Simpler approach used for this system, just model feature as is in final approach - avoids rotation requirement and was effective in testing due to the generally linear approach for features. In the event of features with a complex approach (eg. quick left then right turns - EG!) updating the feature to match the expected approach rotation is likelky to be a requirement)
 
 \textbf{TODO: Discuss Kalman filtering for position estimation}
 
