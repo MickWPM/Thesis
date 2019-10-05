@@ -188,7 +188,7 @@ Histogram backprojection has been used for basic \citep{histBackObjectTracking} 
 
 One example of effective intersection detection determined to be more directly applicable to this project is model based recognition which matches intersection models to a series of road boundary points \citep{modelBasedIntersection}.
 A LiDAR-based local trajectory generation has demonstrated through practical experiments that effective localisation using OSM data and global waypoints is possible using a LIDAR sensor suite \cite{mitLocalNavDriving}. 
-it has been identified that Markov and extended Kalman filter localisation techniques may also assist in this problem \citep{probabalisticRobotics}.
+
 
 %\subsection{Project Methodology}
 %
@@ -311,7 +311,7 @@ Initially a road surface area of interest is defined, based off the near portion
 The system matches route `features' based on points defining relevant road segments. While GPS mapping data format can vary the general common factor is roads defined by a series of points. These points can be used to develop a model of the road and in this case, key features. Features considered involved road intersections such as T junctions and side roads. A model of the feature was developed by linear interpolation between defined points
 \textbf{TODO: LOOK FOR REFS HERE?}
 
-\subsection{Feature mask development}
+\subsection{Feature mask development} \label{s:maskDevelopment}
 \textbf{TODO: THIS SEEMS A BIT POOR?}
 In order to develop a feature model, the feature point (node central to the intersection in this case) was placed as a starting point centrally on a blank mask. The feature mask is then developed by linearly connecting adjoining nodes \textbf{TODO: Width is hyperparameter}. It is important to not at this stage that the feature mask consists of multiple sub masks; each connection to the feature point is kept as an independent mask. The width of these connections is scaled to the desired projected width for vehicle movement. An overview of the feature mask creation is included as figure \ref{f:featureMaskDevelopment}. The final step in developing the feature mask is to relate it to the non-null areas of the inverse perspective mapped image. This is done using a bitwise AND operation between the developed feature mask and the inverse perspective map mask. The purpose of this step is to ensure that portions of mask features such as side streets are not considered if they fall outside the inverse projected image space. \textbf{TODO: FIGURE EXPLAINING THIS}
 
@@ -393,6 +393,7 @@ The system has a range of parameters to be specified which allow customisation t
 
 \begin{easylist}
 	& \textbf{Camera parameters.}
+	&& \textbf{Field of view.} The camera field of view affects the visibility of road surfaces off the direct line of travel at the close edge to the vehicle. If the field of view is too narrow, route features may be lost prematurely. As such, a field of view with reasonable vision to the left and right of the driving surface in the near distance is required.	
 	&& \textbf{Frame resolution.} This system is effective at lower resolutions so the full resolution of the camera frame may not be required. While larger frames contain more detail in general the system can trade some resolution for computational time savings without significant losses. Frame resolutions used in testing varied from 512px to 150px widths. 
 	&& \textbf{Frame processing frequency.} While not strictly a camera parameter, the frequency with which the system processes the frames is a key consideration and will generally relate to the processing speed of the implementation. A lower frequency of frame processing results in a higher liklihood of route feature tracking errors and less redundancy in any detection failures. Frame frequency for this test was as low as 10Hz with no noticable issues. 
 	& \textbf{Road surface detection.}
@@ -401,22 +402,11 @@ The system has a range of parameters to be specified which allow customisation t
 
 These parameters directly impact the effectiveness of the system however are generally easy to tune as the entire system is human interpretable thus the effect of a parameter can be directly observed and understood.
 
+As noted in section \ref{s:ipm}, IPM transformation has the assumption of a flat plane which will not be the case along many routes. It was assessed that the local area in front of the vehicle can be assumed to be linearised and testing demonstrated negligible affect on the localisation system when route undulations were incorporated. As a result it is assessed that this assumption can be held as feasible in standard driving conditions. It should also be noted that the optical flow estimation of the updated feature position was very effective in testing and once detected, features were not lost until arrival at the feature location. Regardless, as discussed in section \ref{s:roadFeatureTracking} it is important to build in redundancy and any controller implementing this system will need to include suitable actions in the event of complete feature loss.
+
+While it was not explicitly considered as a feature, any road feature with a sharp enough angle between points can be used. This is particularly helpful if an aim is to identify a `true' position outside GPS error as sharp bends in a road can be used as additional features. Additionally while this system was designed with a supporting GPS in mind, as developed it does not rely on positional information specifically. Indeed assuming that relevant route feature data is stored, this system can work `offline' using the features as directions in a similar way a human navigator may. Integrating the output of this system with other sensors such as GPS offers additional localisation benefits. \citet{probabalisticRobotics} discuss that Markov and extended Kalman filter localisation techniques that may lead to further improvements in this system.
 
 
-\textbf{TODO: Discuss Kalman filtering for position estimation}
-\textbf{update frequency and resolution of images?}
-\textbf{TODO: System designed to work off GPS informed however can use features as `directions'}
-
-\textbf{TODO: Wider camera FOV helps detection on near approach}
-
-
-While it was not explicitly considered as a feature, any road feature with a sharp enough angle between points can be used. This is particularly helpful if an aim is to identify a `true' position outside GPS error as sharp bends in a road can be used as additional features.
-
-
-As noted in section \ref{s:ipm}, IPM transformation has the assumption of a flat plane which will not be the case along many routes. It was assessed that the local area in front of the vehicle can be assumed to be linearised and testing demonstrated negligable affect on the localisation system when route undulations were incorporated. As a result it is assessed that this assumption can be held as feasible in standard driving conditions.
-
-
-It should be noted that the optical flow estimation of the updated feature position was very effective in testing and once detected, features were not lost until arrival at the feature location. Regardless, as discussed in section \ref{s:roadFeatureTracking} it is important to build in redundancy and any controller implementing this system will need to include suitable actions in the event of complete feature loss.
 
 \subsection{Local road orientation}
 
@@ -434,12 +424,22 @@ While vehicle position and orientation on the road is a critical input to a cont
 This approach can be applied to either the camera perspective image or the IPM transformed image. In the former case the perspective effect where the left road edge line will be angled to the right and vice versa for right edges, allowing easy segregation of left and right lines. By contrast the IPM transformed road edges will be parallel. \textbf{TODO: Explain this better}. Alternatively more advanced methods such as the Support Vector Machine approach suggested by \citet{moncularLaneDetectAndTrack} may be more robust. \textbf{TODO: As well as potentially informing the road surface detection.}
 
 
-\subsection{System improvements? FUTURE WORK???}
+\subsection{Opportunities for improvement}
+
+\begin{wrapfigure}{r}{0.25\textwidth} %this figure will be at the right
+	\centering
+	\includegraphics[width=0.25\textwidth]{complexFeatureApproach.png}
+	\caption{An example of a complex approach to a feature which may undermine the current system feature detection.}
+	\label{f:complexFeatureApproach}
+\end{wrapfigure}
+
+\textbf{Known road map histograms.} The histogram backprojection uses an average histogram over the previous 5 frames. \textbf{TODO: Include this in relevnt part.} This is effective for slowly changing road surfaces however can lead to brief road surface loss when moving from one surface to another. An alternate option is to have a bank of representative road surfaces to use for the backprojection and consider the maximum probability over the range of surfaces as each pixel's probability of being a road surface. This can also be combined with the rolling average to provide a more robust assessment as well as categorise road surfaces. \textbf{TODO: I dont know if this is actually worthwhile?}
+
+\textbf{Rotation of feature masks.} The current implementation has the system generating route feature masks of the feature as it will be approached and assumes a linear approach. This is a reasonable assumption for close in detection however it may fall down if complex approaches to route features are encountered. A more robust solution would involve aligning the mask to the approach direction at the frame the feature will be detected. This would entail developing the mask as per section \ref{s:maskDevelopment} and once, developed the mask can then be rotated so the approach line is vertical at the base of the image. On arrival at a feature node on the approach, the mask will be regenerated and reoriented. This approach takes advantage of the fact that the route between two nodes can be assumed as linear and will ensure the feature mask orientation will match the detected road more closely. 
+
+An example of a complex approach to a feature is included as figure \ref{f:complexFeatureApproach}. In this instance as the vehicle encounters the first bend, the feature model mask will no longer have the correct orientation and result in feature loss. 
 
 
-\textbf{TODO: Frame by frame tracking - UPDATE FEATURE ORIENTATION AT NODES. Once the mask is developed it is then rotated so the approach line is vertical at the base of the image; this ensures the feature mask orientation will match the detected road orientation. Simpler approach used for this system, just model feature as is in final approach - avoids rotation requirement and was effective in testing due to the generally linear approach for features. In the event of features with a complex approach (eg. quick left then right turns - EG!) updating the feature to match the expected approach rotation is likelky to be a requirement)}
-
-\textbf{TODO: histogram - rolling average, MAX with known road maps?}
 
 
 \section{Concluding remarks}
@@ -449,6 +449,8 @@ The resulting system has specified limitations as discussed in section \textbf{T
 The focus on interpretable steps has the significant benefit of being `plug and play' with other systems. The weakest element of this system is the simple road surface detection approach. When an improved road surface detection algorithm is identified it can easily be integrated to the system in place of the existing element. 
 
 \textbf{TODO:}
+
+\newpage
 
 %
 %\subsubsection{Bezier curve theory}
