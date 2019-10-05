@@ -5,8 +5,12 @@ import glob
 #HIST_WINDOW = ((250, 460), (265, 500))
 #HIST_WINDOW = ((x1, y1), (x2, y2))
 #HIST_WINDOW = ((124, 200), (174, 300))
+
+#IPM from dashcam
 HIST_WINDOW = ((200,124), (300,174))
-#124-174,200-300
+
+
+
 def OpenClose(img, iterations=1, kernel=np.ones((5,5),np.uint8)):
     for i in range(0, iterations):
         img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
@@ -102,12 +106,15 @@ def save_output(filename="road_surface_detection.avi", save_shape=None):
     out.release()
     print("VIDEO SAVED")
 
-TEST_IMAGE_PATH = "D:/GitRepos/Uni/Thesis/Simulation/PythonCode/InversePerspective/dashcam"
+#TEST_IMAGE_PATH = "D:/GitRepos/Uni/Thesis/Simulation/PythonCode/InversePerspective/dashcam"
+TEST_IMAGE_PATH = "C:/Users/MIchael/Documents/GitHub/Thesis/Simulation/PythonCode/InversePerspective/dashcam"
 INPUT_IMAGES = []
 OUTPUT_IMAGES = []
 def main():
     print("ROAD SURFACE DETECTION TEST")
-    folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/'
+
+    #folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/'
+    folder_path = 'C:/Users/MIchael/Documents/GitHub/Thesis/Simulation/PythonCode/'
     global INPUT_IMAGES
     global OUTPUT_IMAGES
 
@@ -124,22 +131,45 @@ def main():
         print("No files")
 
     #matrix = GetCameraMatrix(load_from_file=True)
-    matrix_folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/'
+
+    #matrix_folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/'
+    matrix_folder_path = 'C:/Users/MIchael/Documents/GitHub/Thesis/Simulation/PythonCode/'
     matrix = np.load(matrix_folder_path + "CameraInverseMatrix.npy")
- 
-    im_path = "D:\\GitRepos\\Uni\\Thesis\\Simulation\\PythonCode\\Output\\Images\\dashcam\\"
-    im_num = 0    
+
+    #im_path = "D:\\GitRepos\\Uni\\Thesis\\Simulation\\PythonCode\\Output\\Images\\dashcam\\"
+    im_path = "C:\\Users\\MIchael\\Documents\\GitHub\\Thesis\\Simulation\\PythonCode\\Output\\Images\\dashcam\\"
+    im_num = 0
+
+    ipmFirst = True
     for im in INPUT_IMAGES:
-        birdsEye = GetBirdsEye(matrix, im, return_combo_img= False)
-        img_combine = GetBirdsEye(matrix, im, return_combo_img= True)
-        roi_ave = GetROIAvg(birdsEye)
-        roi_hist, im_ret = HistogramFromImgROI(birdsEye,roi_ave, filter=(7,7))
+        if ipmFirst:
+            birdsEye = GetBirdsEye(matrix, im, return_combo_img= False)
+            img_combine = GetBirdsEye(matrix, im, return_combo_img= True)
+            roi_ave = GetROIAvg(birdsEye)
+            roi_hist, im_ret = HistogramFromImgROI(birdsEye,roi_ave, filter=(7,7))
+            roi3 = cv2.merge((roi_hist, roi_hist, roi_hist))
+        else:
+            roi_ave = GetROIAvg(im)
+            roi_hist, im_ret = HistogramFromImgROI(im,roi_ave, filter=(7,7))
+            roi3 = cv2.merge((roi_hist, roi_hist, roi_hist))
+            #cv2.imshow("roi_ave",roi_ave)
+            birdsEye = GetBirdsEye(matrix, roi3, return_combo_img= False)
+            #cv2.imshow("birdsEye",birdsEye)
+            img_combine = GetBirdsEye(matrix, roi_hist, return_combo_img= True)
+            #cv2.imshow("img_combine",img_combine)
+
+
         #print("birdsEye.shape=", birdsEye.shape)
         #print("roi_hist.shape=", roi_hist.shape)
         #print("im_ret.shape=", im_ret.shape)
 
 
+
         roi3 = cv2.merge((roi_hist, roi_hist, roi_hist))
+
+        #print(im.shape)
+        #print(birdsEye.shape)
+        #print(roi3.shape)
         combined = np.hstack((im, birdsEye, roi3))
         OUTPUT_IMAGES.append(combined)
         
