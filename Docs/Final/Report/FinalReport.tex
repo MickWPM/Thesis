@@ -40,7 +40,7 @@
 \SetWatermarkFontSize{5cm} \SetWatermarkScale{4} \SetWatermarkText{\textbf{DRAFT}}
 \pagestyle{plain}
 
- \title{TODO: TITLETILE Single camera navigation localisation\\ Final report}
+ \title{An interpretable system for single camera autonomous vehicle navigation localisation}
 
  \author{
   Michael McDonnell\thanks{CAPT, School of Engineering and Information Technology, ZEIT4902}\
@@ -94,6 +94,23 @@ The system is modular with each element being purely defined by input and output
 
 \newpage
 \section{Introduction} \label{sect:intro}
+
+%\textbf{TODO:}
+%Feature mask development image
+%
+%----REVIEW----
+%Footnote candidates
+%Update section references to FULL reference (currently just subsection references)
+%References and citations not as (?)
+%Capitalisations
+%Make sure all references are "route feature" rather than "road feature"
+%Review Feature mask development wording
+%Reconsider if Known road map histograms in improvements is needed
+%
+%??
+%Consider adding the maths for IPM (or brief overview of)
+%Add in brief overview of histogram backprojection?
+%Do we need to discuss localisation generally in related works?
 
 This paper outlines a method for navigation localisation and driving line identification for an autonomous vehicle using a single camera system. After a brief review of related works a high level overview of the system is given. Subsequent sections investigate discrete elements of the system in order, Road surface detection, Route feature matching and Route feature tracking. A general discussion including limitation and opportunities follows before concluding remarks.
 
@@ -179,7 +196,7 @@ This will include simplifying assumptions of single lane roads/tracks without th
 Current cutting edge self driving vehicles require high fidelity 3D maps to operate effectively which are time consuming to develop and not adaptive to rapid local changes. Despite this, position localisation improvements have been achieved without high fidelity 3D mapping data using a data fusion of GPS and inertial navigation system data \citep{gpsInsFusion} correlating a detected back lane registry supported with computer vision, GPS and inertial data with map data \citep{lowCostSensorNav} and through use of Kalman filters and LIDAR in more complex environments \citep{robotLIDARSLAM}.
 
 
-\citet{ipmBasedLaneDetectionApproach} also used inverse perspective mapping with k-means clustering with open uniform B-spline model for lane fitting. \citet{ipmForLaneTracking} outlined the effectiveness of Inverse Perspective Mapping for lane detection and \citet{canneyAndHoughLanes} outlined a robust lane detection approach using Canny edge detection and the Hough transform. \citep{ipmOpticalFlow} highlighted the effectiveness of inverse perspective mapping for optical flow computation; the results obtained in this system with regard to optical flow agree with this.
+\citet{ipmBasedLaneDetectionApproach} also used inverse perspective mapping with k-means clustering with open uniform B-spline model for lane fitting. \citet{ipmForLaneTracking} outlined the effectiveness of Inverse Perspective Mapping for lane detection and \citet{canneyAndHoughLanes} outlined a robust lane detection approach using Canny edge detection and the Hough transform. \citet{ipmOpticalFlow} highlighted the effectiveness of inverse perspective mapping for optical flow computation; the results obtained in this system with regard to optical flow agree with this.
 
 
 Histogram backprojection has been used for basic \citep{histBackObjectTracking} and multi model object tracking \citep{histBackMultiObjectTrack}, \citep{histBackObjectMultiLighting}, image indexing \citep{histBackImageIndexing} and region of interest detection \citep{histBackObjectOfInterestDetection}. It has been used with sensor fusion including thermal mapping for road detection \citep{histBackThermal} and to effectively refine spatial fuzzy clustering road detection \citep{histBackRefineShadows}.
@@ -227,7 +244,7 @@ A LiDAR-based local trajectory generation has demonstrated through practical exp
 
 A high level overview of the system is outlined in figure \ref{f:systemOverview}. In general, the system uses inverse perspective mapping to develop a `top down' projection of the vehicle camera image. An averaged histogram of local road pixels is used to develop a probabilistic road surface map using histogram backprojection. The system uses route `features' to localise the navigation goal. Route features in the development of the system were intersections\footnote{Examples in this paper generally consider an approach to a T junction in a custom built simulation.} however any point on a route with a clear visual pattern for the approach and exit(s) can be used. An image mask, consisting of a binary image, of the upcoming route feature is developed using GPS mapping data and is overlaid on the detected road surface. The feature is deemed detected when the proportion of feature mask covered by road surface is above a threshold. Once initially detected, the feature position is updated in subsequent video frames using a mean optical flow between frames and confirmed by remasking. A driving line through the feature can be developed and tracked by using a Bezier curve of the desired route through the feature once the initial feature model has been detected.
 
-The discrete elements of the system with input and output as follows: \textbf{TODO: FIX THESE}
+The discrete elements of the system with input and output as follows: 
 
 \begin{easylist}[itemize]
 	& \textbf{Road surface detection}. 
@@ -315,7 +332,7 @@ In order to develop a feature model, the feature point (node central to the inte
 \begin{figure}
 	\centering
 	\includegraphics[width=1\textwidth]{FeatureMatching/featureMaskDevelopment.png}
-	\caption{Process of developing feature mask developed feature nodes. Nodes are placed (left) and individually connected to inbound and outbound nodes (centre left). A resulting mask is combined with the IPM mask (null area shown as TODOODODODO THIS) (centre right) to obtain the final model mask (right)}
+	\caption{Process of developing feature mask developed feature nodes. Nodes are placed (left) and individually connected to inbound and outbound nodes (centre left). The initial feature mask is then combined with the IPM mask (centre right) to obtain the final model mask (right)}
 	\label{f:featureMaskDevelopment}
 \end{figure}
 
@@ -416,7 +433,7 @@ While vehicle position and orientation on the road is a critical input to a cont
 	& Determine desired steering direction based on detected centreline pixel offset from vehicle centreline \footnote{The vehicle centreline will correspond to the image centre assuming the camera is position centrally. If the vehicle mounted camera is offset, this `centre pixel line' will need to be manually identified and stored prior to operation.}
 \end{easylist}
 
-This approach can be applied to either the camera perspective image or the IPM transformed image. In the former case the perspective effect where the left road edge line will be angled to the right and vice versa for right edges, allowing easy segregation of left and right lines. By contrast the IPM transformed road edges will be parallel. \textbf{TODO: Explain this better}. Alternatively more advanced methods such as the Support Vector Machine approach suggested by \citet{moncularLaneDetectAndTrack} may be more robust and may additionally inform the road surface detection.
+This approach can be applied to either the camera perspective image or the IPM transformed image. In the former case the perspective effect where the left road edge line will be angled to the right and vice versa for right edges, tending to the vanishing point, allows easy segregation of left and right road surface lines. By contrast the IPM transformed road edges will be parallel thus rely on positional information only to separate the left and right road surface lines. Alternatively more advanced methods such as the Support Vector Machine approach suggested by \citet{moncularLaneDetectAndTrack} may be more robust and may additionally inform the road surface detection.
 
 
 \subsection{Opportunities for improvement} \label{s:improvements}
