@@ -174,15 +174,21 @@ Current cutting edge self driving vehicles require high fidelity 3D maps to oper
 
 \textbf{TODO: ADD in nav localisation general?}
 
-\citet{ipmForLaneTracking} outlined the effectiveness of Inverse Perspective Mapping for lane detection and \citet{canneyAndHoughLanes} outlined a robust lane detection approach using Canny edge detection and the Hough transform.
+\citet{ipmBasedLaneDetectionApproach} also used inverse perspective mapping with k-means clustering with open uniform B-spline model for lane fitting. \citet{ipmForLaneTracking} outlined the effectiveness of Inverse Perspective Mapping for lane detection and \citet{canneyAndHoughLanes} outlined a robust lane detection approach using Canny edge detection and the Hough transform. \citep{ipmOpticalFlow} highlighted the effectiveness of inverse perspective mapping for optical flow computation; the results obtained in this system with regard to optical flow agree with this.
+
 
 Histogram backprojection has been used for basic \citep{histBackObjectTracking} and multi model object tracking \citep{histBackMultiObjectTrack}, \citep{histBackObjectMultiLighting}, image indexing \citep{histBackImageIndexing} and region of interest detection \citep{histBackObjectOfInterestDetection}. It has been used with sensor fusion including thermal mapping for road detection \citep{histBackThermal} and to effectively refine spatial fuzzy clustering road detection \citep{histBackRefineShadows}.
 
 \citet{moncularLaneDetectAndTrack} outlined an approach involving the use of a Support Vector Machine to segment image road pixels from non-road pixels and an identification of road edges and control points defining the road curve. This approach is somewhat less interpretable however provides a suitable alternate and possibly more robust option for road detection. Additionally the input and output interfaces are the same as in this system which allows the option to `sub in' this approach if it is preferred. The histogram based approach has the theoretical benefit that it is able to adjust to varying road surfaces `on the fly' as opposed to requiring prior training.(*Both systems can be used for redundancy?)\textbf{TODO: Some of this can be extracted to discussion?}
 
-Optical flow LK
+\citet{histogramSegmentationRoadClassification} investigated road classification from histogram based segmentation. Other road detection approaches include road surface mapping from near field driving surface models \citep{darpaChallengeRoadDetection}, matching road curvature models to detected lane boundaries \citep{intersectionDetectionSingleCamera}. Supervised convolutional neural network lane detection has had success through fully convolutional \citep{cnnLanes1} and instance segmented \citep{cnnLanes2} approaches. Spline based representation using random sample consensus for bezier splines based off road edge detection \citep{ransicBezierFit} has also shown to be effective.
+
 
 ??????
+
+One example of effective intersection detection determined to be more directly applicable to this project is model based recognition which matches intersection models to a series of road boundary points \citep{modelBasedIntersection}.
+A LiDAR-based local trajectory generation has demonstrated through practical experiments that effective localisation using OSM data and global waypoints is possible using a LIDAR sensor suite \cite{mitLocalNavDriving}. 
+it has been identified that Markov and extended Kalman filter localisation techniques may also assist in this problem \citep{probabalisticRobotics}.
 
 %\subsection{Project Methodology}
 %
@@ -359,13 +365,6 @@ Once the feature is detected, the center point is then the main feature node loc
 
 In order to track the detected route features mean optical flow was used to estimate an updated feature node location which was then confirmed using the masking approach discussed in section \ref{sect:route_feature_matching}. In general optical flow options can be considered as sparse where a few key points are tracked, or dense which tracks a large number of points, up to individal pixels (although it should be noted this categorisation represents ends of a continuous range rather than a binary category). 
 
-\begin{wrapfigure}{r}{0.5\textwidth} %this figure will be at the right
-	\centering
-	\includegraphics[width=0.5\textwidth]{FeatureTracking/optical_flow_trails.png}
-	\caption{Selected optical flow lines visualised. Black tails indicate flow vector from each point.}
-	\label{f:optical_flow_trails}
-\end{wrapfigure}
-
 Sparse options \textbf{TODO: eg?} were initially considered for efficiency however the two frame estimation proposed by \citet{opticalFlowSolution} (the `Gunnar Farneb{\"a}ck method') was identified as the prefferred optical tracking approach. The Pyramidal Implementation of the Lucas Kanade Feature Tracker outlined by \citet{opticalFlowLKPyramidal} relies on key tracking points in an image and it is assessed that the random surface textures in this case lack the definition to be tracked effectively via this method. Similar results were identified by \citet{opticalFlowLKvsDenseUAV} when considering moving images of near grass surfaces. The optical flow tracking implemention involved tracking a small subsection of interest from the inverse perspective mapped image converted to greyscale. The Gunnar Farneb{\"a}ck method considers a polynomial expansion to approximate pixel neighbourhood and minimises an error function for an approximated local displacement and performed well in this situation. \textbf{TODO: Results comparing the two? Maybe }
 
 The benefits of optical flow tracking in a smaller region of interest of the inverse perspective map are as follows:
@@ -378,6 +377,12 @@ The benefits of optical flow tracking in a smaller region of interest of the inv
 A visual example of optical flow output for a small selection of pixels is included as figure \ref{f:optical_flow_trails}. It can be seen from this image that not all flow vectors are uniform and in particular at the edges of the mask there are large distortions. These distortions are expected due to the discontinuity and do not affect the result as the system only considers the optical flow from a range of pixels to the direct front of the vehicle. The average of these more uniform flow vectors is used to provide an effective estimate of the updated feature location.
 
 
+\begin{wrapfigure}{r}{0.5\textwidth} %this figure will be at the right
+	\centering
+	\includegraphics[width=0.5\textwidth]{FeatureTracking/optical_flow_trails.png}
+	\caption{Selected optical flow lines visualised. Black tails indicate flow vector from each point.}
+	\label{f:optical_flow_trails}
+\end{wrapfigure}
 
 Once the mean optical flow has been developed, the estimated feature position is updated and the position delta is also used to update the feature model masks accordingly. Once the model masks have been updated, the IPM mask is applied and the new approximated feature position is confirmed using route feature matching as per section \ref{sect:route_feature_matching}. If the new location of the approaching node is within the curve defined by the driving path, discussed in section \ref{s:drivingPathMatching}, the vehicle has arrived at the tracked feature and the route feature matching can generate the next route feature. In the event the feature is otherwise no longer detected, a bracketing approach can be used to attempt to relocate it.
 
@@ -442,6 +447,8 @@ This approach can be applied to either the camera perspective image or the IPM t
 The resulting system has specified limitations as discussed in section \textbf{TODO: Ref section} however within those limitations it performs effectively, in particular the route feature tracking. The `simple' approach of feature detection also works well and the bezier curve driving line provides a control system a constant steering angle for feature traversal.
 
 The focus on interpretable steps has the significant benefit of being `plug and play' with other systems. The weakest element of this system is the simple road surface detection approach. When an improved road surface detection algorithm is identified it can easily be integrated to the system in place of the existing element. 
+
+\textbf{TODO:}
 
 %
 %\subsubsection{Bezier curve theory}
