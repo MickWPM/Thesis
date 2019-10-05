@@ -2,12 +2,16 @@ import numpy as np
 import cv2
 import glob
 
-#HIST_WINDOW = ((250, 460), (265, 500))
+
 #HIST_WINDOW = ((x1, y1), (x2, y2))
 #HIST_WINDOW = ((124, 200), (174, 300))
 
 #IPM from dashcam
-HIST_WINDOW = ((200,124), (300,174))
+#HIST_WINDOW = ((200,124), (300,174))
+
+#Unity simulation IPM window
+HIST_WINDOW = ((250, 460), (265, 500))
+
 
 
 
@@ -110,7 +114,7 @@ def save_output(filename="road_surface_detection.avi", save_shape=None):
 TEST_IMAGE_PATH = "C:/Users/MIchael/Documents/GitHub/Thesis/Simulation/PythonCode/InversePerspective/dashcam"
 INPUT_IMAGES = []
 OUTPUT_IMAGES = []
-def main():
+def demo_all_images():
     print("ROAD SURFACE DETECTION TEST")
 
     #folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/'
@@ -193,4 +197,14 @@ def main():
     cv2.destroyAllWindows()
 
 
-if __name__ == "__main__": main()
+if __name__ == "__main__":
+    #demo_all_images()
+    im = cv2.imread(r"C:\Users\MIchael\Documents\GitHub\Thesis\Simulation\PythonCode\NavLocalisation\TestData\RouteImages\img_241.png")
+    matrix = np.load(r"C:\Users\MIchael\Documents\GitHub\Thesis\Simulation\PythonCode\unityCameraInverseMatrix.npy")
+    birds_eye = GetBirdsEye(matrix, im)
+    roi_ave = GetROIAvg(birds_eye)
+    roi_hist, im_ret = HistogramFromImgROI(birds_eye, roi_ave)
+
+    cv2.imshow("im", roi_hist)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
