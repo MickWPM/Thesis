@@ -40,7 +40,7 @@
 \SetWatermarkFontSize{5cm} \SetWatermarkScale{4} \SetWatermarkText{\textbf{DRAFT}}
 \pagestyle{plain}
 
- \title{Towards self driving: Single camera navigation localisation\\ Final report}
+ \title{TODO: TITLETILE Single camera navigation localisation\\ Final report}
 
  \author{
   Michael McDonnell\thanks{CAPT, School of Engineering and Information Technology, ZEIT4902}\
@@ -87,13 +87,17 @@
 \newpage
 \section{Introduction} \label{sect:intro}
 \textbf{TODO: Look for footnote candidates}
+\textbf{TODO: Update section references to FULL reference (currently just subsection references)}
 
-Gen points to cover:
-\begin{easylist}
-	& Focus on high tech systems - This is a focus on lowest barrier to entry and maintaining a redundancy option
-	& Implemented using OpenCV. Used Sim data and confirmed with dashcam data
-\end{easylist}
+This paper reviews a method for navigation localisation and driving line identification for an autonomous vehicle using a single camera system. After a brief review of related works a high level overview of the system is given. Subsequent sections investigate discrete elements of the system in order, Road surface detection, Route feature matching and Route feature tracking. A general discussion including limitation and opportunities follows before concluding remarks.
 
+\textbf{TODO: What is this being developed for? }It should be noted that the developed method does not account for road traffic. The use of this method is envisaged to be automation of tasks in remote areas such as logistics in large properties such as farms. Alternatively this method provides a single camera redundancy which may assist the capability to `limp home' in the event of main sensor system failures in more complex autonomous vehicles.
+
+In the general case, in order for an autonomous vehicle to navigate effectively there are a few key challenges. The vehicle must have a mechanism to sense the local environment, for example lane detection, as well as the ability to identify and track transient aspects such as other vehicles and on road obstacles. There are many Computer Vision techniques that can assist in providing an understanding of the environment. 
+
+In addition to the local area, the vehicle must also have the ability to reconcile navigation data with the current location. A supporting concept to this is that of map matching which calculates vehicle location by using the geographical information from sensors such as GPS position, inertial data and map information from a mapping service \citep{keyTechSelfDriving}. 
+
+This will include simplifying assumptions of single lane roads/tracks without the requirement to consider other vehicles or traffic control. The idea of local navigation goals has been explored with the use of Open Street Map data and LIDAR for road mapping with promising success \citep{mitLocalNavDriving} however the ability for a single camera system to facilitate navigation data localisation assists in both system redundancy and lowering the financial and technical barriers to implementation. This project will focus on a `low tech' option to provide a minimum navigation capability that does not rely on more advanced tools such as LIDAR. 
 %\index{}
 % 
 %\lettrine[nindent=0pt]{T}{he} idea of a future where personal transportation is handled by autonomous vehicles is increasingly in the public consciousness however there is a range of challenges that need to be addressed from legal, security and ethical issues \citep{gmReport} to maturity concerns that out to the 2030s `autonomous vehicles will be expensive novelties' \citep{vicTransportImplications}. Autonomous driving is not a binary capability however, rather a scale with increasing levels of autonomy. For context, the automation levels identified by the US National Highway Traffic Safety Administration \citep{automationVisionForSafety} are outlined in table \ref{t:automationLevels}. While it may be decades before true level 5 automation is developed, there is an undeniable increase in the cognitive assistance and partial automation technologies in consumer vehicles. As an example the 2019 Kia Sorento includes active lane keeping assist (lane detection and steering) and adaptive cruise control (autonomous acceleration and braking based off radar distance to leading vehicles) \citep{kia}, which is approaching level 2 automation. 
@@ -123,10 +127,6 @@ Gen points to cover:
 %
 %In general, the ability to use computer vision to align GPS positioning with mapping service data will allow greater cognitive assistance in driver included tasks without the requirement for significant prior mapping. As augmented reality technology increases this also allows for more immersive driver aides such as navigation routes overlayed onto the visible road. In addition to the cognitive assistance, the ability to localise a navigation route opens the near future possibility for the automation of certain tasks in a military setting, for example routine field logistics supply transport. A true complete solution will rely on sensor fusion from a suit of complimentary sensors supporting each other and providing redundancy. 
 
-Arousal, background/need
-This paper reviews a method for navigation localisation and driving line identification for an autonomous vehicle using a single camera system.\textbf{TOOD: After a brief review of related works (\textit{Do we do this in the intro instead??}) a high level overview of the system is given. Subsequent sections investigate discrete elements of the system in order, Road surface detection, route feature matching and route feature tracking. \textit{Additional output options are then briefly covered}. A general discussion including limitation and opportunities follows before concluding remarks.}
-
-\textbf{, scope/intent. }It should be noted that the developed method does not account for road traffic. The use of this method is envisaged to be automation of tasks in remote areas such as logistics in large properties such as farms. Alternatively this method provides a single camera redundancy which may assist the capability to `limp home' in the event of main sensor system failures in more complex autonomous vehicles.
 
 %\textbf{TODO: Terminology?}
 %\subsection{Terminology}
@@ -168,14 +168,15 @@ This paper reviews a method for navigation localisation and driving line identif
 %\end{easylist}
 
 
-\textbf{TODO: In lieu of scope/deliverables etc, include a cover letter in deliverables outlining the additional work done/??}
-
 \section{Related works}
+
+Current cutting edge self driving vehicles require high fidelity 3D maps to operate effectively which are time consuming to develop and not adaptive to rapid local changes. Despite this, position localisation improvements have been achieved without high fidelity 3D mapping data using a data fusion of GPS and inertial navigation system data \citep{gpsInsFusion} correlating a detected back lane registry supported with computer vision, GPS and inertial data with map data \citep{lowCostSensorNav} and through use of Kalman filters and LIDAR in more complex environments \citep{robotLIDARSLAM}.
+
 \textbf{TODO: ADD in nav localisation general?}
 
-\citet{ipmForLaneTracking} outlined the effectiveness of Inverse Perspective Mapping for lane detection 
+\citet{ipmForLaneTracking} outlined the effectiveness of Inverse Perspective Mapping for lane detection and \citet{canneyAndHoughLanes} outlined a robust lane detection approach using Canny edge detection and the Hough transform.
 
-Histogram backprojection has been used for basic \citep{histBackObjectTracking} and multi model object tracking \citep{histBackMultiObjectTrack}, \citep{histBackObjectMultiLighting} , image indexing \citep{histBackImageIndexing} and region of interest detection \citep{histBackObjectOfInterestDetection}. It has been used with sensor fusion including thermal mapping for road detection \citep{histBackThermal} and to effectively refine spatial fuzzy clustering road detection \citep{histBackRefineShadows}.
+Histogram backprojection has been used for basic \citep{histBackObjectTracking} and multi model object tracking \citep{histBackMultiObjectTrack}, \citep{histBackObjectMultiLighting}, image indexing \citep{histBackImageIndexing} and region of interest detection \citep{histBackObjectOfInterestDetection}. It has been used with sensor fusion including thermal mapping for road detection \citep{histBackThermal} and to effectively refine spatial fuzzy clustering road detection \citep{histBackRefineShadows}.
 
 \citet{moncularLaneDetectAndTrack} outlined an approach involving the use of a Support Vector Machine to segment image road pixels from non-road pixels and an identification of road edges and control points defining the road curve. This approach is somewhat less interpretable however provides a suitable alternate and possibly more robust option for road detection. Additionally the input and output interfaces are the same as in this system which allows the option to `sub in' this approach if it is preferred. The histogram based approach has the theoretical benefit that it is able to adjust to varying road surfaces `on the fly' as opposed to requiring prior training.(*Both systems can be used for redundancy?)\textbf{TODO: Some of this can be extracted to discussion?}
 
@@ -247,13 +248,14 @@ The discrete elements of the system with input and output as follows: \textbf{TO
 	\caption{High level overview of system stages, inputs and outputs.}
 	\label{f:systemOverview}
 \end{figure}
-\textbf{TODO: Examples in this paper will consider a the approach to a T junction in simulation}
 
+
+\textbf{TODO: Yuck - fix wording (and section?) The developed system discussed in this report was implemented with OpenCV using custom simulation inputs, validated by live dashcamera footage. Examples in this paper will consider a the approach to a T junction in simulation. --- THESE COULD BE FOOTNOTES???}
 \section{Road Surface Detection}
 
 In order to localise navigation elements a reasonable estimate of the current road surface is required. This is achieved via Inverse Perspective Mapping (IPM) and histogram backprojection. These aspects are discussed in detail in the following subsections.
 
-\subsection{Inverse Perspective Mapping}
+\subsection{Inverse Perspective Mapping}\label{s:ipm}
 
 Inverse perspective mapping (IPM) \textbf{TODO: Replace as IPM FROM HERE.}is a well established technique that involves a matrix transformation operation to remap pixels from a camera perspective to a `top down' view \citep{compVisionTextbook}. An example of the technique applied to an image from the simulation used is included as figure \ref{f:ipmSim}. Inverse perspective mapping assumes the perspective image is from a flat plane \citep{ipmForLaneTracking} and while this is not the case in route traversal, in most circumstances the road plane can be considered approximately linear about a vehicle position. Further the system developed is robust enough to tolerate introduced error by reasonable undulation. \citep{extendedIPM} have discussed an inverse perspective mapping approach that removes the flat plane assumption however it relies on stereo camera so is out of scope for this system. This approach may be more resiliant and should be considered in the event a stereo camera system is being developed.
 
@@ -290,7 +292,7 @@ Initially a road surface area of interest is defined, based off the near portion
 %\end{wrapfigure}
 
 \begin{figure}
-	\includegraphics[width=0.95\textwidth]{RoadDetection/histRoadLive.png}
+	\includegraphics[width=0.99\textwidth]{RoadDetection/histRoadLive.png}
 	\caption{Detected road surface from inverse perspective mapped live camera.}
 	\label{f:histRoadLive}
 \end{figure}
@@ -357,6 +359,13 @@ Once the feature is detected, the center point is then the main feature node loc
 
 In order to track the detected route features mean optical flow was used to estimate an updated feature node location which was then confirmed using the masking approach discussed in section \ref{sect:route_feature_matching}. In general optical flow options can be considered as sparse where a few key points are tracked, or dense which tracks a large number of points, up to individal pixels (although it should be noted this categorisation represents ends of a continuous range rather than a binary category). 
 
+\begin{wrapfigure}{r}{0.5\textwidth} %this figure will be at the right
+	\centering
+	\includegraphics[width=0.5\textwidth]{FeatureTracking/optical_flow_trails.png}
+	\caption{Selected optical flow lines visualised. Black tails indicate flow vector from each point.}
+	\label{f:optical_flow_trails}
+\end{wrapfigure}
+
 Sparse options \textbf{TODO: eg?} were initially considered for efficiency however the two frame estimation proposed by \citet{opticalFlowSolution} (the `Gunnar Farneb{\"a}ck method') was identified as the prefferred optical tracking approach. The Pyramidal Implementation of the Lucas Kanade Feature Tracker outlined by \citet{opticalFlowLKPyramidal} relies on key tracking points in an image and it is assessed that the random surface textures in this case lack the definition to be tracked effectively via this method. Similar results were identified by \citet{opticalFlowLKvsDenseUAV} when considering moving images of near grass surfaces. The optical flow tracking implemention involved tracking a small subsection of interest from the inverse perspective mapped image converted to greyscale. The Gunnar Farneb{\"a}ck method considers a polynomial expansion to approximate pixel neighbourhood and minimises an error function for an approximated local displacement and performed well in this situation. \textbf{TODO: Results comparing the two? Maybe }
 
 The benefits of optical flow tracking in a smaller region of interest of the inverse perspective map are as follows:
@@ -369,56 +378,70 @@ The benefits of optical flow tracking in a smaller region of interest of the inv
 A visual example of optical flow output for a small selection of pixels is included as figure \ref{f:optical_flow_trails}. It can be seen from this image that not all flow vectors are uniform and in particular at the edges of the mask there are large distortions. These distortions are expected due to the discontinuity and do not affect the result as the system only considers the optical flow from a range of pixels to the direct front of the vehicle. The average of these more uniform flow vectors is used to provide an effective estimate of the updated feature location.
 
 
-\begin{wrapfigure}{h}{0.5\textwidth} %this figure will be at the right
-	\centering
-	\includegraphics[width=0.5\textwidth]{FeatureTracking/optical_flow_trails.png}
-	\caption{Selected optical flow lines visualised. Black tails indicate flow vector from each point.}
-	\label{f:optical_flow_trails}
-\end{wrapfigure}
 
 Once the mean optical flow has been developed, the estimated feature position is updated and the position delta is also used to update the feature model masks accordingly. Once the model masks have been updated, the IPM mask is applied and the new approximated feature position is confirmed using route feature matching as per section \ref{sect:route_feature_matching}. If the new location of the approaching node is within the curve defined by the driving path, discussed in section \ref{s:drivingPathMatching}, the vehicle has arrived at the tracked feature and the route feature matching can generate the next route feature. In the event the feature is otherwise no longer detected, a bracketing approach can be used to attempt to relocate it.
 
 \section{Discussion}
 
-\subsection{Local road edge orientation}
 
-While vehicle position and orientation on the road is a critical input to a controller, it was not explicitly covered as part of this system. A general approach \textbf{TODO: CITE!} to identify the central point on a road surface is edge detection on the road pixels followed by identifying straight line candidates using the Hough transform. 
+The system has a range of parameters to be specified which allow customisation to both vehicle and route specifications. System parameters include: 
 
 \begin{easylist}
-	& Identify local window of interest in the near ground to vehicle
-	& Use edge detection (eg. Canny) to identify road edge pixels inside window of interest
-	& Identify candidate lines using Hough Transform
-	& Select strongest candidate lines for left and right portions of the window, corresponding to the estimated left and right road edge lines
-	& Identify road centerline as midline between left and right detected edge lines
+	& \textbf{Camera parameters.}
+	&& \textbf{Frame resolution.} This system is effective at lower resolutions so the full resolution of the camera frame may not be required. While larger frames contain more detail in general the system can trade some resolution for computational time savings without significant losses. Frame resolutions used in testing varied from 512px to 150px widths. 
+	&& \textbf{Frame processing frequency.} While not strictly a camera parameter, the frequency with which the system processes the frames is a key consideration and will generally relate to the processing speed of the implementation. A lower frequency of frame processing results in a higher liklihood of route feature tracking errors and less redundancy in any detection failures. Frame frequency for this test was as low as 10Hz with no noticable issues. 
+	& \textbf{Road surface detection.}
+	&& \textbf{Assumed road surface region.} The histogram backprojection relies on an area in front of the vehicle to be sampled for the histogram for backprojection. This region should be specified as it will vary based on the physical setup of the vehicle and camera mount.
+\end{easylist}
+
+These parameters directly impact the effectiveness of the system however are generally easy to tune as the entire system is human interpretable thus the effect of a parameter can be directly observed and understood.
+
+
+
+\textbf{TODO: Discuss Kalman filtering for position estimation}
+\textbf{update frequency and resolution of images?}
+\textbf{TODO: System designed to work off GPS informed however can use features as `directions'}
+
+\textbf{TODO: Wider camera FOV helps detection on near approach}
+
+
+While it was not explicitly considered as a feature, any road feature with a sharp enough angle between points can be used. This is particularly helpful if an aim is to identify a `true' position outside GPS error as sharp bends in a road can be used as additional features.
+
+
+As noted in section \ref{s:ipm}, IPM transformation has the assumption of a flat plane which will not be the case along many routes. It was assessed that the local area in front of the vehicle can be assumed to be linearised and testing demonstrated negligable affect on the localisation system when route undulations were incorporated. As a result it is assessed that this assumption can be held as feasible in standard driving conditions.
+
+
+It should be noted that the optical flow estimation of the updated feature position was very effective in testing and once detected, features were not lost until arrival at the feature location. Regardless, as discussed in section \ref{s:roadFeatureTracking} it is important to build in redundancy and any controller implementing this system will need to include suitable actions in the event of complete feature loss.
+
+\subsection{Local road orientation}
+
+While vehicle position and orientation on the road is a critical input to a controller, it was not explicitly covered as part of this system. A general approach slightly modified from that outlined by \citet{canneyAndHoughLanes} to suit this system is to identify the central point on a road surface is edge detection on the road pixels followed by identifying straight line candidates using the Hough transform.  
+
+\begin{easylist}
+	& Identify local window of interest in the near ground to vehicle.
+	& Use edge detection such as the Canny algorithm to identify road edge pixels inside window of interest.
+	& Identify candidate lines using Hough Transform.
+	& Select strongest candidate lines for left and right portions of the window, corresponding to the estimated left and right road edge lines.
+	& Identify road centerline as midline between left and right detected edge lines.
 	& Determine desired steering direction based on detected centerline pixel offset from vehicle centerline \footnote{The vehicle centerline will correspond to the image center assuming the camera is position centrally. If the vehicle mounted camera is offset, this `center pixel line' will need to be manually identified and stored prior to operation.}
 \end{easylist}
 
 This approach can be applied to either the camera perspective image or the IPM transformed image. In the former case the perspective effect where the left road edge line will be angled to the right and vice versa for right edges, allowing easy segregation of left and right lines. By contrast the IPM transformed road edges will be parallel. \textbf{TODO: Explain this better}. Alternatively more advanced methods such as the Support Vector Machine approach suggested by \citet{moncularLaneDetectAndTrack} may be more robust. \textbf{TODO: As well as potentially informing the road surface detection.}
 
 
-\subsection{System ??improvements??}
-\textbf{TODOTODO:!!! UNDULATION IPM TESTING! - No significant issues in minor undulations such as hills, speed bumps/ pedestrian crossings etc}
+\subsection{System improvements? FUTURE WORK???}
 
-
-\textbf{TODO: histogram - rolling average, MAX with known road maps?}
-
-\textbf{TODO: Wider camera FOV helps detection on near approach}
-
-
-It should be noted that the optical flow estimation of the updated feature position was very effective in testing and once detected, features were not lost until arrival at the feature location. Regardless, as discussed in section \ref{s:roadFeatureTracking} it is important to build in redundancy and any controller implementing this system will need to include suitable actions in the event of complete feature loss.
 
 \textbf{TODO: Frame by frame tracking - UPDATE FEATURE ORIENTATION AT NODES. Once the mask is developed it is then rotated so the approach line is vertical at the base of the image; this ensures the feature mask orientation will match the detected road orientation. Simpler approach used for this system, just model feature as is in final approach - avoids rotation requirement and was effective in testing due to the generally linear approach for features. In the event of features with a complex approach (eg. quick left then right turns - EG!) updating the feature to match the expected approach rotation is likelky to be a requirement)}
 
-
-\subsection{General}
-\textbf{TODO: Discuss Kalman filtering for position estimation}
-\textbf{update frequency and resolution of images?}
-\textbf{TODO: System designed to work off GPS informed however can use features as `directions'}
-
-While it was not explicitly considered as a feature, any road feature with a sharp enough angle between points can be used. This is particularly helpful if an aim is to identify a `true' position outside GPS error as sharp bends in a road can be used as additional features.
+\textbf{TODO: histogram - rolling average, MAX with known road maps?}
 
 
 \section{Concluding remarks}
+
+The resulting system has specified limitations as discussed in section \textbf{TODO: Ref section} however within those limitations it performs effectively, in particular the route feature tracking. The `simple' approach of feature detection also works well and the bezier curve driving line provides a control system a constant steering angle for feature traversal.
+
+The focus on interpretable steps has the significant benefit of being `plug and play' with other systems. The weakest element of this system is the simple road surface detection approach. When an improved road surface detection algorithm is identified it can easily be integrated to the system in place of the existing element. 
 
 %
 %\subsubsection{Bezier curve theory}
