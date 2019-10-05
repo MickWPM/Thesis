@@ -264,7 +264,7 @@ Inverse perspective mapping is a well established technique that involves a matr
 	\label{f:ipmSim}
 \end{figure}
 
-It can be noted that the inverse perspective mapped image has a `null' area in the bottom edges due to the perspective shift. This is used to develop an `IPM mask' which is used in later stages to ensure that any feature matching attempts are not penalised by the zero values in this area as discussed in section \ref{sect:route_feature_matching}. \textbf{TODO: MAKE SURE THIS IS EXPANDED ON IN THE REFERENCED SECTION}
+It can be noted that the inverse perspective mapped image has a `null' area in the bottom edges where all pixels are black due to the perspective shift. This is used to develop an `IPM mask' which is used in later stages to ensure that any feature matching attempts are not penalised by the zero values in this area as discussed in section \ref{sect:route_feature_matching}. \textbf{TODO: MAKE SURE THIS IS EXPANDED ON IN THE REFERENCED SECTION}
 
 \textbf{TODO: Wider camera FOV helps detection on near approach (better section than this possible though?)}
 
@@ -314,9 +314,28 @@ In order to develop a feature model, the feature point (node central to the inte
 	\label{f:featureMaskDevelopment}
 \end{figure}
 
+
+\subsection{Driving path curve mask} \label{s:drivingPathMatching}
+
+In order to allow a controller to effectively action system outputs there needs to be consideration given to vehicle turning arcs. The driving path curve mask is developed using a quadratic bezier curve defined by the approach node, the feature node and the exit node. Once the driving path curve mask is developed it is masked by the IPM mask and added to the route feature masks in order to ensure the developed driving line is also on a detected road. 
+
+The quadratic bezier is generated simply by a series of linear interpolations over the range $t=0...1$. Linearly interpolating \textit{t} between the approach node to feature node and the feature node to exit node provides two new points, \textit{p0} and \textit{p1}. Linearly interpolating \textit{t} between \textit{p0} and \textit{p1} provides a point \textbf{B(}\textit{t}\textbf{)} along the quadratic bezier curve. The full bezier curve is given by \textbf{B(}\textit{t}\textbf{)} for the range $t=0...1$. A visualisation of this is included as figure \ref{f:quadraticBezier}.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=1\textwidth]{bezier/quadraticBezier.png}
+	\caption{Bezier curve interpolation: Generating \textbf{B(}\textit{t}\textbf{)} for $t\approx0.7$ (left) and the full bezier curve (right)}
+	\label{f:quadraticBezier}
+\end{figure}
+
+The development of the driving line will generally need to be managed for a vehicle implementing this system in order to account for specific parameters such as turning circle. This is implemented by amending the approach and exit node to be a distance from the feature node where a developed bezier curve represents the turning circle capability of the vehicle. 
+
+\textbf{TODO: ??The node distances may need to be normalised based on the navigation data being used. The driving line relies on the curve being constructed AT: equidistnt nodes, At the feature point???}
+
+
 \subsection{Feature mask matching} 
 
-Let $P(sub,k)$ be the probability that the k'th sub feature $\textbf{F}_{sub,k}$ is detected and $P(feature)$ be the probability that a feature $\textbf{F}_{route}$ is detected for a given detected road surface $\textbf{R}_{detected}$. $P(sub,k)$ is determined by the summation of the Hadamard product between the feature sub mask and the detected road surface divided by the element sum of the feature sub mask, as outlined in equation \ref{eq:subMaskProbability}. The assessed probability that the route feature is detected is the minimum sub feature probability as per equation \ref{eq:featureProbability}. \textbf{TODO: The probability threshold for $P(feature)$ is a design decision that can be amended based on factors such as noise and road surface detection output (for example probabilistic or binary thresholded).}
+Let $P(sub,k)$ be the probability that the k'th sub feature $\textbf{F}_{sub,k}$ is detected and $P(feature)$ be the probability that a feature $\textbf{F}_{route}$ is detected for a given detected road surface $\textbf{R}_{detected}$. $P(sub,k)$ is determined by the summation of the Hadamard product (elementwise product) between the feature sub mask and the detected road surface divided by the element sum of the feature sub mask, as outlined in equation \ref{eq:subMaskProbability}. The assessed probability that the route feature is detected is the minimum sub feature probability as per equation \ref{eq:featureProbability}. \textbf{TODO: The probability threshold for $P(feature)$ is a design decision that can be amended based on factors such as noise and road surface detection output (for example probabilistic or binary thresholded).}
 
 \begin{equation}\label{eq:subMaskProbability}
 	P(sub,k) = \frac{\sum_{i,j=1}^{n} (\textbf{R}_{detected} \circ \textbf{F}_{sub,k})_{ij}}{\sum_{i,j=1}^{n} \textbf{F}_{sub,k,ij}}
@@ -331,12 +350,12 @@ Initial detection approaches involved using a single full feature mask as per eq
 Once the feature is detected, the center point is then the main feature node location from the initial mask. \textbf{TODO: It is possible to further refine this by `bracketing' either side however assuming the vehicle is central on the road surface the midpoint of the detected feature will be aligned to the midpoint of the route feature.}
 
 
+
+
+
 \section{Road Feature Tracking}\label{s:roadFeatureTracking}
 
 In order to track the detected route features mean optical flow was used to estimate an updated feature node location which was then confirmed using the masking approach discussed in section \ref{sect:route_feature_matching}. In general optical flow options can be considered as sparse where a few key points are tracked, or dense which tracks a large number of points, up to individal pixels (although it should be noted this categorisation represents ends of a continuous range rather than a binary category). 
-\textbf{TODO: Once the feature is tracked???}
-
-\subsection{Optical flow tracking}
 
 Sparse options \textbf{TODO: eg?} were initially considered for efficiency however the two frame estimation proposed by \citet{opticalFlowSolution} (the `Gunnar Farneb{\"a}ck method') was identified as the prefferred optical tracking approach. The Pyramidal Implementation of the Lucas Kanade Feature Tracker outlined by \citet{opticalFlowLKPyramidal} relies on key tracking points in an image and it is assessed that the random surface textures in this case lack the definition to be tracked effectively via this method. Similar results were identified by \citet{opticalFlowLKvsDenseUAV} when considering moving images of near grass surfaces. The optical flow tracking implemention involved tracking a small subsection of interest from the inverse perspective mapped image converted to greyscale. The Gunnar Farneb{\"a}ck method considers a polynomial expansion to approximate pixel neighbourhood and minimises an error function for an approximated local displacement and performed well in this situation. \textbf{TODO: Results comparing the two? Maybe }
 
@@ -359,22 +378,6 @@ A visual example of optical flow output for a small selection of pixels is inclu
 
 Once the mean optical flow has been developed, the estimated feature position is updated and the position delta is also used to update the feature model masks accordingly. Once the model masks have been updated, the IPM mask is applied and the new approximated feature position is confirmed using route feature matching as per section \ref{sect:route_feature_matching}. If the new location of the approaching node is within the curve defined by the driving path, discussed in section \ref{s:drivingPathMatching}, the vehicle has arrived at the tracked feature and the route feature matching can generate the next route feature. In the event the feature is otherwise no longer detected, a bracketing approach can be used to attempt to relocate it.
 
-
-\subsection{Driving path curve matching} \label{s:drivingPathMatching}
-
-\textbf{TODO: Bezier curve basics}
-
-\textbf{TODO: Develop curve based on inbound, central and outbound node}
-
-\textbf{TODO: Add to intersection mask to ensure driving line on detected road}
-
-
-
-The real challenge in this problem is that most route features require more than a simple maintenance of central position such as turning at an intersection. In order to effectively identify a path through a route feature, a driving path is developed using bezier curves.
-
-
-\textbf{TODO: DO we need to create control points near intersection for p0 and p2 or do the poly line points work ok? I imagine we will need to artificially create these entry/exit points from the feature!!! This can be done simply by moving X meters along the approach/exit line to determine entry/exit control points}
-
 \section{Additional optional outputs}
 
 \subsection{Local road edge orientation}
@@ -394,7 +397,7 @@ While it was not explicitly considered as a feature, any road feature with a sha
 
 It should be noted that the optical flow estimation of the updated feature position was very effective in testing and once detected, features were not lost until arrival at the feature location. Regardless, as discussed in section \ref{s:roadFeatureTracking} it is important to build in redundancy and any controller implementing this system will need to include suitable actions in the event of complete feature loss.
 
-\textbf{TODO: Frame by frame tracking - UPDATE FEATURE ORIENTATION AT NODES. Once the mask is developed it is then rotated so the approach line is vertical at the base of the image; this ensures the feature mask orientation will match the detected road orientation. Simpler approach used for this system, just model feature as is in final approach - avoids rotation requirement and was effective in testing due to the generally linear approach for features. In the event of features with a complex approach (eg. quick left then right turns - EG!) updating the feature to match the expected approach rotation is likelky to be a requirement)
+\textbf{TODO: Frame by frame tracking - UPDATE FEATURE ORIENTATION AT NODES. Once the mask is developed it is then rotated so the approach line is vertical at the base of the image; this ensures the feature mask orientation will match the detected road orientation. Simpler approach used for this system, just model feature as is in final approach - avoids rotation requirement and was effective in testing due to the generally linear approach for features. In the event of features with a complex approach (eg. quick left then right turns - EG!) updating the feature to match the expected approach rotation is likelky to be a requirement)}
 
 \textbf{TODO: Discuss Kalman filtering for position estimation}
 
