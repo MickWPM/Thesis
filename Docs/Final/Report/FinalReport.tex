@@ -187,23 +187,6 @@ In the general case, in order for an autonomous vehicle to navigate effectively 
 %\end{easylist}
 
 
-\section{Related works}
-
-Current cutting edge self driving vehicles require high fidelity 3D maps to operate effectively which are time consuming to develop and not adaptive to rapid local changes. Despite this, position localisation improvements have been achieved without high fidelity 3D mapping data using a data fusion of GPS and inertial navigation system data \citep{gpsInsFusion} correlating a detected back lane registry supported with computer vision, GPS and inertial data with map data \citep{lowCostSensorNav} and through use of Kalman filters and LIDAR in more complex environments \citep{robotLIDARSLAM}.
-
-
-\citet{ipmBasedLaneDetectionApproach} also used inverse perspective mapping with k-means clustering and open uniform B-spline model for lane fitting. \citet{ipmForLaneTracking} outlined the effectiveness of Inverse Perspective Mapping for lane detection and \citet{canneyAndHoughLanes} outlined a robust lane detection approach using Canny edge detection and the Hough transform. \citet{ipmOpticalFlow} highlighted the effectiveness of inverse perspective mapping for optical flow computation, a finding that is strongly supported by the optical flow results obtained in this system.
-
-
-Histogram backprojection has been used for basic \citep{histBackObjectTracking} and multi model object tracking \citep{histBackMultiObjectTrack}, \citep{histBackObjectMultiLighting}, image indexing \citep{histBackImageIndexing} and region of interest detection \citep{histBackObjectOfInterestDetection}. It has been used with sensor fusion including thermal mapping for road detection \citep{histBackThermal} and to effectively refine spatial fuzzy clustering road detection \citep{histBackRefineShadows}.
-
-\citet{moncularLaneDetectAndTrack} outlined an approach involving the use of a Support Vector Machine to segment image road pixels from non-road pixels and an identification of road edges and control points defining the road curve. This approach is somewhat less interpretable however provides a suitable alternate and possibly more robust option for road detection. Additionally the input and output interfaces are the same as in this system which allows the option to `sub in' this approach if it is preferred. 
-
-\citet{histogramSegmentationRoadClassification} investigated road classification from histogram based segmentation. Other road detection approaches include road surface mapping from near field driving surface models \citep{darpaChallengeRoadDetection} and matching road curvature models to detected lane boundaries \citep{intersectionDetectionSingleCamera}. Supervised convolutional neural network lane detection has had success through fully convolutional \citep{cnnLanes1} and instance segmented \citep{cnnLanes2} approaches. Spline based representation using random sample consensus for bezier splines based off road edge detection \citep{ransicBezierFit} has also shown to be effective.
-
-\citet{modelBasedIntersection} outlined a model based recognition approached which matches intersection models to a series of road boundary points and \citet{mitLocalNavDriving} demonstrated through practical experiments that effective localisation using Open Street Map data and global waypoints is possible using a LIDAR sensor suite for local trajectory generation.
-
-
 
 %\subsection{Project Methodology}
 %
@@ -269,6 +252,25 @@ The discrete elements of the system with input and output as follows:
 	&& \textbf{Input: } Previous image frame and detected location of target route feature for that frame. 
 	&& \textbf{Output: }Updated location of target route feature in subsequent image frame.
 \end{easylist}
+
+
+\section{Related works}
+
+Current cutting edge self driving vehicles require high fidelity 3D maps to operate effectively which are time consuming to develop and not adaptive to rapid local changes. Despite this, position localisation improvements have been achieved without high fidelity 3D mapping data using a data fusion of GPS and inertial navigation system data \citep{gpsInsFusion} correlating a detected back lane registry supported with computer vision, GPS and inertial data with map data \citep{lowCostSensorNav} and through use of Kalman filters and LIDAR in more complex environments \citep{robotLIDARSLAM}.
+
+
+\citet{ipmBasedLaneDetectionApproach} also used inverse perspective mapping with k-means clustering and open uniform B-spline model for lane fitting. \citet{ipmForLaneTracking} outlined the effectiveness of Inverse Perspective Mapping for lane detection and \citet{canneyAndHoughLanes} outlined a robust lane detection approach using Canny edge detection and the Hough transform. \citet{ipmOpticalFlow} highlighted the effectiveness of inverse perspective mapping for optical flow computation, a finding that is strongly supported by the optical flow results obtained in this system.
+
+
+Histogram backprojection has been used for basic \citep{histBackObjectTracking} and multi model object tracking \citep{histBackMultiObjectTrack}, \citep{histBackObjectMultiLighting}, image indexing \citep{histBackImageIndexing} and region of interest detection \citep{histBackObjectOfInterestDetection}. It has been used with sensor fusion including thermal mapping for road detection \citep{histBackThermal} and to effectively refine spatial fuzzy clustering road detection \citep{histBackRefineShadows}.
+
+\citet{moncularLaneDetectAndTrack} outlined an approach involving the use of a Support Vector Machine to segment image road pixels from non-road pixels and an identification of road edges and control points defining the road curve. This approach is somewhat less interpretable however provides a suitable alternate and possibly more robust option for road detection. Additionally the input and output interfaces are the same as in this system which allows the option to `sub in' this approach if it is preferred. 
+
+\citet{histogramSegmentationRoadClassification} investigated road classification from histogram based segmentation. Other road detection approaches include road surface mapping from near field driving surface models \citep{darpaChallengeRoadDetection} and matching road curvature models to detected lane boundaries \citep{intersectionDetectionSingleCamera}. Supervised convolutional neural network lane detection has had success through fully convolutional \citep{cnnLanes1} and instance segmented \citep{cnnLanes2} approaches. Spline based representation using random sample consensus for bezier splines based off road edge detection \citep{ransicBezierFit} has also shown to be effective.
+
+\citet{modelBasedIntersection} outlined a model based recognition approached which matches intersection models to a series of road boundary points and \citet{mitLocalNavDriving} demonstrated through practical experiments that effective localisation using Open Street Map data and global waypoints is possible using a LIDAR sensor suite for local trajectory generation.
+
+
 
 
 \section{Road Surface Detection}\label{s:roadSurfaceDetection}
@@ -460,9 +462,9 @@ An example of a complex approach to a feature is included as figure \ref{f:compl
 
 The resulting system has specified limitations as discussed in section \ref{sect:intro} and in particular the road surface detection approach represents a basic implementation. In addition to the societal considerations for interpretable AI, the focus on interpretable steps has the significant benefit of having a clear `plug and play' interface with other systems. As a result, when an improved road surface detection algorithm is identified it can easily be integrated to the system in place of the existing element. 
 
-Within the identified limitations the system effectively identifies and tracks route features and provides a driving line through the identified feature. The model mask approach of feature detection provided effective feature matching in non ideal conditions and the bezier curve driving line provides a control system a constant steering angle for feature traversal. In particular the route feature tracking using optical flow was highly effective. 
+As developed, the system effectively identifies and tracks route features and provides a driving line through the identified feature. The model mask approach of feature detection provided effective feature matching in non ideal conditions and the bezier curve driving line provides a control system a constant steering angle for feature traversal. In particular the use of optical flow for route feature tracking was highly effective. 
 
-A system such as the one proposed in this paper provides a low barrier to entry for simple vehicular navigation automation tasks and offers a final redundancy option in the event that a `high end' autonomous system suffers a significant sensor suite failure.
+Redundancy in autonomous systems is a critical consideration and should be included as part of any system design. A system such as the one proposed in this paper provides a low barrier to entry for simple vehicular navigation automation tasks and offers a final redundancy option in the event that a `high end' autonomous system suffers a significant sensor suite failure.
 
 
 \newpage
