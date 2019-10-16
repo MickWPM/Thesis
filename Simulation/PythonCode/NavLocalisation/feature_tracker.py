@@ -15,8 +15,9 @@ def get_feature_masks(feature, mask_dimension, road_width_px, include_bezier=Tru
     """
     Get the raw feature masks for the approach. 
     """
+    np_mask_dim = (mask_dimension[1], mask_dimension[0])
     feature_masks = []
-    to_feature = np.zeros(mask_dimension)
+    to_feature = np.zeros(np_mask_dim)
     col = (255,255,255)
     feature_point = feature[0]
     approach_point = feature[1]
@@ -29,7 +30,7 @@ def get_feature_masks(feature, mask_dimension, road_width_px, include_bezier=Tru
     print(n)
     if len(feature) > 2:
         for i in range(2, n):
-            mask = np.zeros(mask_dimension)
+            mask = np.zeros(np_mask_dim)
             cv2.line(mask, feature_point, feature[i], col, thickness=road_width_px)
             feature_masks.append(mask.astype(np.uint8))
     
@@ -38,12 +39,21 @@ def get_feature_masks(feature, mask_dimension, road_width_px, include_bezier=Tru
     p2 = np.add(approach_point, bezier_offset)
     p3 = np.add(exit_point, bezier_offset)
     print("driving_line_road_px=",driving_line_road_px)
-    curve_mask=bezier.get_curve_mask(p1, p2, p3, width=driving_line_road_px)[:,:,0]
+    curve_mask=bezier.get_curve_mask(p1, p2, p3, width=driving_line_road_px, img_dimensions=mask_dimension)[:,:,0]
     
+    print("TEST")
+    print(mask_dimension)
+    print(curve_mask.shape)
+
     if include_bezier:
         feature_masks.append(curve_mask)
 
     combined_mask = np.sum(feature_masks, axis=0).astype(np.uint8)
+
+    cv2.imshow("curve_mask",curve_mask)
+    cv2.imshow("combined_mask",combined_mask)
+    cv2.waitKey(0)
+
     return feature_masks, combined_mask, curve_mask
 
 
@@ -137,6 +147,11 @@ def check_feature(feature_mask, road_surface, coord_shift=(0,0), probability_thr
             mask = shift_mask(mask, coord_shift, ipm_mask=ipm_mask)
 
         _, _, feature_masked_image = mask_image(road_surface, mask)
+        
+        #im = np.swapaxes(im, 0, 1)
+        if masked_image.shape[0] != feature_masked_image.shape[0]:
+            masked_image = np.swapaxes(masked_image, 0, 1)
+
         masked_image = np.add(masked_image, feature_masked_image )
         mask_probabilities.append(np.sum(feature_masked_image ) / np.sum(mask))
     #masked_image for visualisation only
@@ -149,12 +164,14 @@ def check_feature(feature_mask, road_surface, coord_shift=(0,0), probability_thr
     #    cv2.waitKey(0)
 
     min_probability = np.amin(mask_probabilities)
+    print("min_probability = ", min_probability)
     detected = min_probability>probability_threshold
     return detected,  mask_probabilities
     #return lowestProbability>probability_threshold, individualProbabilities
 
 
 def mask_image(im, im_mask, resize_dim=None):
+    
     if resize_dim is None:
         im_raw = im.copy()
     else:
@@ -162,8 +179,9 @@ def mask_image(im, im_mask, resize_dim=None):
     ###TODO: THIS THRESHOLD HERE SHOULD BE ALREADY DONE AT THIS STAGE!!!
     _, im_thresh = cv2.threshold(im_raw, 200, 255, cv2.THRESH_BINARY)
     im_thresh = np.array(im_thresh)
-    im_mask = cv2.bitwise_and(im_thresh, im_thresh, mask=im_mask)
-    return im_thresh, im_raw, im_mask
+    
+    im_masked = cv2.bitwise_and(im_thresh, im_thresh, mask=im_mask)
+    return im_thresh, im_raw, im_masked
 
 def CheckMasksProbability(image, masks):
     mask_probabilities = []
@@ -187,13 +205,11 @@ def GetUpdatedRoadFeatureLocationFarneback(prev_im, cur_im, feature_coord, flow=
     flags = 0
     flow = cv2.calcOpticalFlowFarneback(prev_im, cur_im, flow, 0.5, 3, winsize, iterations, poly_n, poly_sigma, flags )
 
-    #ave_x = np.average(flow[:, :, 0], weights=(np.absolute(flow[:, :, 0]) > 0.2))
-    #ave_y = np.average(flow[:, :, 1], weights=(np.absolute(flow[:, :, 0]) > 0.2))
 
-    ave_x = np.mean(flow[400:500, 240:276, 0])
-    ave_y = np.mean(flow[400:500, 240:276, 1])
-    #ave_x = np.mean(flow[240:276, 400:500, 0])
-    #ave_y = np.mean(flow[240:276, 400:500, 1])
+    
+    ave_x = np.mean(flow[130:390, 120:174, 0])
+    ave_y = np.mean(flow[130:390, 120:174, 1])
+
 
     feature_coord = (feature_coord[0]+ave_x, feature_coord[1]+ave_y)
     optical_features = None
