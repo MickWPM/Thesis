@@ -16,7 +16,7 @@
 % \usepackage[dvips]{dropping}% alternative dropped capital package
 % \usepackage[colorlinks]{hyperref}%  hyperlinks [must be loaded after dropping]
 %\usepackage{makeidx}
-
+\usepackage{booktabs}
 
 \graphicspath{{Images/}}
 %\usepackage[colorlinks]{hyperref}
@@ -378,9 +378,9 @@ Mean optical flow was used to estimate an updated feature node location in order
 
 The Gunnar Farneb{\"a}ck method \citep{opticalFlowSolution} is a dense approach which considers a polynomial expansion to approximate pixel neighbourhood and minimises an error function for an approximated local displacement. By contrast, the Pyramidal Implementation of the Lucas Kanade Feature Tracker outlined by \citet{opticalFlowLKPyramidal} relies on key tracking points in an image. The Lucas Kanade approach was considered initially as a sparse option due to efficiency however it did not perform well. It is assessed that the random surface textures in this case lack the definition to be tracked effectively via this method. The Two Frame Estimation proposed by \citet{opticalFlowSolution} (the `Gunnar Farneb{\"a}ck method') was identified to perform better in the image frames that are typical of this problem. Similar relative performance results were identified by \citet{opticalFlowLKvsDenseUAV} when considering moving images of near grass surfaces. The Gunnar Farneb{\"a}ck method was employed to track pixels in a small region of interest on the inverse perspective mapped camera image. The region of interest is comparable to the histogram region of interest for backprojection as discussed in section \ref{s:roadSurfaceDetection}-\ref{s:histogramRoadDetection}. The smaller region of interest mitigated the use of a dense algorithm while improving mean optical flow calculation accuracy.
 
-\begin{wrapfigure}{r}{0.5\textwidth} %this figure will be at the right
+\begin{wrapfigure}{r}{0.35\textwidth} %this figure will be at the right
 	\centering
-	\includegraphics[width=0.5\textwidth]{FeatureTracking/optical_flow_trails.png}
+	\includegraphics[width=0.35\textwidth]{FeatureTracking/optical_flow_trails.png}
 	\caption{Selected optical flow lines visualised. Black tails indicate flow vector from each point.}
 	\label{f:optical_flow_trails}
 \end{wrapfigure}
@@ -422,15 +422,20 @@ These parameters directly impact the effectiveness of the system however are gen
 
 \subsection{Performance}
 
-\textbf{TODO: Difficulty quantifying performance}
+It is somewhat difficult to effectively quantify the performance of the system as a whole as there is no relevant system benchmark and the `detection' module is deterministic in the sense that if the road surface is identified sufficiently, the feature mask matching process will identify the feature. Despite these factors it is important to quantify the performance of the system. The two core critical elements of the system are the road surface detection and the feature tracking. These elements are discussed in detail in following subsections.
 
-\textbf{TODO: Key metric areas}
+In general the system has a computational complexity of \textbf{O(mn)} where the image frames are of dimension $m\times n$. The complexity directly scales based on input image dimensions which can be an initial simple parameter to consider for performance. The system was developed using simulated $512px \times 512px$ images and was validated with live video which was tested at a lower resolution of $400px \times 174px$.
+
+The test computer used had a 2013 model i5-3570k CPU. With the base implementation code implemented in Python, OpenCV and Numpy (with no optimisations), the system took on average\footnote{Multiple tests were benchmarked for time during final testing. Exact frame count was not obtained but consisted of data from at least 15000 frames of feature detection and 5000 frames of feature tracking.} 13.8769ms to process a single frame ($512px \times 512px$) in the Feature Matching state and processed individual frames in an average of 72.0621ms when tracking features with a region of interest of ($260px \times 55px$) using a three level Gunnar Farneb{\"a}ck detection.
+
+It should be noted that many of the module operations as outlined are trivially parallisable. Specific implementations will require individual optimisation to identify the optimal operating parameters based on hardware available and road surface complexity.
 
 \subsubsection{IPM and Histogram Backprojection}
 
-\textbf{TODO: Discuss this - range of IPM, data loss, road narrowing etc}
+While the IPM and Road Surface Detection modules have been discussed separately, it was identified that the accuracy of the detected road surface was dependant on the IPM implementation. When defining the IPM transformation initially, the `far' distance of the IPM transformed image is defined by the choice of pixel locations to transform (and their transformed locations). Tests were done using live image data with IPM transformation `far' distances of 100m, 30m and 15m with examples of far (100m), mid (30m) and near (15m) maximum IPM ranges for a straight and curved road included as figure \ref{f:ipmHistogramResults}.
 
-This is highlighted in figure \ref{f:ipmHistogramResults} which provides examples of far (100m), mid (30m) and near (15m) maximum IPM ranges for a straight and curved road. \textbf{TODO: IPM image loses road in far, some appreciation of poorer RSD}
+
+\textbf{TODO: IPM image loses road in far, some appreciation of poorer RSD}
 
 \begin{figure}{}
 	\centering
@@ -442,20 +447,22 @@ This is highlighted in figure \ref{f:ipmHistogramResults} which provides example
 An analysis of the road surface detection accuracy demonstrates clearly that the near IPM range performs more consistently and, importantly, suffers from less `false positives' where road surface is detected outside the true surface. Table \ref{t:ipmRangeRoadSurface} outlines the accuracy values in these cases \textbf{TODO: wording? Wrap it up better?}
 
 \begin{table}[]
-	\begin{tabular}{llll}
-		Road type & IPM range & Correct road surface ratio & Falsely detected road surface ratio \\
+	\centering
+	\begin{tabular}{@{}cccc@{}}
+		\toprule
+		Road type & IPM range & Correct road surface ratio & Falsely detected road surface ratio \\ \midrule
 		Straight  & Far       & 67.186\%                   & 1.148\%                             \\
 		& Mid       & 43.761\%                   & 0.391\%                             \\
 		& Near      & 74.868\%                   & 0.486\%                             \\
 		Curved    & Far       & 0\%                        & 20.558\%                            \\
 		& Mid       & 0\%                        & 30.798\%                            \\
-		& Near      & 75.261\%                   & 0.818\%                            
+		& Near      & 75.261\%                   & 0.818\%                             \\ \bottomrule
 	\end{tabular}
 	\caption{Accuracy of detected road surface for varying IPM maximum ranges for straight and curved roads}
 	\label{t:ipmRangeRoadSurface}
 \end{table}
 
-Additionally it was noted that the quality of detected road surface degraded by as much as 50\% if detection was applied prior to IPM transformation. Figure \ref{f:ipmHistorgramReverse} demonstrates the result of applying road surface detection to the perspective image and applying the IPM transformation to the detected road surface. This detection example corresponds to the `near' range detection in figure \ref{f:ipmHistogramResults} and clearly demonstrates the additional distortion to the IPM transformed road surface.
+Road surface detection was also applied prior to IPM transformation as part of the validation process. Testing over multiple road \textbf{TODO: types? curves? straight etc} identifed that the quality of detected road surface degraded by as much as 50\% if detection was applied prior to IPM transformation. Figure \ref{f:ipmHistorgramReverse} demonstrates the result of applying road surface detection to the perspective image and applying the IPM transformation to the detected road surface. This detection example corresponds to the `near' range detection in figure \ref{f:ipmHistogramResults} and clearly demonstrates additional distortion to the IPM transformed road surface and the benefits of applying the IPM transformation prior to road surface detection.
 
 
 \begin{figure}{h}
@@ -505,243 +512,24 @@ As developed, the system effectively identifies and tracks route features and pr
 
 Redundancy in autonomous systems is a critical consideration and should be included as part of any system design. A system such as the one proposed in this paper provides a low barrier to entry for simple vehicular navigation automation tasks and offers a final redundancy option in the event that a `high end' autonomous system suffers a significant sensor suite failure.
 
+\textbf{TODO:}
+The system was developed using simulated $512px \times 512px$ images and ran at over 70Hz while in the Feature Matching state, maintaining over 10Hz while feature tracking. The system was validated with live video which was tested at a lower resolution of $400px \times 174px$.
 
-\section*{Appendices}
-\ref{app:implementationDiscussion} - Implementation Discussion \\
+%\section*{Appendices}
+%\ref{app:implementationDiscussion} - Implementation Discussion \\
 
 \newpage
 
-%
-%\subsubsection{Bezier curve theory}
-%\textbf{TODO: ADD THIS AS APPENDIX??!?}
-%A Bezier curve is a parametric curve defined by a series of control points with the position on the curve defined by a variable $t$ ranging between 0 and 1, corresponding to the start and the end of the curve. Quadratic Bezier curves consist of three control points ($p_0$, $p_1$ and $p_2$) resulting in a quadratic equation with respect to the variable $t$. \textbf{TODO: Keep going}
-%
-%\textbf{TODO: IS THIS MID POINT INTERPOLATION REQUIRED? OR DOES SETTING `IDEAL' CONTROL POINTS FIX IT?}
-%The formula for the basic Quadratic Bezier curve is outlined as equation \ref{eq:quadratic_bezier}. This will result in a curve as per the curve in figure \ref{fig:quadratic_bezier_simple}. A shortfall with this approach is it will result in `cutting' of the corner as the point $p_1$ is the center point of the feature. This can be addressed by \hl{using what was $p_1$ as the central point $p_c$ to calculate a middle control point to force the curve through this point}. If a constraint is added that $\textbf{B}(t)=p_c$ for some value of $t$, it is then possible to solve for the required $p_1$ to fit this constraint. The free parameter in this instance is the value of $t$ where the curve passes through $p_c$. Setting $t=0.5$ and solving for $p_c$ will set the curve to pass through $p_c$ at the mid point which was deemed suitable in this instance. The equation to force the $p_c$ constraint is included as equation \ref{eq:quadratic_bezier_constraint} and the result of forcing the constraint  $\textbf{B}(0.5)=p_c$ is visualised in figure \ref{fig:quadratic_bezier_center_point}.
-%
-%
-%\begin{figure}[!tbp]
-%	\centering
-%	\begin{minipage}[b]{0.4\textwidth}
-%		\includegraphics[width=\textwidth]{bezier/quadratic_bezier_curve.png}
-%		\caption{Quadratic Bezier curve from control points ($p_0$, $p_1$ and $p_2$)}
-%		\label{fig:quadratic_bezier_simple}
-%	\end{minipage}
-%	\hfill
-%	\begin{minipage}[b]{0.45\textwidth}
-%		\includegraphics[width=\textwidth]{bezier/quadratic_bezier_curve_central_point.png}
-%		\caption{Quadratic Bezier curve from control points ($p_0$, $p_1$ and $p_2$) constrained to pass through $p_c$}
-%		\label{fig:quadratic_bezier_center_point}
-%	\end{minipage}
-%\end{figure}
-%
-%
-%\begin{align}
-%\textbf{B}(t) &= (1-t)^2p_0 + 2t(1-t)p_1 + t^2p_2 \label{eq:quadratic_bezier} \\
-%p_1 &= (p_c - (1-t)^2p_0 - t^2p_2)/(2t(1-t)) \label{eq:quadratic_bezier_constraint} \\
-%p_{mid} &= (1-a)p_1 + ap_c \label{eq:interpolated_p1}
-%\end{align}
-%
-%It is clear the developed both path curves in both figures \ref{fig:quadratic_bezier_simple} and \ref{fig:quadratic_bezier_center_point} are not an ideal solution. As a result the final approach was to use a weighted interpolation between $p_c$ and $p_1$ where $a$ is a weighting between 0 and 1 for $p_c$ as the middle control point position; when $a=0$, $p_c$ will have full weighting over the calculated $p_1$ as the middle control point. \textbf{TODO: a = 0.5}
-%
-
-
-%\begin{wrapfigure}{R}{0.5\textwidth} %this figure will be at the right
-%	\centering
-%	\includegraphics[width=0.5\textwidth, height=0.5\textwidth]{early_lane_detection_experiment.png}
-%	\caption{Still from video feed lane detection experiment. Lower area of interest where frames are averaged visible in the bottom central part of the image}
-%	\label{f:simpleLaneDetectionHough}
-%\end{wrapfigure}
-
-
-%\section{Current work}\label{s:currentWork}
-%
-%The bulk of the initial effort has been developing technical competency within informing disciplines. This includes both the CV technical competency development and addressing the simulation technical risks. This completed work is tracked in the Gantt chart in appendix REMOVED. Additionally to these aspects, familiarity projects were conducted on neural networks to consolidate the basic theory for potential future use. These `toy' projects consisted of developing neuroevolution based solutions for both a physics based ball balancing challenge over the duration of 5 minutes and custom cloned version of the mobile game `flappy bird'. Both solutions used a simple feedforward neural network coded in C\# without the use of any existing libraries with the networks evolving using a custom built genetic algorithm. The CV and simulation aspects are discussed in more detail in the following subsections. 
-%
-%\subsection{Computer Vision}\label{s:currentWork_CV}
-%
-%Before any effective computer vision approaches can be implemented a robust base of understanding of DIP is required. In order to develop a robust understanding of DIP concepts study was undertaken using a range of publicly available resources. The main resource used for structured learning was the Spring 2015 offering of ECSE-4540 at Rensselaer Polytechnic Institute in New York by Rich Radke which has the full set of recorded lectures freely available online. Basic algorithms were implemented from first principles in MATLAB which reinforced the internalisation of the concepts. More advanced computer vision concepts were subsequently researched and tested within Python using OpenCV functionality which is discussed further in this section. 
-%
-%The Hough Transform was used to detect straight lanes with varying levels of success. The Hough Transform converts a global detection problem into a local peak detection problem in a parameter space \citep{surveyOfHT} where straight lines in an image can be represented by a single point in Hough space \citep{houghPaper}. A brief overview of simple lane detection as a conceptual primer for the interested reader, including a discussion on the Hough transform, is included as appendix REMOVED
-%
-%\begin{wrapfigure}{R}{0.5\textwidth} %this figure will be at the right
-%	\centering
-%	\includegraphics[width=0.5\textwidth, height=0.5\textwidth]{early_lane_detection_experiment.png}
-%	\caption{Still from video feed lane detection experiment. Lower area of interest where frames are averaged visible in the bottom central part of the image}
-%	\label{f:simpleLaneDetectionHough}
-%\end{wrapfigure}
-
-
-%
-%It was noted that the simple approaches suffered when the dashed lane line was faint in comparison with other linear features and when the road was cast in intermittent shadow. The final experiment to improve on detection involved lane detection on a video feed using a rolling average of a lower area of interest of the most recent 5 frames of video as input to the lane detection for each frame. The lane detection approach involved identifying straight lines using the Hough Transform of the Canny edge detected area of interest after a low pass filter had been applied. The Hough lines were then chosen based on strength with the strongest line for each angle (side of the lane) chosen. The output consisted of the averaged area of interest with the detected lane lines in red overlayed onto the original frame. An example frame from the video output is included as figure \ref{f:simpleLaneDetectionHough}. 
-%
-%In order to identify the true shape of the road, more advanced techniques are required. Inverse perspective mapping is `a geometrical transform that attempts to remove the perspective effect present in an image captured by a camera pitched down towards a road' \citep{intersectionDetectionSingleCamera}, allowing a birds eye view of the scene by weighing each pixel according to its information content \citep{stereoIPM}. Inverse perspective mapping has many uses within the autonomous driving realm including vanishing point detection  \citep{ipmVanishingPoint}, attitude noise reduction \citep{ipmAttitudeNoise}, distance determination \citep{ipmDistanceDetermination}, regularizing optical flow \citep{ipmOpticalFlow}, improving relative velocity determination \citep{ipmOpticalFlowSpeed} and detailed depth information in stereo \citep{stereoIPM}. Importantly though, inverse perspective mapping is a key part in effective lane and obstacle detection \citep{ipmOpticalFlow} \citep{ipmDistanceDetermination} \citep{ipmBasedLaneDetectionApproach} \citep{ipmVanishingPoint}.
-%
-%The basic approach to lane detection using CV then involves correcting the image for camera lenses before inverse perspective mapping to get a `birds eye view' of the road. From this top down perspective, road/lane analysis can be conducted properly. An inverse perspective mapping calibration for the simulation was developed using the IPC implementation discussed in section \ref{s:currentWork}-\ref{s:simSystem}-\ref{s:IPC}. This calibration consists of still image of a checkerboard pattern on the horizontal plane within the simulation taken from the perspective of the camera. Corners of the checkerboard are manually identified in pixel space and the inverse perspective matrix is calculated based on the current old (perspective) and desired new (inverse perspective) positions. Automated identification of checkerboard corners is possible however the simulation camera rotation with reference to the horizontal plane is fixed therefore only a single calibration is required. The input and output of the inverse perspective mapping calibration undertaken is included as figure \ref{f:inverse_perspective_calibration}. Key considerations within the Computer Vision implementation decision process are in the following subsections.
-%
-%\begin{figure}[htb]% order of placement preference: here, top, bottom
-%	\includegraphics{InversePerspectiveEg.png}
-%	\caption{Inverse perspective mapping calibration. Original camera feed \textit{(left)} and inverse perspective mapped image \textit{(right)}}
-%	\label{f:inverse_perspective_calibration}
-%\end{figure}
-%
-%\subsubsection{Use of OpenCV}\label{s:openCV}
-%
-%The DIP theory that was undertaken opened up the possibility to implement the CV functionality from first principles, indeed basic tools such as filtering had already been implemented in MATLAB experiments. The alternative option considered was to use an open source computer vision library called OpenCV. OpenCV has C++, Python, Java and MATLAB interfaces and is widely used in commercial applications in companies such as Google, IBM and Honda \citep{opencvWebsite}. While implementing all functions manually has merit for further reinforcement of the basic principles, the decision was made to use the OpenCV library. Rationale for this includes the following: 
-%
-%\begin{easylist}[itemize]
-%	& Efficient high performance vectorised implementations of CV algorithms.
-%	& Allows a greater proportion of time to be spent on solving the problem as opposed to implementing known algorithms.
-%	& Increase familiarity with industry level tools for future use.
-%\end{easylist}
-%
-%\subsubsection{Language choice} \label{s:pythonVc}
-%
-%Given the choice of OpenCV for the CV framework the options considered for the core language were C++ or Python. C++ has the advantage of being `lower level' however the OpenCV Python interface compiles down to the same C++ code so the only performance gains would be in the general program code as opposed to the CV implementations. Simulation engine considerations also played a part, as discussed in section \ref{s:currentWork}-\ref{s:simSystem}-\ref{s:simEngineChoice}, Unreal Engine uses C++ which would allow simulation code to talk directly to the OpenCV interface.
-%
-%Despite the above advantages, C++ comes with an increased complexity and any speed gains require a robust understanding (and implementation) of memory management. By contrast, Python presents a lower barrier to entry while maintaining the OpenCV C++ vectorised optimisation. In addition, libraries such as numpy within Python present additional highly optimised operations for array data manipulation. The decision to use Unity for the simulation engine, as discussed in section \ref{s:currentWork}-\ref{s:simSystem}-\ref{s:simEngineChoice}, removed the major benefit of C++, being the potential for the simulation code to talk directly to OpenCV, thus Python was determined to be the preferred language.
-%
-%\subsection{Simulation system}\label{s:simSystem}
-%
-%A significant element of the project deliverable is the development of the simulation system to provide sensor outputs. The intent of the simulation is to provide a pipeline of sensor feeds and potentially an interface to control a simulated vehicle based off the processed sensor data. The scope of the simulation is discussed in section \ref{sect:intro}-\ref{s:scope} with key elements of the simulation system discussed in the following subsections.
-%
-%
-%\subsubsection{Simulation engine} \label{s:simEngineChoice}
-%
-%Two courses of action were available for the implementation of the simulation engine; development of a full custom simulation engine or implement simulation logic within an existing game engine. For the existing game engine option, Unreal and Unity were both considered. A full custom engine allows fine grain control over the implementation the specific requirements of the simulation however has significant overheads including the implementation of 3D visuals including rendering, texturing and importing of 3D models. It was determined that this represented a very large time commitment for negligible benefit.
-%
-%Both Unity and Unreal are professional 3D engines used in commercial games and computer graphics applications. They are well established and have a robust set of supporting tools. Specific considerations for each engine are as follows:
-%
-%\begin{easylist}[itemize]
-%	& Unity:
-%	&& Personal experience with workflow and language (C\#). Comfortable implementing desired features.
-%	&& No C\# interface with OpenCV therefore requirement for IPC to be developed between the OpenCV processing implementation and the simulation engine.
-%	& Unreal:
-%	&& New, unfamiliar workflow.
-%	&& Lack of familiarity and comfort with C++ which is used for scripting within the engine. `Blueprint' system does allow a visual programming approach although that represents an additional competency to be developed.
-%	&& C++ code allows direct interface with OpenCV.
-%\end{easylist}
-%
-%When considering the above factors and the OpenCV considerations discussed in section \ref{s:currentWork}-\ref{s:currentWork_CV}-\ref{s:openCV}, Unity was chosen due to the ability to `hit the ground running' based on workflow and language familiarity. It was noted that this accepts a large technical risk of IPC implementation however it was deemed to be the preferred option.
-%
-%\subsubsection{Interprocess Communication (IPC)} \label{s:IPC}
-%
-%One of the main issues identified with using Python Open CV and the Unity game engine is the ability for simulation data, for example video feeds, to be transferred from Unity to the Python process. This was assessed as a significant technical challenge and is the single largest time budgeted feature in the initial simulation work. The motivation for fast IPC was to allow real time processing of the simulation data in order to allow for potential control feedback to the simulation. Transferring image data represents a large amount of memory thus has a significant time complexity per simulation `tick'. 
-%
-%The initial research approach involved investigating options such as static memory buffers, shared memory and memory mapped files which would allow direct memory access to data. These options added another level of complexity and it was determined that a lower technical risk solution was to use TCP via the ZeroMQ middleware. ZeroMQ is a communications interface with implementations for both C\# and Python and is well optimised for speed.
-%
-% The use of this approach potentially results in slower than real time simulation processing which was mitigated by dynamic simulation time dilation, discussed in section \ref{sect:timedilation}. This approach allows easy and reliable two way communication which is required for effective feedback between the processes. This solution also offers the ability to expand off a single local machine, for example a hosted simulation with remote processing. While this is well out of scope of this research it presents additional flexibility for future development.
-%
-%Once the IPC approach was confirmed, the data handling pipeline between the Unity (C\#) and Python processes was developed. The final simulation output data structure for video feed is a flattened 3D byte array with four bytes for each $(x,y)$ pixel coordinate, representing the Red, Blue, Green and Alpha image colour channels. The Python process casts the byte stream as a byte array and reshapes the data to a 3D array. The fourth element of each colour value (the Alpha channel) is redundant and is removed. This results in a final data structure consisting of a 2D array of 3 element vectors of bytes which is the required data structure for OpenCV processing operations. 
-%
-%\subsubsection{Simulation time dilation}\label{sect:timedilation}
-%
-%There is a requirement to implement dynamic time scaling in the simulation order to maintain time synchronisation with the external process. The simulation scales time based on the desired processing update rate and the real time that the IPC process and external data processing takes. This allows simulation complexity scaling without the danger of temporal desynchronisation between simulation and external processes.
-%
-%The implementation of time dilation involved a simulation controller that runs the simulation for a set time based off the desired sensor processing rate. After this time has elapsed, sensor data is collated and sent to the external processing program via the IPC process outlined above and the simulation pauses. On completion of the data processing, the external program sends an acknowledgement in return which triggers the next simulation tick. This has been implemented and was initially tested by sleeping the processing thread for several seconds each tick. Time dilation with IPC was also tested using an initial prototype of the simulation; two stills from this test from the Python process output video showing the raw feed and the canny edges is included as figure \ref{f:simPrototypeIPCTest}.
-%
-%\begin{figure}[htb]% order of placement preference: here, top, bottom
-% \includegraphics{simPrototypeIPC.png}
-% \caption{Still from video feed of simulation prototype test. Original camera feed \textit{(left)} and canny edges of feed \textit{(right)}}
-% \label{f:simPrototypeIPCTest}
-%\end{figure}
-%
-%\section{Future work}
-%
-%
-%\subsection{Computer Vision}
-%
-%\subsubsection{Lane detection}
-%
-%Detection of straight lane lines has been completed in the familiarisation activities conducted as discussed in section \ref{s:currentWork}-\ref{s:currentWork_CV} and demonstrated in figure \ref{f:simpleLaneDetectionHough}. Alternative approaches to lane detection which may be considered include k-means clustering \citep{ipmBasedLaneDetectionApproach}, road classification from histogram based segmentation \citep{histogramSegmentationRoadClassification}, road surface mapping from near field driving surface models \citep{darpaChallengeRoadDetection}, matching road curvature models to detected lane boundaries \citep{intersectionDetectionSingleCamera} and open uniform B-spline model lane fitting \citep{ipmBasedLaneDetectionApproach}.
-%
-%A more complex challenge is identifying a curved lane. Supervised convolutional neural network lane detection has had success through fully convolutional \citep{cnnLanes1} and instance segmented \citep{cnnLanes2} approaches. Spline based representation using random sample consensus for bezier splines based off road edge detection \citep{ransicBezierFit} has also shown to be effective. The current planned approach is lane edge detection via polynomial fitting of edge pixels detected by sliding window. An overview of the current implementation plan for the sliding window detection approach is included as appendix REMOVED. The technical risk of this aspect is low to medium.
-%
-%
-%\subsubsection{Intersection detection}
-%
-%Intersection detection presents a more challenging prospect than simple lane detection. The simplifying assumption of a single left and right lane edge is removed when intersections are introduced. The SCARF (Supervised Classification Applied to Road Following) approach of using Gaussian colour models to identify road surface before road model matching \citep{scarf} and UNSCARF (UnSupervised Classification Applied to Road Following) approach using feature identification, clustering and edge detection and road model matching \citep{unscarf} have both demonstrated an ability to detect lanes and intersections in non ideal conditions using a dual camera setup, although not in real time \citep{scarfAndUnscarfPresented}. A data driven model using a `virtual camera' supported by model based intersection matching has also shown promise \citep{alvinnVC} however this requires prior information to reconstruct virtual images. Alternatively, once a binary road surface map is obtained, row based histograms can be used to identify intersection locations by interpolation between intersection models \citep{intersectionDetectionSingleCamera}.
-%
-%One example of effective intersection detection determined to be more directly applicable to this project is model based recognition which matches intersection models to a series of road boundary points \citep{modelBasedIntersection}. An alternate approach is using skeletonisation of the road binary mask. When the full road surface is represented by a binary mask, skeletonisation will reduce each road to a single pixel line. This road skeleton can be matched to the model skeletons. The current intent is to use edge detection to determine boundary points with the intersection model being built reasonably simply using the OSM map data. The technical risk of this aspect is medium.
-%
-%
-%\subsection{Navigation localisation}
-%
-%The final step involves correlating the GPS positional data, features from video sensor feed and the navigation data to localise the navigation data to the vehicle position. Static route map matching at its most trivial relates a GPS position to the nearest point on a polyline. It is anticipated that this will be the first step in the localisation to approximate the position on the navigation route. 
-%
-%A LiDAR-based local trajectory generation has demonstrated through practical experiments that effective localisation using OSM data and global waypoints is possible using a LIDAR sensor suite \cite{mitLocalNavDriving}. General curve or spline matching options will be investigated and it has been identified that Markov and extended Kalman filter localisation techniques may also assist in this problem \citep{probabalisticRobotics}. The most likely solution will be a combination of the above and the model based recognition outlined by \citet{modelBasedIntersection}. The technical risk of this aspect is medium.
-%
-%\subsection{Simulation}
-%
-%The simulation development will follow the agile development process and deliver incremental feature additions and improvements. The basic features which are high priority for the early sprints are the implementation of the functionality required for the minimum viable product; the vehicle controller, the road network and the GPS sensor and navigation implementations. These aspects, as well as candidate functionality extensions are discussed in more detail in the coming subsections.
-%
-%\subsubsection{Vehicle controller}
-%
-%The vehicle controller will be implemented using the built in physics components within the Unity engine. The basic vehicle setup will consist of steering, accelerating and braking functions with vehicle movement simulated by the physics engine. An autopilot function that will follow defined waypoints from the navigation system discussed in section \ref{s:gpsNavSim} will also be developed. It is important to note that this autopilot is not based on the external analysis of sensor input but will use the exact game data. The intent of this functionality is to provide a constant video feed of a driving vehicle by a simulated driver agent for analysis and should not be confused with the autonomy solution to the main problem this research is investigating. Features such as engine power simulation will not be implemented in the initial stages but may be introduced as future features. The technical risk of this aspect is very low.
-%
-%\subsubsection{Road network}
-%
-%The road network is being implemented using a commercial tool called Easyroads 3D. This tool assists in mesh generation, placement, connection and texturing of roads as well as terrain moulding. Additionally the tool can accept map data exported from OSM. While each of these functions can be custom built individually it represents a significant time commitment and is unrelated to the core simulation. The road visible in the raw video feed of the IPC prototype test in figure \ref{f:simPrototypeIPCTest} demonstrates the implementation of a test road in Unity. The initial implementation of the road network will be simple single lane tracks. The technical risk of this aspect is low.
-%
-%\subsubsection{GPS sensor}
-%
-%The GPS sensor implementation is a simple function and required for the base sensor data analysis. The functionality will use the in engine coordinates for the GPS coordinates, as will all other data and sensors. An initial customisable random position offset will be used to simulate GPS positional error however additional functionality improvements may include a higher fidelity simulation of GPS error. The technical risk of this aspect is negligible.
-%
-%\subsubsection{GPS navigation}\label{s:gpsNavSim}
-%
-%The navigation functionality will initially be via hardcoded hand placed waypoints, using a simple queue system, with waypoint positions using the in engine coordinate system. Waypoints will be dequeued from a distance threshold based on GPS position proximity to the next waypoint. This represents the minimum viable product. There is significant room for expansion of functionality here including the ability to automatically route plan based off the OSM data used to build the road navigation network which can be queried using a path algorithm, most likely A*. This aspect has significant room for scope creep so will be managed tightly in the sprint reviews. The technical risk of this aspect is low to medium.
-%
-%\subsubsection{Possible Extensions}
-%
-%The implementation of further functionality is based on the sprint velocity achievable and the needs at the time. Once the minimum viable product with the above functionality is delivered it is likely that improvements to the existing functionality will take a high priority in future sprints however additional functionality will be considered in the sprint backlogs. Possible future extension ideas include:
-%\begin{easylist}[itemize]
-%	& External sensor definition files for automatic setup in simulation.
-%	& External OSM data file loading. Implementing this will also result in the requirement for automated data extraction from OSM files for simulated GPS and navigation.
-%	& Increased communication options between simulation and external process, for example vehicle control signals or specific sensor control/activation/deactivation.
-%\end{easylist}
-%
-%\section{Conclusions}
-%
-%The main technical risks for the sensor data processing include the detection of curved roads and intersections and the navigation localisation. Of these risks, the intersection detection is the most significant risk as it has the burden of providing an output that can be effectively used by the navigation localisation step. The main technical risks for the simulation have been successfully addressed and the development of the simulation is ready to enter the agile development process. This will deliver iterative improvements in functionality and provide a wealth of sensor data for analysis testing. Despite the identified risks, the research conducted has identified candidate solutions for each area of technical risk and rapid iteration through the areas of technical risk will assist in assessing the relative merit of the identified approaches.
-
-
-
-
-%\section{Recommendations}
-%This section should discuss and recommend directions for future work that will build on and extend your research and perhaps resolve some of the issues that you have encountered in your work.
-%
-%\section*{Acknowledgements}
-%The Acknowledgements section should be used to briefly thank those individuals or organisations that have assisted you directly in your thesis work whether they be family, friends and colleagues, or technical and academic staff. Note that any external funding source that supported your project should be acknowledged here. 
-%
-
-%\newpage
-%\section*{Appendices}
-%\ref{app:ganttChart} - Gantt chart \\
-
-%\ref{app:briefOverviewOfLaneDetection} - A brief overview of a simple approach to lane detection \\
-
-%\ref{app:slidingWindow} - Sliding window detection for curved roads \\
-
-
-% AJL - UNCOMMENT THIS IS PREFERENCE TO THE ABOVE SECTION
-%% produces the bibliography section when processed by BibTeX
 \bibliography{References}
-%\bibliographystyle{aiaa}
 
-\appendix
-\pagestyle{empty}
-%\includepdf[angle=0,scale=0.9,pages=2,pagecommand=\section{Implementation Discussion}\label{app:implementationDiscussion}]{implementationDiscussion.pdf} 
-
-\includepdf[pages=1,scale=.9,pagecommand={\section{Implementation Discussion}\label{app:implementationDiscussion}},linktodoc=false]{implementationDiscussion.pdf}
-\includepdf[pages=2-,scale=.9,pagecommand={},linktodoc=false]{implementationDiscussion.pdf}
 %\appendix
 %\pagestyle{empty}
-%\includepdf[angle=-90,scale=1,pages=1,pagecommand=\section{Gantt Chart for Research Project}\label{app:ganttChart}]{GanttChart.pdf} 
+%
+%\includepdf[pages=1,scale=.9,pagecommand={\section{Implementation Discussion}\label{app:implementationDiscussion}},linktodoc=false]{implementationDiscussion.pdf}
+%\includepdf[pages=2-,scale=.9,pagecommand={},linktodoc=false]{implementationDiscussion.pdf}
 
-%\includepdf[pages=1,scale=.8,pagecommand={\section{A brief overview of a simple approach to lane detection}\label{app:briefOverviewOfLaneDetection}},linktodoc=false]{briefOverviewOfLaneDetection.pdf}
-%\includepdf[pages=2-,scale=.8,pagecommand={},linktodoc=false]{briefOverviewOfLaneDetection.pdf}
 
-%\includepdf[angle=-90,scale=0.9,pages=1,pagecommand=\section{Sliding window detection for curved roads}\label{app:slidingWindow}]{curvedLaneDetection.pdf} 
+
 
 \end{document}
 
