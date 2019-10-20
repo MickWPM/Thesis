@@ -61,7 +61,7 @@ This approach can be applied to either the camera perspective image or the IPM t
 
 \textbf{Extension of feature masks.} As designed, the current system only considers the main feature node and immediate connections. As the feature node is placed centrally, the approach node distance results in only masking a small portion of the full image. An improvement is to extend the sub masks from the feature node to the full extent of the mask image size. This would involve each sub mask drawing additional relevant node connections until the relative position takes the line off the edge of the image. The resulting mask will be a full representation of the approach route to the feature.
 
-\begin{wrapfigure}{r}{0.35\textwidth} %this figure will be at the right
+\begin{wrapfigure}[20]{r}{0.35\textwidth} %this figure will be at the right
 	\centering
 	\includegraphics[width=0.35\textwidth]{complexFeatureApproach.png}
 	\caption{An example of a complex approach to a feature which may undermine the current system feature detection.}
@@ -70,28 +70,37 @@ This approach can be applied to either the camera perspective image or the IPM t
 
 \section{Rotation of feature masks.} The current implementation has the system generating feature masks of the route feature as it will be approached and assumes a linear approach. This is a reasonable assumption for close in detection however it may fall down if complex approaches to route features are encountered. A more robust solution would involve developing the extended feature mask as outlined above and aligning the mask to the approach direction at the frame the feature will be detected. This would entail developing the mask and once developed, the mask can then be rotated so the approach line is vertical at the base of the image. On arrival at a feature node on the approach, the mask will be regenerated and reoriented. This approach takes advantage of the fact that the route between two nodes can be assumed as linear and will ensure the feature mask orientation will match the detected road more closely. 
 
-An example of a complex approach to a feature is included as figure \ref{f:complexFeatureApproach}. In this instance as the vehicle encounters the first bend, the feature model mask will no longer have the correct orientation and result in a loss of feature tracking. 
+An example of a complex approach to a feature is included as Fig. \ref{f:complexFeatureApproach}. In this instance as the vehicle encounters the first bend, the feature model mask will no longer have the correct orientation and result in a loss of feature tracking. 
 
 
 \section{Navigation extension options.} While it was not explicitly considered as a feature, any road feature with a sharp enough angle between points can be used as a feature. This is particularly helpful if an aim is to identify a `true' position outside GPS error as bends in a road can be used as additional features without requiring additional intersecting roads. Additionally while this system was designed with a supporting GPS in mind to estimate anticipated feature arrival, as developed it does not rely on positional information specifically. Indeed assuming that relevant route feature data is stored, this system can work `offline' using the features as directions in a similar way a human navigator may. Integrating the output of this system with other sensors such as GPS offers additional localisation benefits. \citet{probabalisticRobotics} discuss Markov and extended Kalman filter localisation techniques that may be applicable to this system and have the potential to result in improved positional estimation.
 
-\section{Estimation of road surface in IPM voids}
+\section{IPM maximum distance}\label{s:ipmMaxDist}
+
+Initial implementations of the system used IPM transformations which aimed to maximise the visible `top down' road surface by choosing points close to the horizon in the perspective image to transform which corresponded to distances of approximately 100m. While this approach is effective where there are long stretches of visible road it has significant failure points. If the relative distances are maintained it results in a narrowing of the road surface in the top down view. Additionally it generates significantly more interpolated data (`stretched pixels') and results in a small portion of detected road surface where the road is not straight which is particularly evident when approaching a corner. 
+
+Distances in the order of 15-20m were determined to be the most effective for road surface detection in this implementation. This results in less interpolation of data and a reasonable road surface coverage even when approaching corners. The downside to this approach is it is only `looking ahead' a shorter range so any controller that is implemented will likely need to anticipate approaching features to manage velocity changes. 
+
+\section{Opportunities for future work} \label{s:improvements}
+
+\subsection{Estimation of road surface in IPM voids}
 
 In the current implementation, the `void' in the IPM transformed image (where no information is contained) is not considered. There is scope for road surface estimation in this area based off preceding frames. As detected road surface moves outside the IPM transformed image, there is scope for future work to interpolate the estimated position of road surface from prior `in frame' detection.
 
-\section{Feature bracketing in lieu of optical flow estimation}
+\subsection{Feature bracketing in lieu of optical flow estimation}
 
 It was determined the optical flow estimation added in the order of 60ms processing time per frame. This allowed effective feature tracking in testing however a heuristic for an intelligent `bracketing' update procedure may result in computational savings as the 60ms addition from optical flow represents 5-6 feature mask operations.
 
 While this may be an avenue of interest, by itself it does result in a non-smooth positional tracking as the feature location will `jump around' based on bracketing steps. This may be addressed further through Kalman filtering in a more advanced implementation.
 
-\section{Opportunities for future work} \label{s:improvements}
-
 \subsection{Integration with Fuzzy Logic.} \citet{fuzzySail} present results demonstrating a very effective combination fuzzy control system for a sailing boat including the ability to tack and jibe. \citet{fuzzyGrove} outlined significant improvements in using fuzzy logic for sensor fusion and control of autonomous vehicles operating in citrus grove alleys. The system discussed in this paper involves probability based decisions throughout the process and may be a good candidate for integration with Fuzzy logic decision making and/or control.
 
 \subsection{Known road map histograms.} The histogram backprojection uses an average histogram over the previous 5 frames. This is effective for slowly changing road surfaces however can lead to brief road surface loss when moving from one surface to another. An alternate option is to have a bank of representative road surfaces, including areas under specific lighting conditions, to use for the backprojection and consider the maximum probability over the range of surfaces as each pixel's probability of being a road surface. This can also be combined with the rolling average to provide a more robust assessment as well as categorise road surfaces. 
 
+\subsection{Optimisation of system parameters}
+There are a large range of system parameters that need to be manually tuned for implementation including selection of IPM transformation points as outlined in Section \ref{s:ipmMaxDist}, regions of interest for histogram backprojection and optical flow and processing frequency and resolution. While some of these parameters are difficult to automate, parameters such as image frame resolution and optical flow window bounds may be suitable for multi objective optimisation automation, especially when considering the tradeoff between resolution accuracy and individual frame computational processing time.
 
+\newpage
 \bibliography{References}
 
 \end{document}
