@@ -112,103 +112,9 @@ The system is modular with each element being purely defined by input and output
 
 This paper outlines a method for navigation localisation and driving line identification for an autonomous vehicle using a single camera system. This system can be considered as a robust entry level navigation localisation system or, more critically, as redundancy for more complex systems in the event of sensor failure. After a brief review of related works, a high level overview of the system is given. Subsequent sections investigate discrete elements of the system in order, road surface detection, route feature matching and route feature tracking. A general discussion including limitation and opportunities follows before concluding remarks.
 
-The system is not a controller, rather is designed to be an interpretable system for navigation localisation in environments where other vehicles are not encountered. The design simplifying assumptions involved single direction road surfaces without the requirement to consider other vehicles or traffic control. With appropriate control logic and GPS sensor fusion, the underlying route feature detection and tracking may also be incorporated into vehicles operating in more complex environments if sufficient control is in place to permit feature detection. The use of this system as presented is envisaged to be automation of tasks in remote areas, for example logistics movements through large properties such as farms and mining areas. Alternatively this method provides a single camera redundancy which may assist the capability to `limp home' in the event of main sensor system failures in more complex autonomous vehicles. \textbf{TODO: Setup and justify testing/validation approach here.}
+The system is not a controller, rather is designed to be an interpretable system for navigation localisation in environments where other vehicles are not encountered. The design simplifying assumptions involved single direction road surfaces without the requirement to consider other vehicles or traffic control. With appropriate control logic and GPS sensor fusion, the underlying route feature detection and tracking may also be incorporated into vehicles operating in more complex environments if sufficient control is in place to permit feature detection. The use of this system as presented is envisaged to be automation of tasks in remote areas, for example logistics movements through large properties such as farms and mining areas. Alternatively this method provides a single camera redundancy which may assist the capability to `limp home' in the event of main sensor system failures in more complex autonomous vehicles. While there is no overarching benchmark to validate the system, the accuracy and error rate of core aspects of the system was investigated and the system as a whole was developed using simulation images and validated using live dashcamera footage.
 
 In the general case, in order for an autonomous vehicle to navigate effectively there are some key challenges. The vehicle must have a mechanism to sense the local environment, for example lane detection, as well as the ability to identify and track transient aspects such as other vehicles and on road obstacles. In addition to the local area, the vehicle must also have the ability to reconcile navigation data with the current location which is the focus of the system described in this paper. A supporting concept to this is that of map matching which calculates vehicle location by using the geographical information from sensors such as GPS position, inertial data and map information from a mapping service \citep{keyTechSelfDriving}. This paper outlines the developed `low tech' system to provide a minimum navigation capability that does not rely on more advanced tools such as LIDAR. 
-
-
-%\index{}
-% 
-%\lettrine[nindent=0pt]{T}{he} idea of a future where personal transportation is handled by autonomous vehicles is increasingly in the public consciousness however there is a range of challenges that need to be addressed from legal, security and ethical issues \citep{gmReport} to maturity concerns that out to the 2030s `autonomous vehicles will be expensive novelties' \citep{vicTransportImplications}. Autonomous driving is not a binary capability however, rather a scale with increasing levels of autonomy. For context, the automation levels identified by the US National Highway Traffic Safety Administration \citep{automationVisionForSafety} are outlined in table \ref{t:automationLevels}. While it may be decades before true level 5 automation is developed, there is an undeniable increase in the cognitive assistance and partial automation technologies in consumer vehicles. As an example the 2019 Kia Sorento includes active lane keeping assist (lane detection and steering) and adaptive cruise control (autonomous acceleration and braking based off radar distance to leading vehicles) \citep{kia}, which is approaching level 2 automation. 
-%
-%
-%\begin{table}
-% \begin{center}
-%  \caption{automation levels identified by the US National Highway Traffic Safety Administration \citep{automationVisionForSafety}}
-%  \label{t:automationLevels}
-%  \begin{tabular}{p{0.1\linewidth}p{0.25\linewidth}p{0.6\linewidth}}
-%       Level & Classification & Detail\\\hline
-%        0 &  No Automation & Zero autonomy; the driver performs all driving tasks. \\
-%       1 &  Driver Assistance & Vehicle is controlled by the driver, but some driving assist features may be included in the vehicle design \\
-%       2 &  Partial Automation & Vehicle has combined automated functions, like acceleration and steering, but the driver must remain engaged with the driving task and monitor the environment at all times. \\
-%       3 &  Conditional Automation &   Driver is a necessity, but is not required to monitor the environment. The driver must be ready to take control of the vehicle at all times with notice. \\
-%      4 &  High Automation &   The vehicle is capable of performing all driving functions under certain conditions. The driver may have the option to control the vehicle. \\
-%      5 &   Full Automation &   The vehicle is capable of performing all driving functions under all conditions. The driver may have the option to control the vehicle. 
-%  \end{tabular}
-% \end{center}
-%\end{table}
-%
-%In order for an autonomous vehicle to navigate effectively there are a few key challenges. The vehicle must have a mechanism to sense the local environment, for example lane detection, as well as the ability to identify and track transient aspects such as other vehicles and on road obstacles. There are many Computer Vision techniques that can assist in providing an understanding of the environment. Direct techniques such as edge and line detection are widely used however Deep Convolutional Neural Networks have also been shown to be effective for road detection \citep{deepRoadSegmentation}.
-%
-%In addition to the local area, the vehicle must also have the ability to reconcile navigation data with the current location. A supporting concept to this is that of map matching which calculates vehicle location by using the geographical information from sensors such as GPS position, inertial data and map information from a mapping service \citep{keyTechSelfDriving}. Current cutting edge self driving vehicles require high fidelity 3D maps to operate effectively which are time consuming to develop and not adaptive to rapid local changes. Despite this, position localisation improvements have been achieved without high fidelity 3D mapping data using a data fusion of GPS and inertial navigation system data \citep{gpsInsFusion} correlating a detected back lane registry supported with computer vision, GPS and inertial data with map data \citep{lowCostSensorNav} and through use of Kalman filters and LIDAR in more complex environments \citep{robotLIDARSLAM}.
-%
-%This process of combining data from several sources into a single unified description of a situation is known as data fusion \citep{gpsInsFusion}. Self driving vehicles rely on sensor and data fusion to achieve the four capabilities required of autonomous driving; navigation, path planning, environment perception and car control \citep{keyTechSelfDriving}. This project touches on elements of the first three capabilities in order to localise navigation information. This project will use GPS position data and computer vision techniques to correlate data from preloaded maps to localise localise navigation. The context for this project is general but will loosely use the goal of automating (non-tactical) military field logistics route transport. This will include simplifying assumptions of single lane roads/tracks without the requirement to consider other vehicles or traffic control. The idea of local navigation goals has been explored with the use of Open Street Map data and LIDAR for road mapping with promising success \citep{mitLocalNavDriving} however the ability for a single camera system to facilitate navigation data localisation assists in both system redundancy and lowering the financial and technical barriers to implementation. This project will focus on a `low tech' option to provide a minimum navigation capability that does not rely on more advanced tools such as LIDAR. Consideration of relevant literature will be further outlined in specific sections of current and future work as it is relevant.
-%
-%In general, the ability to use computer vision to align GPS positioning with mapping service data will allow greater cognitive assistance in driver included tasks without the requirement for significant prior mapping. As augmented reality technology increases this also allows for more immersive driver aides such as navigation routes overlayed onto the visible road. In addition to the cognitive assistance, the ability to localise a navigation route opens the near future possibility for the automation of certain tasks in a military setting, for example routine field logistics supply transport. A true complete solution will rely on sensor fusion from a suit of complimentary sensors supporting each other and providing redundancy. 
-
-
-%\textbf{TODO: Terminology?}
-%\subsection{Terminology}
-%
-%\hl{The following abbreviations and definitions are used throughout this report:}
-%
-%
-%\begin{easylist}[itemize]
-%	& \textbf{Computer Vision (CV)}. Techniques to allow machines to `see'; processing visual images of the world and deriving understanding.
-%	& \textbf{Digital Image Processing (DIP)}. Use of computer algorithms to perform processing on digital images.
-%	& \textbf{Navigation localisation}. Translating an overall navigation route into a local navigation goal.
-%	& \textbf{Simulation}. The custom built autonomous vehicle simulation which provides sensor feed outputs.
-%	& \textbf{External processing}. In the context of this report two programs are discussed, the simulation and `external processing'. External processing refers to the standalone code which performs the computational calculations for navigation localisation.
-%	& \textbf{Simulation tick}. One period of simulation processing. This is aligned to a specified update frequency that the external processing is running at `in simulation'.
-%	& \textbf{Interprocess Communication (IPC)}. The passage of data from simulation to external processes.
-%	& \textbf{Open Street Maps (OSM)}. `A collaborative project to create a free editable map of the world' \citep{osmDataFormat}. Comparable to Google maps.
-%	& \textbf{Polyline}. A line defined by node coordinates. The line is drawn through all nodes in order, starting at the first and terminating at the last.
-%\end{easylist}
-
-%%
-%%\subsection{Project aim}
-%%
-%%\hl{The aim of this project is to} investigate localising navigation data from a GPS feed to the observed road via a vehicle mounted camera. Mapping service GPS route data is often held as polylines which represents a road as a series of connected points or nodes \citep{googleMapPolyline}, \citep{osmDataFormat}. The approach for positional localisation is to use the vehicle GPS position as an approximate input location mapped to the closest point on a route. Detected road features are then used to determine an accurate position of the vehicle and identify the navigation route on forward facing video feed. This sets the conditions for autonomous control of the vehicle based on a programmed navigation route.
-%%
-%
-%\subsection{Scope and Deliverables}\label{s:scope}
-%
-%\hl{The scope of the project is deliberately kept constrained initially. This is to focus on the specific problem of localising a navigation route without losing development effort to supporting elements. The scope and deliverables have been identified as follows:}
-%\begin{easylist}[itemize]
-%	& The solution must be able to reconcile GPS and CV data to identify the current location and required direction to travel through intersections based on a navigation route.
-%	& \textbf{Limitation of road complexity.} There is a requirement for road/lane detection as part of this project (to marry up with the GPS polyline data) however optimised road detection is not the main focus of the project. Further as the project purely uses the output data of lane detection, it can be considered a `black box' and implementations can be swapped out as more advanced options are identified. The initial limitations on scope of road detection includes:
-%	&& Limit road detection to easily detectable road surface.
-%	&& Limit roads to single lane.
-%	&& All roads considered will be of similar local colour and type.
-%	& \textbf{Simulation deliverable requirements.} In addition to providing data for this project the intent is for the simulation to be held as an asset within SEIT for use in subsequent student projects in this area. The basic requirements for the simulation are:
-%	&& Ability to provide 3D video feed of simulated driving to external program.
-%	&& Support simulated GPS tracking data.
-%	&& Support simulation of GPS route guidance.
-%\end{easylist}
-
-
-
-%\subsection{Project Methodology}
-%
-%The initial state of the project was the field of autonomous vehicles as the general area of focus. As a result the preliminary phase of the project was the identification of the `problem area' and narrowing of scope. A broad reading of relevant research and industry articles identified the ability to navigate in arbitrary areas as a candidate problem area and the scope was refined as outlined in section \ref{sect:intro}. 
-%
-%This project is being undertaken in an area of study that is a new field for the author. As a result the early focus was on developing base competencies in DIP and general CV. This included both an understanding of the theory and mathematics behind DIP and CV tools and familiarity with implementation options and extended into more specific areas such as straight lane detection.
-%
-%In parallel with the CV competency development, research and experimentation on key technical risk elements of the simulation was conducted. The core technical risk was the ability for simulation code to communicate with sensor processing code. The aim was to keep these two code bases separate to allow other individuals to use the simulation for relevant purposes without being tied in to the aims of this project.
-%
-%Once the core competencies have been developed and the supporting tool options have been analysed the focus will split between agile development of the simulation and the development of the external processing program. The simulation development will consist of `sprint' periods designed around providing incremental functionality, prioritised as needs arise. The development of the external processing forms the specific primary aim and will include the following core milestones:
-%
-%\begin{easylist}[itemize]
-%	& Lane detection.
-%	& Intersection detection and identification of discrete roads.
-%	& Mapped road position estimation based off the GPS position and nearby road map nodes (accounting for GPS inaccuracy).
-%	& Map matching, specifically some form of curve or spline matching to correlate the estimated map position with the identified road features.
-%	& Consolidation of return data. This may include:
-%	&& Overlaying the navigation route directly to the video feed.
-%	&& Providing control inputs to the vehicle for autonomous driving of the route.
-%\end{easylist}
-%
-%Additional considerations which will be addressed as part of the simulation development include the data structure representation of the GPS maps and navigation routes. These will both be in line with the OSM data structures but may be simplified to specifically the required data for ease of processing in testing. Simplification of data will only occur where it is feasible that the OSM (or similar) data format can be transformed into the used data format with sufficient preprocessing ie. only information that is present in, or able to be derived from, the OSM or similar data will be used.
 
 \section{System overview}
 \citet{explainableAIStakeholders} highlight a growing desire for interpretability for machine learned models, both regarding the inner workings of a model and explanations of how a conclusion was reached. \citet{explainableCNNBookChapter} also discuss the importance of explainable and interpretable systems and propose a system to allow interpretability of deep neural perception and control networks to support it. The solution discussed in this paper\footnote{The developed system discussed in this report was implemented with OpenCV using custom simulation inputs, validated by live dash camera footage.} is developed to be deliberately an inherently interpretable system; at all key stages in the navigation localisation process a human observer can understand intermediate products and the logic of how they were derived.  More importantly, this allows the entire system to be considered as a modular series. As improved systems, approaches and algorithms are developed, assuming they adhere to the same input and output data interface, they can be seamlessly integrated in place of less ideal approaches. The interpretability of intermediate products also means these are available for use in other systems that may require that information. A high level overview of the system is outlined in figure \ref{f:systemOverview}.
@@ -426,16 +332,12 @@ It is somewhat difficult to effectively quantify the performance of the system a
 
 In general the system has a computational complexity of \textbf{O(mn)} where the image frames are of dimension $m\times n$. The complexity directly scales based on input image dimensions which can be an initial simple parameter to consider for performance. The system was developed using simulated $512px \times 512px$ images and was validated with live video which was tested at a lower resolution of $400px \times 174px$.
 
-The test computer used had a 2013 model i5-3570k CPU. With the base implementation code implemented in Python, OpenCV and Numpy (with no optimisations), the system took on average\footnote{Multiple tests were benchmarked for time during final testing. Exact frame count was not obtained but consisted of data from at least 15000 frames of feature detection and 5000 frames of feature tracking.} 13.8769ms to process a single frame ($512px \times 512px$) in the Feature Matching state and processed individual frames in an average of 72.0621ms when tracking features with a region of interest of ($260px \times 55px$) using a three level Gunnar Farneb{\"a}ck detection.
-
-It should be noted that many of the module operations as outlined are trivially parallisable. Specific implementations will require individual optimisation to identify the optimal operating parameters based on hardware available and road surface complexity.
+It should be noted that many of the module operations as outlined are trivially parallisable. Specific implementations will require individual optimisation to identify the optimal operating parameters based on hardware available and road surface complexity. The test computer used had a 2013 model i5-3570k CPU. With the base implementation code implemented in Python, OpenCV and Numpy (with no optimisations), the system took on average\footnote{Multiple tests were benchmarked for time during final testing. Exact frame count was not obtained but consisted of data from at least 15000 frames of feature detection and 5000 frames of feature tracking.} 13.8769ms to process a single frame ($512px \times 512px$) in the Feature Matching state and processed individual frames in an average of 72.0621ms when tracking features with a region of interest of ($260px \times 55px$) using a three level Gunnar Farneb{\"a}ck detection.
 
 \subsubsection{IPM and Histogram Backprojection}
 
-While the IPM and Road Surface Detection modules have been discussed separately, it was identified that the accuracy of the detected road surface was dependant on the IPM implementation. When defining the IPM transformation initially, the `far' distance of the IPM transformed image is defined by the choice of pixel locations to transform (and their transformed locations). Tests were done using live image data with IPM transformation `far' distances of 100m, 30m and 15m with examples of far (100m), mid (30m) and near (15m) maximum IPM ranges for a straight and curved road included as figure \ref{f:ipmHistogramResults}.
+While the IPM and Road Surface Detection modules have been discussed individually, it was identified that the accuracy of the detected road surface was dependant on the IPM implementation. When defining the IPM transformation initially, the `far' distance of the IPM transformed image is defined by the choice of pixel locations to transform (and their transformed locations). Tests were done using live image data with IPM transformation maximum projection distances consisting of far (100m), mid (30m) and near (15m). Indicative examples of the results of these distances for straight and curved roads is included as figure \ref{f:ipmHistogramResults}.
 
-
-\textbf{TODO: IPM image loses road in far, some appreciation of poorer RSD}
 
 \begin{figure}{}
 	\centering
@@ -444,7 +346,8 @@ While the IPM and Road Surface Detection modules have been discussed separately,
 	\label{f:ipmHistogramResults}
 \end{figure}
 
-An analysis of the road surface detection accuracy demonstrates clearly that the near IPM range performs more consistently and, importantly, suffers from less `false positives' where road surface is detected outside the true surface. Table \ref{t:ipmRangeRoadSurface} outlines the accuracy values in these cases \textbf{TODO: wording? Wrap it up better?}
+An analysis of the road surface detection accuracy demonstrates that the near IPM range performs more consistently and, importantly, suffers from less `false positives' where road surface is detected outside the true surface. Table \ref{t:ipmRangeRoadSurface} outlines the accuracy values in these cases where it can be noted that the near maximum distances detects in the order of 75\% of the road surface consistently. 
+
 
 \begin{table}[]
 	\centering
@@ -483,9 +386,8 @@ Road surface detection was also applied prior to IPM transformation as part of t
 
 \subsubsection{Optical Flow reliability}
 
+The optical flow reliability is the second core element of the system that can be quantitatively investigated. The performance of this module was determined to be a combined function of image resolution and processing frequency. Optical flow error or `slippage' was defined as the apparent slipping of the detected feature; this was due to the computed mean optical flow being less than the true optical flow which resulted in the feature location not being moved the full delta each frame. It was determined that the resolution of the `area of interest' used for optical flow calculation was an effective comparison point and, as highlighted in figure \ref{f:opticalFlowResults}, the `slippage' has a generally linear relationship with increasing relative pixel flow.
 
-\textbf{TODO: Discuss this}
-As highlighted in figure \ref{f:opticalFlowResults}...
 \begin{wrapfigure}{r}{0.5\textwidth} %this figure will be at the right
 	\centering
 	\includegraphics[width=0.5\textwidth]{Results/opticalFlowResults.png}
@@ -493,6 +395,7 @@ As highlighted in figure \ref{f:opticalFlowResults}...
 	\label{f:opticalFlowResults}
 \end{wrapfigure}
 
+Increasing the resolution of the optical flow area of interest or increasing the processing frequency will result in a smaller relative pixel flow per frame which in turn will reduce the feature tracking error.
 
 \subsection{Opportunities for future work} \label{s:improvements}
 
@@ -502,6 +405,49 @@ As highlighted in figure \ref{f:opticalFlowResults}...
 
 \textbf{Known road map histograms.} The histogram backprojection uses an average histogram over the previous 5 frames. This is effective for slowly changing road surfaces however can lead to brief road surface loss when moving from one surface to another. An alternate option is to have a bank of representative road surfaces to use for the backprojection and consider the maximum probability over the range of surfaces as each pixel's probability of being a road surface. This can also be combined with the rolling average to provide a more robust assessment as well as categorise road surfaces. \textbf{TODO: Lighting effects - shade, time of day.}
 
+
+\section{Implementation discussion}
+\textit{\textbf{During the course of development of the single camera autonomous vehicle navigation localisation system, several implementation points were identified. These points were deemed outside the scope of discussion in the original article however are included here in an effort to preserve the information. This information is of particular importance to those interested in implementing or extending the system.}} \textbf{TODO: Reword this for journal article}
+
+
+
+\subsection{Road surface centreline detection}
+
+While vehicle position and orientation on the road is a critical input to a controller, it was not explicitly covered as part of this system. A general approach slightly modified from that outlined by \citet{canneyAndHoughLanes} to suit this system is to identify the central point on a road surface is to apply edge detection to the detected road surface pixels followed by identifying straight line candidates using the Hough transform. The basic approach would be as follows: 
+
+\begin{easylist}
+	& Identify local window of interest in the near ground to vehicle.
+	& Use edge detection such as the Canny algorithm to identify road edge pixels inside window of interest.
+	& Identify candidate lines using Hough Transform.
+	& Select strongest candidate lines for left and right portions of the window, corresponding to the estimated left and right road edge lines.
+	& Identify road centreline as midline between left and right detected edge lines.
+	& Determine desired steering direction based on detected centreline pixel offset from vehicle centreline \footnote{The vehicle centreline will correspond to the image centre assuming the camera is position centrally. If the vehicle mounted camera is offset, this `centre pixel line' will need to be manually identified and stored prior to operation.}
+\end{easylist}
+
+This approach can be applied to either the camera perspective image or the IPM transformed image. In the former case the perspective effect where the left road edge line will be angled to the right and vice versa for right edges, tending to the vanishing point, allows easy segregation of left and right road surface lines. By contrast the IPM transformed road edges will be parallel thus rely on positional information only to separate the left and right road surface lines. Alternatively more advanced methods such as the Support Vector Machine approach suggested by \citet{moncularLaneDetectAndTrack} may be more robust and may additionally inform the road surface detection.
+
+
+
+\textbf{Extension of feature masks.} As designed, the current system only considers the main feature node and immediate connections. As the feature node is placed centrally, the approach node distance results in only masking a small portion of the full image. An improvement is to extend the sub masks from the feature node to the full extent of the mask image size. This would involve each sub mask drawing additional relevant node connections until the relative position takes the line off the edge of the image. The resulting mask will be a full representation of the approach route to the feature.
+
+\begin{wrapfigure}{r}{0.35\textwidth} %this figure will be at the right
+	\centering
+	\includegraphics[width=0.35\textwidth]{complexFeatureApproach.png}
+	\caption{An example of a complex approach to a feature which may undermine the current system feature detection.}
+	\label{f:complexFeatureApproach}
+\end{wrapfigure}
+
+\subsection{Rotation of feature masks.} The current implementation has the system generating feature masks of the route feature as it will be approached and assumes a linear approach. This is a reasonable assumption for close in detection however it may fall down if complex approaches to route features are encountered. A more robust solution would involve developing the extended feature mask as outlined above and aligning the mask to the approach direction at the frame the feature will be detected. This would entail developing the mask as per section \ref{sect:route_feature_matching}-\ref{s:maskDevelopment} in the original paper and once developed, the mask can then be rotated so the approach line is vertical at the base of the image. On arrival at a feature node on the approach, the mask will be regenerated and reoriented. This approach takes advantage of the fact that the route between two nodes can be assumed as linear and will ensure the feature mask orientation will match the detected road more closely. 
+
+An example of a complex approach to a feature is included as figure \ref{f:complexFeatureApproach}. In this instance as the vehicle encounters the first bend, the feature model mask will no longer have the correct orientation and result in a loss of feature tracking. 
+
+
+\subsection{Navigation extension options.} While it was not explicitly considered as a feature, any road feature with a sharp enough angle between points can be used as a feature. This is particularly helpful if an aim is to identify a `true' position outside GPS error as bends in a road can be used as additional features without requiring additional intersecting roads. Additionally while this system was designed with a supporting GPS in mind to estimate anticipated feature arrival, as developed it does not rely on positional information specifically. Indeed assuming that relevant route feature data is stored, this system can work `offline' using the features as directions in a similar way a human navigator may. Integrating the output of this system with other sensors such as GPS offers additional localisation benefits. \citet{probabalisticRobotics} discuss Markov and extended Kalman filter localisation techniques that may be applicable to this system and have the potential to result in improved positional estimation.
+
+
+\subsection{TODO}
+Discuss Road detection mitigation (rolling average etc)
+Add in references
 
 
 \section{Concluding remarks}
