@@ -2,18 +2,33 @@
 Handle road feature management
 Includes generating a feature mask based off an input feature
 and testing against this mask
-Feature uses meters as scale
 """
 import numpy as np
 import cv2
 import bezier
 
-#TODO: Where is feature set for initial matching?
-#TODO: scale feature based on distance of IPM image? #TODO: Add distance scaling based off ipm image total distance
-#CURRENTLY IT IS PASSED AS IMAGE COORDINATES WHICH IS NOT THE PROPER WAY!!!
 def get_feature_masks(feature, mask_dimension, road_width_px, include_bezier=True, driving_line_road_px=5, bezier_offset=(0,0)):
     """
     Get the raw feature masks for the approach. 
+	Note this currently uses image coordinates - the real world distance to pixel coordinate transformation
+		needs to occur prior to this point. This is a straight forward scaling factor however was not addressed
+		in this implementation.
+	feature: 
+	mask_dimension: Pixel dimensions for mask
+	road_width_px: Desired width of feature masks
+	include_bezier: Include the driving line mask in the combined mask
+	driving_line_road_px: Width of bezier
+	bezier_offset: Pixel space offset for bezier curve control points.
+		This was not used however allows more control over exact location of bezier curve relative to the road.
+		While it is not likely this should be used, it could be used to `centralise' the driving line as currently
+		the feature will be detected at the first possible moment. Using the offset will allow the curve to be `cast' 
+		further along the road to an offset. Few cases likely where this is the best approach. Used a lot in testing and
+		kept for posterity.
+		
+	Returns:
+	feature_masks: Individual masks for feature nodes
+	combined_mask: Combined mask for full feature
+	curve_mask: Driving line specific mask
     """
     np_mask_dim = (mask_dimension[1], mask_dimension[0])
     feature_masks = []
@@ -22,12 +37,12 @@ def get_feature_masks(feature, mask_dimension, road_width_px, include_bezier=Tru
     feature_point = feature[0]
     approach_point = feature[1]
     exit_point = feature[2]
+	
+	#Initially create the `inbound' mask.
     cv2.line(to_feature, approach_point, feature_point, col, thickness=road_width_px)
     feature_masks.append(to_feature.astype(np.uint8))
-    print("road_width_px=",road_width_px)
         
-    n = len(feature)
-    print(n)
+	#Append all other legs
     if len(feature) > 2:
         for i in range(2, n):
             mask = np.zeros(np_mask_dim)
@@ -35,36 +50,30 @@ def get_feature_masks(feature, mask_dimension, road_width_px, include_bezier=Tru
             feature_masks.append(mask.astype(np.uint8))
     
     
+	#Driving line curve mask
     p1 = np.add(feature_point, bezier_offset)
     p2 = np.add(approach_point, bezier_offset)
     p3 = np.add(exit_point, bezier_offset)
-    print("driving_line_road_px=",driving_line_road_px)
     curve_mask=bezier.get_curve_mask(p1, p2, p3, width=driving_line_road_px, img_dimensions=mask_dimension)[:,:,0]
-    
-    print("TEST")
-    print(mask_dimension)
-    print(curve_mask.shape)
-
+   
     if include_bezier:
         feature_masks.append(curve_mask)
 
     combined_mask = np.sum(feature_masks, axis=0).astype(np.uint8)
-
-    cv2.imshow("curve_mask",curve_mask)
-    cv2.imshow("combined_mask",combined_mask)
-    cv2.waitKey(0)
-
     return feature_masks, combined_mask, curve_mask
 
-
-
-def update_feature_masks(distance_from_feature, feature, mask_resolution, ipm_distance_range=20):
-    """
-    As per get_feature_masks however feature distance is less than the initial tracking distance
-    """
-    pass
-
 def shift_mask(mask, coord_shift, ipm_mask=None):    
+	"""
+	Shift a mask based off a provided x and y shift (corresponds to optical flow between frames)
+	This is a 'long' method but is simply moving values in the array based off the shift.
+	
+	mask: Existing mask to be shifted
+	coord_shift: Pixel shift required
+	ipm_mask: IPM mask to apply
+	
+	Returns:
+	mask: Shifted mask
+	"""
     if  np.absolute(coord_shift[0]) > 0 and  np.absolute(coord_shift[1]) > 0:
         #Move X to the right
         if coord_shift[0] < 0:
@@ -72,30 +81,20 @@ def shift_mask(mask, coord_shift, ipm_mask=None):
             if coord_shift[1] < 0:
                 mask[0:coord_shift[1], -coord_shift[0]:] = mask[-coord_shift[1]:, 0:coord_shift[0]]
                 mask[coord_shift[1]:, :-coord_shift[0]] = 0
-                
-
             #Move X to the right and Y Down
             elif coord_shift[1] > 0:
                 mask[coord_shift[1]:, -coord_shift[0]:] = mask[:-coord_shift[1], 0:coord_shift[0]]
                 mask[0:coord_shift[1], :-coord_shift[0]] = 0
-                
-
-
         #Move X to the left
         elif coord_shift[0] > 0:
             #Move X to the left and y UP
             if coord_shift[1] < 0:
                 mask[0:coord_shift[1], 0:-coord_shift[0]] = mask[-coord_shift[1]:, coord_shift[0]:]
-                mask[coord_shift[1]:, -coord_shift[0]:] = 0
-                
-
+                mask[coord_shift[1]:, -coord_shift[0]:] = 0                
             #Move X to the left and y DOWN
             elif coord_shift[1] > 0:
                 mask[coord_shift[1]:, 0:-coord_shift[0]] = mask[:-coord_shift[1], coord_shift[0]:]
                 mask[0:coord_shift[1], -coord_shift[0]:] = 0
-                
-
-
     elif np.absolute(coord_shift[0]) > 0:
         #At this point, Y is zero, so just move X
         #Move X RIGHT
@@ -106,15 +105,12 @@ def shift_mask(mask, coord_shift, ipm_mask=None):
         else:
             mask[:, 0:-coord_shift[0]] = mask[:, coord_shift[0]:]
             mask[:, -coord_shift[0]:] = 0
-
-
     elif np.absolute(coord_shift[1]) > 0:
         #At this point, X is zero, so just move Y
         #Move UP
         if coord_shift[1] < 0:
             mask[0:coord_shift[1], :] = mask[-coord_shift[1]:, :]
             mask[coord_shift[1]:, :] = 0
-
         #Move DOWN
         elif coord_shift[1] > 0:    
             mask[coord_shift[1]:, :] = mask[:-coord_shift[1], :]
@@ -126,76 +122,81 @@ def shift_mask(mask, coord_shift, ipm_mask=None):
 
 def check_feature(feature_mask, road_surface, coord_shift=(0,0), probability_threshold=0.7, ipm_mask=None):
     """
-    Considers features elementwise
+    Considers features elementwise and determines if a feature is detected
+	feature_mask: Individual sub feature masks
+	road_surface: Detected road surface
+	coord_shift: Amount to shift the mask by if flow has occurred
+	probability_threshold: Minimum probability for feature to be considered detected
+	ipm_mask: IPM mask to apply
+	
+	Returns:
+	return detected: Boolean flag indicating if feature was detected
+	mask_probabilities: Individual probability values for sub masks
     """
     coord_shift = (int(coord_shift[0]), int(coord_shift[1]))
     mask_probabilities = []
     masked_image = np.zeros(road_surface.shape, dtype=np.uint8)
     shifted = np.absolute(coord_shift[0]) > 0 or  np.absolute(coord_shift[1]) > 0
     
-    #TMP
-    #mask_unshifted = np.zeros(road_surface.shape, dtype=np.uint8)
-
-    for mask in feature_mask:
-        #TODO: GET RID OF THIS threshold??
+	for mask in feature_mask:
         _, mask = cv2.threshold(mask, 200, 255, cv2.THRESH_BINARY)
-        
-        #TMP
-        #mask_unshifted = np.add(mask_unshifted, mask )
-
         if shifted:
             mask = shift_mask(mask, coord_shift, ipm_mask=ipm_mask)
-
         _, _, feature_masked_image = mask_image(road_surface, mask)
         
-        #im = np.swapaxes(im, 0, 1)
         if masked_image.shape[0] != feature_masked_image.shape[0]:
             masked_image = np.swapaxes(masked_image, 0, 1)
 
+		#masked_image for visualisation only
+		#Not currently returned but this code can be amended if specific visualisations are required
         masked_image = np.add(masked_image, feature_masked_image )
         mask_probabilities.append(np.sum(feature_masked_image ) / np.sum(mask))
-    #masked_image for visualisation only
     
-    #Visualise movement of mask
-    #if shifted:
-    #    cv2.imshow("Pre shift", mask_unshifted)
-    #    cv2.waitKey(0)
-    #    cv2.imshow("Post shift", masked_image)
-    #    cv2.waitKey(0)
-
+	#'Detected' depends on the minimum mask probability compared to the probability_threshold
     min_probability = np.amin(mask_probabilities)
-    print("min_probability = ", min_probability)
     detected = min_probability>probability_threshold
+	
     return detected,  mask_probabilities
-    #return lowestProbability>probability_threshold, individualProbabilities
 
 
-def mask_image(im, im_mask, resize_dim=None):
-    
+def mask_image(im, im_mask, resize_dim=None, min_threshold=200):
+    """
+	Simple helper to mask an image
+	im: Base image
+	im_mask: Mask to apply
+	resize_dim: Dimensions to resize base image to
+	min_threshold: Minimum threshold to consider for binary masking
+	
+	Returns:
+	im_thresh: Thresholded image
+	im_raw: Base image (resized if applicable)
+	im_masked: Masked image
+	"""
     if resize_dim is None:
         im_raw = im.copy()
     else:
         im_raw = cv2.resize(im, resize_dim)
-    ###TODO: THIS THRESHOLD HERE SHOULD BE ALREADY DONE AT THIS STAGE!!!
-    _, im_thresh = cv2.threshold(im_raw, 200, 255, cv2.THRESH_BINARY)
+		
+    _, im_thresh = cv2.threshold(im_raw, min_threshold, 255, cv2.THRESH_BINARY)
     im_thresh = np.array(im_thresh)
     
     im_masked = cv2.bitwise_and(im_thresh, im_thresh, mask=im_mask)
     return im_thresh, im_raw, im_masked
 
-def CheckMasksProbability(image, masks):
-    mask_probabilities = []
-    masked_image = np.zeros(image.shape, dtype=np.uint8)
-    for mask in masks:
-        #TODO: GET RID OF THIS threshold??
-        _, mask = cv2.threshold(mask, 200, 255, cv2.THRESH_BINARY)
-        _, _, feature_masked_image = mask_image(image, mask)
-        masked_image = np.add(masked_image, feature_masked_image )
-        mask_probabilities.append(np.sum(feature_masked_image ) / np.sum(mask))
-    return mask_probabilities, masked_image
-
-
+		
 def GetUpdatedRoadFeatureLocationFarneback(prev_im, cur_im, feature_coord, flow=None):
+	"""
+	Estimate new feature coordinate based off Gunnar Farnback optical flow over region of interest
+	prev_im: Previous frame
+	cur_im: Current frame 
+	feature_coord: Feature coordinate on previous frame
+	flow: Previous flow
+	
+	Returns:
+	feature_coord: Estimated coordinate in current image
+	"""
+	
+	#Farnback method hyperparameters, experimentally determined
     pyr_scale=0.5
     levels	= 3
     winsize = 15
@@ -205,44 +206,12 @@ def GetUpdatedRoadFeatureLocationFarneback(prev_im, cur_im, feature_coord, flow=
     flags = 0
     flow = cv2.calcOpticalFlowFarneback(prev_im, cur_im, flow, 0.5, 3, winsize, iterations, poly_n, poly_sigma, flags )
 
-
-    
+	#This represents the optical flow region of interest.
+	#This is held here for initial testing however for production or extension
+	#should be refactored to the data interface and passed through the nav_localisation script
+	#It is left here for future rapid iteration.
     ave_x = np.mean(flow[130:390, 120:174, 0])
     ave_y = np.mean(flow[130:390, 120:174, 1])
 
-
     feature_coord = (feature_coord[0]+ave_x, feature_coord[1]+ave_y)
-    optical_features = None
-    return feature_coord, optical_features
-
-
-#https://github.com/opencv/opencv/blob/master/samples/python/lk_track.py
-lk_params = dict( winSize  = (15, 15),
-                  maxLevel = 2,
-                  criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-
-feature_params = dict( maxCorners = 500,
-                       qualityLevel = 0.3,
-                       minDistance = 7,
-                       blockSize = 7 )
-
-MAX_OPTICAL_FEATURES = 20
-def GetUpdatedRoadFeatureLocation(prev_image, this_frame_image, prev_road_feature_coord, optical_features=None, flow_mask=None):
-    if optical_features is None:
-        if flow_mask is None:
-            print("No flow mask")
-            flow_mask = np.ones(this_frame_image.shape, dtype=np.uint8)
-            print("Mask shape = " + str(flow_mask.shape))
-        optical_features = cv2.goodFeaturesToTrack(prev_image, MAX_OPTICAL_FEATURES, 0.01, 0.01, mask=flow_mask)
-    new_optical_features, _, _ = cv2.calcOpticalFlowPyrLK(prev_image, this_frame_image, optical_features, None, **lk_params)
-    mean = [0, 0]
-    for p in range(0, len(optical_features)):
-        delta_0 = (optical_features[p][0][0] - new_optical_features[p][0][0])
-        delta_1 = (optical_features[p][0][1] - new_optical_features[p][0][1])
-        mean[0] = mean[0] + delta_0
-        mean[1] = mean[1] + delta_1
-    mean[0] = int(mean[0] / len(new_optical_features))
-    mean[1] = int(mean[1] / len(new_optical_features))
-    print("Mean Normalised = " + str(mean))
-    feature_coord = (prev_road_feature_coord[0] - int(mean[0]), prev_road_feature_coord[1] - int(mean[1]))
-    return feature_coord, new_optical_features
+    return feature_coord

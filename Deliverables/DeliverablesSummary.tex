@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{graphicx}
 \usepackage[ampersand]{easylist}
+\usepackage{fullpage}
 
 \begin{document}
 
@@ -40,7 +41,30 @@ The initial draft is aligned to the Robotics and Autonomous systems general form
 
 \section{Navigation localisation system}
 
-\textbf{TODO: Comment, Discuss how it works here (no docs)}
+The provided system includes test data for a proof of concept. In addition to the provided files, \textbf{cv2} and \textbf{numpy} are both required. Provided files are as follows:
+
+\begin{easylist}[itemize]
+	& \textit{nav\_localisation.py -} This is the core file which is run. The default method here calls a single \textit{main} method and passes test data (see below). The main work in this script is from the \textit{process\_frame} method which maintains a simple state using boolean flags to determine if detection or tracking code is run. This script also contains visualisation code as well as video saving function.
+	& \textit{road\_surface\_detection.py -} Class to use as a road detector, implements Histogram backprojection road surface detection. \textit{get\_road\_surface\_from\_new\_frame} is the Class method called to detect the road surface in a new frame.
+	& \textit{feature\_tracker.py -} Obtain initial feature mask using \textit{get\_feature\_masks} and check for feature detection using \textit{check\_feature}. This includes argument for optical flow which is estimated using \textit{GetUpdatedRoadFeatureLocationFarneback}.
+	& \textit{bezier.py -} Helper script to develop bezier curve mask using \textit{get\_curve\_mask}. Generic in that \textit{draw\_bezier} can be called directly to draw bezier curve to any image.
+	& \textit{test\_data.py -} Implements the data interface required (see following subsection) and contains test methods to confirm data.
+\end{easylist}
+
+
+\subsection{Data interface}
+
+The system expects a data interface with the following methods:
+
+\begin{easylist}[itemize]
+	& \textit{get\_next\_feature() -} Returns next feature or None if no more available.
+	& \textit{get\_next\_frame() -}	Returns next image frame (either from video stream or saved images).
+	& \textit{get\_inverse\_perspective\_matrix() -} Returns the inverse perspective matrix developed for this dataset.
+	& \textit{get\_ipm\_mask() -} Returns a mask which defines the area of information for the inverse perspective matrix.
+\end{easylist}
+
+The provided code demonstrates the concept of the system and is suitable for extension, generalisation and improvement. Any script that implements the data interface can be passed to the main method in \textit{nav\_localisation.py} for processing which allows easy implementation of multiple different input source files. The data interface provided uses images and an inverse perspective transformation matrix included in the \textit{TestData} subfolder. 
+
 
 \section{MATLAB assignment detail for Computational Problem Solving}
 
