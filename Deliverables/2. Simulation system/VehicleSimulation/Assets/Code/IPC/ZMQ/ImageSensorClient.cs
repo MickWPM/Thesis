@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 using System.Runtime.InteropServices;
 
-public class HelloClient : MonoBehaviour
+public class ImageSensorClient : MonoBehaviour
 {
     public int messageRX;
-    private HelloRequester _helloRequester;
+    private ImageSensorCommunicator _imageComms;
     public RenderTexture renderTexture;
     Color32[] colors;
     byte[] data;
@@ -39,8 +39,8 @@ public class HelloClient : MonoBehaviour
     bool commsInit = false;
     public void StartComms()
     {
-        _helloRequester = new HelloRequester();
-        _helloRequester.Start();
+        _imageComms = new ImageSensorCommunicator();
+        _imageComms.Start();
         data = new byte[renderTexture.height * renderTexture.width];
 
         SimulationController.Instance.OnSimTickCompleteEvent += OnSimTickComplete;
@@ -53,7 +53,7 @@ public class HelloClient : MonoBehaviour
         if (commsInit == false)
             return;
 
-        _helloRequester.Stop();
+        _imageComms.Stop();
         SimulationController.Instance.OnSimTickCompleteEvent -= OnSimTickComplete;
         commsInit = false;
         Debug.Log("STOP COMMS");
@@ -64,8 +64,8 @@ public class HelloClient : MonoBehaviour
         UpdateTexture();
         UpdateData();
         Debug.Log("Updated texture and data");
-        _helloRequester.SetData(data);
-        messageRX = _helloRequester.messageRxCount;
+        _imageComms.SetData(data);
+        messageRX = _imageComms.messageRxCount;
     }
 
     void UpdateTexture()
