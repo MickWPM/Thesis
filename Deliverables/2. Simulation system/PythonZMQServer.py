@@ -1,23 +1,30 @@
-#   Hello World server in Python
-#   Binds REP socket to tcp://*:5555
+"""
+Uses ZMQ to establish server for Unity process to communicate.
+Base detail from: http://zguide.zeromq.org/py:hwserver
 
-#import time
+This is set up to recieve a series of images from the Unity process
+but can be extended as needed
+
+Binds to tcp://*:5555
+"""
+
+
 import zmq
 import numpy as np
-#from PIL import Image
-#import struct
 import cv2
-import inverse_perspective as ip
 
-DIMENSION = 512
+IMAGE_SAVE_PATH = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/Images/'
+VIDEO_SAVE_FULLPATH = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/Videos/unity_output.avi'
+DIMENSION = 512 #Dimensions of images to be recieved from Unity
+VID_FPS = 20
+VID_SECONDS = 20
 
+#ZMQ server initialisation
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
 print("Listening")
 
-VID_FPS = 20
-VID_SECONDS = 20
 images_to_save = VID_FPS*VID_SECONDS
 imgNum = 0
 images = []
@@ -25,22 +32,6 @@ while imgNum < images_to_save:
     #  Wait for next request from client
     message = socket.recv()
     #message will be a  2D array of 4 element vectors (ABGR or ARGB format) that has been flattened
-
-
-###OLD CODE START
-    #img_bytes = np.array(message)
-    #int_message = np.zeros((DIMENSION, DIMENSION, 3), dtype=np.uint8)
-
-    #We need to reshape the array from a 1D array into a 3D array of colour vectors
-    #We also want to drop the alpha value as it is redundant information
-    #The 1D array consists of the colour vector as 4 individual byte elements
-    #So we need to reshape the array AND drop the first element of each colour 
-#    for x in range(0,DIMENSION):
-#        for y in range(0,DIMENSION):
-#                i = 4*(y*DIMENSION + x) #Index of Alpha value - ABGR or ARGB format
-#                arr = np.array( [ message[i+2], message[i+1], message[i] ] )
-#                int_message[DIMENSION-1-y,x] = arr
-###OLD CODE END
 
     #Force message to byte array and cast as np array
     img_bytes = np.array(bytearray(message))
@@ -53,50 +44,36 @@ while imgNum < images_to_save:
     
     images.append(img)
     imgNum += 1
-    print("imgNum = " + str(imgNum))
 
     if imgNum < images_to_save:
         socket.send(b"Ack")
     else:
-        #socket.send_string("END")
         print(img)
         socket.send(b"END")
         break
 
-print("DONE")
+print("Server communication complete")
 
+#Saving output to images and video
 DIMS = (images[0].shape[0], images[0].shape[1])
-# Define the codec and create VideoWriter object
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-#fourcc = cv2.VideoWriter_fourcc('M','J','P','G')
-vid_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/Videos/unity_output.avi'
-out = cv2.VideoWriter(vid_path, 
-                        fourcc, VID_FPS, DIMS, True)
-
-folder_path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/'
+out = cv2.VideoWriter(VIDEO_SAVE_FULLPATH, fourcc, VID_FPS, DIMS, True)
 
 for i in range(0, imgNum):
-    path = 'D:/GitRepos/Uni/Thesis/Simulation/PythonCode/Output/Images/'
+    path = IMAGE_SAVE_PATH 
     num = str(i)
+	#To keep images auto sorted in order, we need to add leading zeroes
+	#This works for up to 9999 images 
     if i < 10:
         num = "00" + str(i)
     elif i < 100:
         num = "0" + str(i)
     name = path + 'img_' + num + '.png'
-    #images[i].save(name)
     print("saving " + name)
 
     vid_frame = images[i]
-
-    # if i < imgNum / 2:
-    #     vid_frame = images[i]
-    # else:
-    #     edges = cv2.Canny(images[i], 150, 180)
-    #     edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
-    #     vid_frame = edges
-
     cv2.imwrite(name, vid_frame)
     out.write(vid_frame)
 
 out.release()
-print("end")
+print("Video and Image saving complete")
