@@ -1,0 +1,149 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[ampersand]{easylist}
+\usepackage{fullpage}
+
+%\usepackage[hidelinks]{hyperref}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\hypersetup{
+	colorlinks,
+	linkcolor={red!50!black},
+	citecolor={blue!50!black},
+	urlcolor={blue!80!black}
+}
+\usepackage{booktabs}
+\usepackage[T1]{fontenc}
+
+
+\begin{document}
+
+\title{Simulation Documentation}
+\author{Michael McDonnell}
+
+\maketitle
+%TOC?
+
+\tableofcontents
+
+\section*{Overview}
+\addcontentsline{toc}{section}{Overview}
+
+\subsection{Background}
+
+What this simulationw as developed for
+
+\subsection{Unity}
+A little bit on Unity - links to Unity learn
+
+
+\section*{othersections}
+\addcontentsline{toc}{section}{Other starred section}
+
+\section{Project setup}
+
+The project was developed using Unity 2019.1.4f1 however only uses general engine functionality so there should be no issues arising from using other Unity versions. As always, make a backup just to be safe before changing versions.
+
+
+
+The grass texture used was `ground4' from ADG\_Textures, Ground Volume 1 (\url{https://assetstore.unity.com/packages/2d/textures-materials/floors/outdoor-ground-textures-12555}) which is a free texture pack.
+ 
+
+\section{Sensors}
+
+\subsection{Camera}
+
+\subsection{GPS}
+
+\section{AI driver}
+
+
+\section{Inter Process Communication (IPC)}
+
+IPC is achieved using ZeroMQ (ZMQ). The ZMQ documentation is located at \url{http://zguide.zeromq.org/page:all} with examples in a range of languages including C, C++, Python and C\#. The minimal architecture outlined at \url{https://github.com/off99555/Unity3D-Python-Communication} was used as a starting point to develop the communication. IPC was implemented in the simulation by a Python ZMQ server script running in the background which accepts camera image data and commands the next simulation tick. A C\# ZMQ client runs within the Unity process and opens a connection to the server when the simulation is triggered to send image data. It should be noted that the Python server was implemented as additional processing was undertaken within Python however any language with a ZMQ wrapper can be used for the server. Additionally ZMQ is multi transport and includes TCP-IP and UDP so, while this implemented a local `server' for IPC, this same implementation can scale quite simply to remote server communications. 
+
+The \textbf{ImageSensorCommunicator} class is the C\# class which extends \textbf{RunAbleThread} which is responsible for packaging the image data into the required byte array and sending to the server. In the lightweight simulation developed the information flowing \textit{from} the simulation is just the current camera frame at the end of the simulation tick and the information \textit{to} the simulation is just "\textbf{Ack}" (run the next simulation tick) or "\textbf{END}" (end the client communication).
+
+This implementation was suitable for the generation of data required however provides the basic framework for generalisation and extension. Currently this class handles the response from the server and triggers the next simulation 'tick'; in a more robust application an overall sensor communication manager should be implemented which will centralise simulation ticks and messages. Additonally, extending the control the server has over the client simulation is quite simple. In lieu of the simple string based messaging system currently used, standardising the first \textbf{B} bytes as the message instruction with the remainder of the message as data would allow control over any aspect of the simulation. 
+
+\subsection{Example Instruction-Variable communications specification}
+
+While the simulation as developed did not implement a robust instruction set, a basic architecture and specification was developed which would allow it. The logic developed included the ability to spawn objects in simulation at runtime and set individual object parameters (including setting desired control inputs for vehicles). This general approach can be extended almost indefinitely for fine grained control as needed. The developed concept is presented here in order to provide a starting point for more robust extensions. The modifications to the current architecture are as follows:
+
+\begin{easylist}[itemize]
+	& The simulation manager (or similar) is populated with an array of all spawnable prefabs
+	&& Spawnable prefabs implement an interface \textit{ISimulationObject} which includes methods for communicating with simulation objects
+	&& At the minimal level described here, \textit{ISimulationObject} has a method \textbf{SetVariables} which accepts an array of bytes representing a portion of the server message 
+%	& The simulation manager creates a Dictionary \textless ushort, ISimulationObject\textgreater  which contains all objects in simulation indexed by ID (ushort corresponding to a two byte ID). 
+	& The simulation manager creates a Dictionary <ushort, ISimulationObject> which contains all objects in simulation indexed by ID (ushort corresponding to a two byte ID). 
+	&& Note that this implementation is as a dictionary due to the server assigning the object ID which means IDs may not be contiguous. Alternate implementations may involve the simulation providing an object ID (which is communicated to the server) however this approach was adopted for initial simplicity.
+\end{easylist}
+
+The system as presented does not do ID collision checking; this should be implemented 
+\textbf{TODO: All objects implement interfaces for object specific instructions (such as SetVariables)}
+
+An example of how to extend the Simulation-Server communication is to implement an initial 2 byte instruction followed by expected instruction arguments. Table \ref{tab:commsInstructionDemo} includes an example instruction set which will be used to demonstrate the logic. In this instance each message from the server will have a minimum size of 2 bytes.
+
+
+\begin{table}[h!]
+	\centering
+	\begin{tabular}{@{}ccc@{}}
+		\toprule
+		\textbf{Instruction code} & \textbf{Instruction}          & \textbf{Data}                                                                                                                        \\ \midrule
+		0x00                      & Stop simulation               & Nil                                                                                                                                  \\
+		0x01                      & Next simulation tick          & Nil                                                                                                                                  \\
+		0x02                      & Spawn new object              & \begin{tabular}[c]{@{}c@{}}Spawn prefab ID (2 bytes)\\ Instance ID (2 bytes)\\ Spawn coordinates [x (float), y (float)]\end{tabular} \\
+		0x0A                      & Set object variables          & \begin{tabular}[c]{@{}c@{}}Instance ID\\ Object variable data\end{tabular}                                                           \\
+		0x1E                      & Save current simulation state & Nil                                                                                                                                  \\ \bottomrule
+	\end{tabular}
+	\caption{Example implementation of instruction-argument communications protocol}
+	\label{tab:commsInstructionDemo}
+\end{table}
+
+On message reciept, the first two bytes are extracted which represents the instruction to process. This value is used to look up an instruction to run which may extract additional data from the message if required. Each instruction (implemented in C\#) will expect different message data with some only expecting the instruction while others will expect additional arguments in the bytestream message.
+As an example, if the first two bytes are 0x00, the simulation will stop. If the first two bytes are 0x01, the 'next tick' command will run. These instructions are immediately executed without requirement for additional information. Another example of this is if the first two bytes are 0x1E, the simulation save instruction will be called and no further data will be expected in that message.
+
+
+
+The following subsections illustrate by example how messages may be processed.
+
+\subsubsection {Message data: 0x1E}
+The first two bytes (0x1E) correspond to the \textit{Save current simulation state }instruction. The simulation state is saved to disk and no further data is expected from the message.
+
+\subsubsection {Message data: 0x02400C42FB3333420747AE}
+
+The first two bytes (0x02) correspond to the \textit{Spawn new object }instruction. As per table \ref{tab:commsInstructionDemo} we know the data will be the prefab ID (2 bytes), instance ID (2 bytes) and the x and y coordinates (two 64 bit (8 byte) floating point numbers). Using the message the process then could be:
+\begin{easylist}[itemize]
+	& Extract the next two bytes (0x40) which is the prefab ID. This value can be used to `look up' the prefab in a static array and instantiate the object.
+	& Extract the next two bytes (0x0C) and set the spawned instance ID to this number. This instance can then be added to a dictionary using the ID as the key.
+	& Extract the next four bytes (0x42FB3333) and temporarily store for the x coordinate
+	& Extract the next four bytes (0x420747AE) and temporarily store for the y coordinate
+	& Set the spawned object position to the position represented by the temporary x and y values\\
+\end{easylist}
+
+
+\subsubsection {Message data: 0x0A0D13F3333332BE4CCCCD}
+
+The first two bytes (0x0A) correspond to the \textit{Set object variables }instruction. As per table \ref{tab:commsInstructionDemo} we know the data will be the instance ID (2 bytes) followed by object variable data. In this case the object ID is 0x0D so the instance of this object is retrieved using a dictionary or similar. As each object instance will implement relevant instruction interfaces, we can then pass the remaining message data (0x13F3333332BE4CCCCD) to a SetVariables method on the object. In this example, the object is a vehicle in simulation.
+
+The SetVariables method on the object would use a similar approach; using the provided remaining message data the process could be:
+\begin{easylist}[itemize]
+	& Extract the first byte of data (0x1) and use this value to determine the variable to be set (for example via a switch statement). The type of this variable will determine the number of bytes to extract next. In this example this value corresponds to the steering angle which is a value between -1.0 and 1.0. In this example the steering angle is a 64 bit floating point number so we require 8 bits.
+	& The next 8 bits are extracted (0x3F333333) and the value (0.7) is set to the steering angle.
+	& As there is more data remaining, the next byte (0x2) is extracted to determine the next variable to be set. This corresponds to acceleration which is also an 8 bit variable so 8 more bits (0xBE4CCCCD) are extracted and the resulting value (-0.2) is set as the acceleration.
+\end{easylist}
+
+
+
+
+\textbf{RunAbleThread}
+This is a base class for sensor communication to 
+
+%	\begin{figure}
+%		\centering
+%		\includegraphics[width=3.0in]{myfigure}
+%		\caption{Simulation Results}
+%		\label{simulationfigure}
+%	\end{figure}
+
+\end{document}
