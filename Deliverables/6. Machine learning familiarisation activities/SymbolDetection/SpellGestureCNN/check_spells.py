@@ -8,7 +8,6 @@ _, _, _, _, TEST_IMAGES = load_data.GetImages()
 #model = train.TrainSpellsModel()
 #model = train.TrainSpellsModel(True)
 model = load_model("D:/Programming/PythonTests/SpellGestureCNN/spell_model.h5")
-#model = load_model("D:/Programming/PythonTests/SpellGestureCNN/progress_model.h5")
  
 for image in TEST_IMAGES:
     img_predict = image.reshape(1, 32, 32, 1)
@@ -25,7 +24,6 @@ for image in TEST_IMAGES:
     lineType               = 1
 
     preds = ["V1", "V2", "E"]
-    #preds = ["Fail", "V1", "V2", "E"]
     #pred_text = preds[np.argmax(prediction)]
     pred_text = preds[np.argmax(prediction_prob)]
     if np.max(prediction_prob) < 0.9:

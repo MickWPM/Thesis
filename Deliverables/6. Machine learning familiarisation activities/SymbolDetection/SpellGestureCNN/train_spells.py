@@ -1,5 +1,4 @@
-#Shameless ripoff from https://keras.io/examples/mnist_cnn/
-#TODO: Convert load_data to same format as the mnist
+#Heavily inspired by  https://keras.io/examples/mnist_cnn/
 from __future__ import print_function
 import keras
 from keras.models import Sequential
@@ -70,20 +69,17 @@ def TrainSpellsModel(continue_model = False):
                         kernel_initializer= weight_init,
                         bias_initializer='zeros'))
 
-        #model.add(Conv2D(64, (3, 3), activation='relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
         model.add(Dropout(0.5))
         model.add(Flatten())
         model.add(Dense(128, activation='relu'))
         model.add(Dropout(0.5))
+		#Softmax NORMALISES output so the sum of all outputs will be 1!!!
         #model.add(Dense(num_classes, activation='softmax'))
         model.add(Dense(num_classes, activation='sigmoid'))
 
         model.run_eagerly = True
 
-        #kullback_leibler_divergence
-        #categorical_crossentropy
-        #cosine_proximity
         model.compile(loss=keras.losses.mean_squared_error,#loss=keras.losses.categorical_crossentropy,
                     optimizer=keras.optimizers.sgd(), #optimizer=keras.optimizers.Adadelta(),
                     metrics=['accuracy'])

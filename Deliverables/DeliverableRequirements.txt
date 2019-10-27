@@ -1,3 +1,2 @@
 Cover Document
 2. Simulation (And documentation)
-6. CNN study examples (Certificate, Wally eg.)

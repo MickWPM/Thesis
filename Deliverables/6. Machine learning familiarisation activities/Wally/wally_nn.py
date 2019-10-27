@@ -32,9 +32,9 @@ def get_predict_data(img):
     return img
 
 LOAD_MODEL = False
-
+PREDICT_IMAGES = False
 if __name__ == "__main__": 
-    print("TODO: Create, train and save NN. In load_model, load saved model from dist")
+    print("Create, train and save NN. In load_model, load saved model from disk")
     
     if LOAD_MODEL:
         MODEL = load_model('wally_model.h5')
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         MODEL = wally_setup.Train_Wally()
     print(MODEL.summary())
 
-    if False:
+    if PREDICT_IMAGES:
         images, _, labels, _ = wally_setup.get_training_data()
 
         for i in range(0, len(labels)):
@@ -58,9 +58,7 @@ if __name__ == "__main__":
             print("prediction " + str(i) + ": " + str(prediction))
             cv2.waitKey(0)
         cv2.destroyAllWindows()
-
-
-
+		
     # pred=MODEL.predict(images)
 
     # for i in range(0, len(labels)):

@@ -3,10 +3,6 @@ import cv2
 import numpy as np
 
 Y_AS_ARRAY = True
-#V1_OUTPUT = np.array([0,1,0,0])
-#V2_OUTPUT = np.array([0,0,1,0])
-#E_OUTPUT = np.array([0,0,0,1])
-#FAIL_OUTPUT = np.array([1,0,0,0])
 V1_OUTPUT = np.array([1,0,0])
 V2_OUTPUT = np.array([0,1,0])
 E_OUTPUT = np.array([0,0,1])
