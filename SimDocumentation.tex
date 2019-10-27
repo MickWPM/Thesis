@@ -34,11 +34,13 @@
 
 What this simulationw as developed for
 
+Extendable with information on extension options included as applicable
+
 \subsection*{Unity}
 \addcontentsline{toc}{subsection}{Unity}
 A little bit on Unity - links to Unity learn
 
-
+Monobehaviour - attach to game object
 \section{Project setup}
 
 The project was developed using Unity 2019.1.4f1 however only uses general engine functionality so there should be no issues arising from using other Unity versions. As always, make a backup just to be safe before changing versions.
@@ -49,14 +51,26 @@ The grass texture used was `ground4' from ADG\_Textures, Ground Volume 1 (\url{h
 
 \section{Sensors}
 
-\subsection{Camera}
+The `image sensor' or camera was implemented initially and incorporated the inter process communication logic. This was suitable for the initial purpose however a general sensor definition was created to allow further extension. Future work can include separating the sensor and communication logic from the existing \textbf{ImageSensorClient} and \textbf{ImageSensorCommunicator} classes (discussed in section \ref{s:ipc}) to a specific IPC manager and a new camera sensor class.
+
+A generic \textit{sensor} was implemented using a \textbf{Sensor} interface. This contains a single \textbf{Tick} method which returns \textbf{SensorData}. \textbf{SensorData} is an abstract class which acts as a data container for sensor data. This rather simple initial definition allows a generic implementation of sensor types. As additional interface control is identified it can be expanded if required. 
 
 \subsection{GPS}
 
+An example GPS sensor was implemented which demonstrates the usage of the \textit{sensor} concept. The sensor is a Monobehaviour (that is, attatched to a GameObject) which imeplements the \textbf{Sensor} interface. This class implements the \textbf{Tick} method which is called externally. The GPS sensor stores the previous position as a class variable and each \textbf{Tick} calculates the speed (change in position over the tick time) and updates the position. This information is stored in a \textbf{GPSData} class (which extends \textbf{SensorData}) and is returned on each tick
+
+\subsection{Extension sensors}
+
+The GPS sensor represents a simple implementation of the generic sensor definition and can be used as a starting point for other sensors. As an example a laser distance sensor (\textbf{LaserSensor}) implementation may use the GameObject orientation and position to define the laser direction and position and each \textbf{Tick}, fire a raycast and return a simple \textbf{LaserData} class which contains the distance to the ray hit location.
+
+
 \section{AI driver}
 
+\subsection{Navigation}
 
-\section{Inter Process Communication (IPC)}
+
+
+\section{Inter Process Communication (IPC)}\label{s:ipc}
 
 IPC is achieved using ZeroMQ (ZMQ). The ZMQ documentation is located at \url{http://zguide.zeromq.org/page:all} with examples in a range of languages including C, C++, Python and C\#. The minimal architecture outlined at \url{https://github.com/off99555/Unity3D-Python-Communication} was used as a starting point to develop the communication. IPC was implemented in the simulation by a Python ZMQ server script running in the background which accepts camera image data and commands the next simulation tick. A C\# ZMQ client runs within the Unity process and opens a connection to the server when the simulation is triggered to send image data. It should be noted that the Python server was implemented as additional processing was undertaken within Python however any language with a ZMQ wrapper can be used for the server. Additionally ZMQ is multi transport and includes TCP-IP and UDP so, while this implemented a local `server' for IPC, this same implementation can scale quite simply to remote server communications. 
 
