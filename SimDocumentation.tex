@@ -25,6 +25,7 @@
 %TOC?
 
 \tableofcontents
+\newpage
 
 \section*{Overview}
 \addcontentsline{toc}{section}{Overview}
@@ -43,13 +44,51 @@ A little bit on Unity - links to Unity learn
 Monobehaviour - attach to game object
 \section{Project setup}
 
-The project was developed using Unity 2019.1.4f1 however only uses general engine functionality so there should be no issues arising from using other Unity versions. As always, make a backup just to be safe before changing versions.
+The project was developed using Unity 2019.1.4f1 however only uses general engine functionality so there should be no issues arising from using other Unity versions. As always, make a backup just to be safe before changing versions. The grass texture used was `ground4' from ADG\_Textures, Ground Volume 1 \footnote{Available from the Unity Asset Store at:  \url{https://assetstore.unity.com/packages/2d/textures-materials/floors/outdoor-ground-textures-12555} } which is a free texture pack and the vehicle used is the Sedan from NWH Vehicle Physics \footnote{Available (for purchase) from the Unity Asset Store at: \url{https://assetstore.unity.com/packages/tools/physics/nwh-vehicle-physics-107332}. Only the vehicle model was used from this package; no control logic has been included. }. These assets (texture and model) do not affect the simulation and can be changed as desired.
 
-\textbf{PythonZMQServer.py} - This file is run prior to the simulation attempting to initialise IPC ....
+The detail of Inter Process Communications is included in section \ref{s:ipc} however at this stage it will be noted that an additional non-Unity file is included. \textbf{PythonZMQServer.py} is a ZeroMQ server process that is launched prior to the simulation attempting to initialise IPC. This process runs in the background and waits for communications from the simulation process.
 
-The grass texture used was `ground4' from ADG\_Textures, Ground Volume 1 (\url{https://assetstore.unity.com/packages/2d/textures-materials/floors/outdoor-ground-textures-12555}) which is a free texture pack and the vehicle used is the Sedan from NWH Vehicle Physics (\url{https://assetstore.unity.com/packages/tools/physics/nwh-vehicle-physics-107332}). These assets (texture and model) do not affect the simulation and can be changed as desired.
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.95\linewidth]{projectOverviewAnnotated.png}
+	\caption{Simulation Results}
+	\label{projectOverviewAnnotated}
+\end{figure}
 
-\section{Sensors}
+
+A view of the project setup in Unity is included as figure \ref{projectOverviewAnnotated}. Details in this figure are as follows:
+\begin{easylist}[itemize]
+	& \textbf{a) Scene view.} This is the `editor' view of the scene. In this figure the camera is positioned high over the test area looking down. Editor visualisations known as `gizmos' are visible (black wireframe spheres) marking waypoints on the road.
+	& \textbf{b) Game view.} This is the view a player in game would see. The player camera is high and behind the vehicle. Note this is \textbf{not} the camera that is used to generate image data. 
+	& \textbf{c) Hierarchy.} This contains all items in the current scene. The \textit{Car} object is coloured indicating it is an instance of a prefab.
+	& \textbf{d) Project overview.} This region shows the folder structure of the project.
+	&& The \textit{Code} folder is visible here. This folder contains all the scripts with the simulation logic. In this figure it is fully expanded showing the main subfolders (IPC, Navigation, Sensors)
+	&& The current selected folder is \textit{Prefabs}
+	& \textbf{e) Vehicle prefab.} This is the sole prefab in the \textit{Prefabs} folder. The vehicle inside the scene is an instance of this.
+	& \textbf{f) Simple car controller.} This is a Monobehaviour script is on the vehicle prefab (thus also on the instance of the vehicle in the scene) and contains the physics logic required for the vehicle to move. This is a simple script based on Unity documentation \footnote{Based on \url{https://docs.unity3d.com/Manual/WheelColliderTutorial.html}} and represents a minimum simulation of vehicle movement.
+	& \textbf{g) Car AI.} Another Monobehaviour script (or component) which contains the AI logic. This is discussed in section \ref{s:AI}.
+\end{easylist}
+
+
+The waypoints visible in the Scene view are managed by the \textbf{NodeVisualiser} class. This represents an example series of waypoints for a vehicle to follow and placement logic is based off road nodes as used in Google Maps and Open Street Maps data structures. Nodes are simply empty game objects that are positioned in the scene view. The order of nodes is determined by the order in the hierarchy of the game objects. The \textbf{NodeVisualiser} handles visualisation and waypoint consolidation and provides a list of waypoints to the Navigation System\footnote{This class is suitable for refactoring into a NodeVisualiser class solely responsible for visualisation and a WaypointManager class which handles navigation system testing. It was not deemed necessary for the original use case but is recommended if this aspect is extended.} (discussed further in section \ref{s:AI}). This script simply gets the list of all \textbf{NODES} gameobject children and creates a List of \textbf{RoadNode} based on the individual gameojbect positions. These are visualised using editor gizmos via the \textbf{OnDrawGizmos} Monobehaviour function.
+
+\section{General Logic}
+
+In area c) of figure \ref{projectOverviewAnnotated} the top gameObject is \textit{SimulationController}. This object contains two components; \textbf{SimulationController} and \textbf{ImageSensorClient}. The latter is discussed in section \ref{s:ipc}. As outlined previously, the vehicle has a \textbf{CarAI\_Basic} component which is responsible for the input to the vehicle controls.
+
+A \textbf{DebugUpdater} script is included which provides some debug information and visualisation. This script provides a text output of the GPS data (see section \ref{s:sensors}) and draws an editor gizmo line to the current waypoint.
+
+\subsection{Vehicle control}
+
+The \textbf{CarAI\_Basic} component is a simple script which sets the motor (positive to accelerate, negative to brake) and steer (-1.0 to 1.0 representing full left to right). These values are passed to the \textbf{SimpleCarController} component which handles the physical movement of the vehicle. The vehicle physics are implemented using Wheel Colliders controlled by the \textbf{SimpleCarController} component. Discussion of Wheel Collider control is outside the scope of this documentation however is outlined in the Unity Manual.
+
+The \textbf{CarAI\_Basic} includes a flag which toggles via keypress (defaults to SPACEBAR) between player control and AI control of the car. Player control is simply WASD or Arrow keys to accelerate/brake and steer. AI control is discussed further in section \ref{s:AI}.
+
+\subsection{Simulation control}
+
+Control of the simulation is managed by the \textbf{SimulationController} class. This class manages individual simulation `ticks' and includes tick start and complete events. The simulation has a \textbf{DoNextTick} method which is called by the \textbf{ImageSensorCommunicator} as discussed in section \ref{s:ipc}. This class includes a public \textit{tickLength} variable which is used to determine when to stop simulating. When \textit{tickLength} seconds have elapsed after \textbf{DoNextTick} is called, the \textbf{SimulationController} sets the simulation time scale to 0. On \textbf{DoNextTick} the time scale is reset to 1.0 which results in another \textit{tickLength} second simulation.
+
+\section{Sensors} \label{s:sensors}
 
 The `image sensor' or camera was implemented initially and incorporated the inter process communication logic. This was suitable for the initial purpose however a general sensor definition was created to allow further extension. Future work can include separating the sensor and communication logic from the existing \textbf{ImageSensorClient} and \textbf{ImageSensorCommunicator} classes (discussed in section \ref{s:ipc}) to a specific IPC manager and a new camera sensor class.
 
@@ -57,24 +96,39 @@ A generic \textit{sensor} was implemented using a \textbf{Sensor} interface. Thi
 
 \subsection{GPS}
 
-An example GPS sensor was implemented which demonstrates the usage of the \textit{sensor} concept. The sensor is a Monobehaviour (that is, attatched to a GameObject) which imeplements the \textbf{Sensor} interface. This class implements the \textbf{Tick} method which is called externally. The GPS sensor stores the previous position as a class variable and each \textbf{Tick} calculates the speed (change in position over the tick time) and updates the position. This information is stored in a \textbf{GPSData} class (which extends \textbf{SensorData}) and is returned on each tick
+An example GPS sensor was implemented which demonstrates the usage of the \textit{sensor} concept. The sensor is a Monobehaviour (that is, attatched to a GameObject) which imeplements the \textbf{Sensor} interface. This class implements the \textbf{Tick} method which is called externally. The GPS sensor stores the previous position as a class variable and each \textbf{Tick} calculates the speed (change in position over the tick time) and updates the position. This information is stored in a \textbf{GPSData} class (which extends \textbf{SensorData}) and is returned on each tick.
+
+The GPS sensor also includes a \textit{GPSTickEvent} which external classes can subscribe to in order to recieve a copy of the \textbf{GPSData} when the sensor `ticks'.
 
 \subsection{Extension sensors}
 
 The GPS sensor represents a simple implementation of the generic sensor definition and can be used as a starting point for other sensors. As an example a laser distance sensor (\textbf{LaserSensor}) implementation may use the GameObject orientation and position to define the laser direction and position and each \textbf{Tick}, fire a raycast and return a simple \textbf{LaserData} class which contains the distance to the ray hit location.
 
+The use of `on tick' events is encouraged as it allows integration of more complex logic to the existing sensors. An example of this is the navigation system discussed in section \ref{s:AI}.
 
-\section{AI driver}
+\section{AI driver}\label{s:AI}
+
+The AI vehicle control uses a very simplistic approach to waypoint navigation using a navigation system. The AI control uses the distance to next waypoint to determine a target motor speed and uses the direction vector to the next waypoint to set the steering angle directly. While this system is very simplistic it provides an effective initial implementation of waypoint based driving using navigation system logic.
 
 \subsection{Navigation}
 
+The navigation system relies on two supporting data structures. These are merely wrappers for existing data structures currently but this allows for ease of extension in future: 
+\begin{easylist}
+	& \textbf{RoadNode}. A simple data struct which contains a Vector3 for the node position.
+	& \textbf{NavigationRoute.}  A simple data struct which contains a List of node positions representing route waypoints.
+\end{easylist}
 
+The Navigation system is contained in the \textbf{NavigationSystem} class which contains relatively simple logic with event based implementations. The navigation system requires a GPS sensor (on the same object or a child of the navigation system object). The navigation system subscribes to the GPS `on tick' event and uses that data to update internal navigation positional data. For this simple implementation, the navigation system has a series of waypoints set by the \textbf{NodeVisualiser} class as previously discussed.
+
+The navigation system uses position updates to determine proximity to the current waypoint target. If the distance is within a threshold, the navigation system will update to the next waypoint. Events are thrown on arrival at a node, on setting a new node active and on completing the navigation route. The system also includes a helper method to get a direction vector to the current waypoint node.
+
+Note that this represents an example implementation of a system that interacts with sensors as defined. It is fully functional and is used by the AI driving system. Not all of the events that are declared and raised are currently subscribed to however they demonstrate an effective option to allow complex interactions while remaining decoupled. An example of a further extension to this system would be to store a graph of all nodes and integrate a pathfinding system to allow external input to set a destination node rather than rely on a pre-specified route to travel.
 
 \section{Inter Process Communication (IPC)}\label{s:ipc}
 
 IPC is achieved using ZeroMQ (ZMQ). The ZMQ documentation is located at \url{http://zguide.zeromq.org/page:all} with examples in a range of languages including C, C++, Python and C\#. The minimal architecture outlined at \url{https://github.com/off99555/Unity3D-Python-Communication} was used as a starting point to develop the communication. IPC was implemented in the simulation by a Python ZMQ server script running in the background which accepts camera image data and commands the next simulation tick. A C\# ZMQ client runs within the Unity process and opens a connection to the server when the simulation is triggered to send image data. It should be noted that the Python server was implemented as additional processing was undertaken within Python however any language with a ZMQ wrapper can be used for the server. Additionally ZMQ is multi transport and includes TCP-IP and UDP so, while this implemented a local `server' for IPC, this same implementation can scale quite simply to remote server communications. 
 
-The \textbf{ImageSensorCommunicator} class is the C\# class which extends \textbf{RunAbleThread} which is responsible for packaging the image data into the required byte array and sending to the server. In the lightweight simulation developed the information flowing \textit{from} the simulation is just the current camera frame at the end of the simulation tick and the information \textit{to} the simulation is just "\textbf{Ack}" (run the next simulation tick) or "\textbf{END}" (end the client communication).
+The \textbf{ImageSensorCommunicator} class is the C\# class which extends \textbf{RunAbleThread} which is responsible for packaging the image data into the required byte array and sending to the server. In the lightweight simulation developed the information flowing \textit{from} the simulation is just the current camera frame at the end of the simulation tick and the information \textit{to} the simulation is just "\textbf{Ack}" (run the next simulation tick) or "\textbf{END}" (end the client communication). This class triggers the next simulation tick by calling the \textbf{DoNextTick} method on the \textbf{SimulationController} instance.
 
 This implementation was suitable for the generation of data required however provides the basic framework for generalisation and extension. Currently this class handles the response from the server and triggers the next simulation 'tick'; in a more robust application an overall sensor communication manager should be implemented which will centralise simulation ticks and messages. Additonally, extending the control the server has over the client simulation is quite simple. In lieu of the simple string based messaging system currently used, standardising the first \textbf{B} bytes as the message instruction with the remainder of the message as data would allow control over any aspect of the simulation. 
 
@@ -160,14 +214,9 @@ The SetVariables method on the object would use a similar approach; using the pr
 \end{easylist}
 
 
-%	\begin{figure}
-%		\centering
-%		\includegraphics[width=3.0in]{myfigure}
-%		\caption{Simulation Results}
-%		\label{simulationfigure}
-%	\end{figure}
 
-\section{Concluding remarks}
+\section*{Concluding remarks}
+\addcontentsline{toc}{section}{Concluding remarks}
 
 This simulation provides an initial implementation of basic IPC, AI driving and sensor systems. The simulation provided effective outputs based on the original requirements however has the capacity to be significantly extended in all three areas. The detail provided here should allow an interested reader to understand the logic of the system and how to go about extending the system for their own purposes.
 
