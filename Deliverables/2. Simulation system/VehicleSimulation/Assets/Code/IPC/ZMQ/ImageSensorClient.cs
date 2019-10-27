@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
 using System.Runtime.InteropServices;
 
+/// <summary>
+///     Responsible for managing Image Sensor data for communication
+///     Starts the image sensor communication and updates with data as required
+/// </summary>
 public class ImageSensorClient : MonoBehaviour
 {
     public int messageRX;
