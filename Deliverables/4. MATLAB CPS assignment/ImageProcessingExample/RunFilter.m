@@ -1,4 +1,5 @@
 function [output] = RunFilter(image,filter)
+% Apply a provided convolution filter to a provided image using nested for loops.
 
    filterX = size(filter,2);
    filterY = size(filter,1);

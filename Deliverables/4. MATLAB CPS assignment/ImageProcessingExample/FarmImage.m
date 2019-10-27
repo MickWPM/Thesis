@@ -10,6 +10,7 @@ k = 0.8;
 newImg = testImage - k*newImg;
 newImg = RunFilter(newImg, filter);
 
+%Remove 'salt and pepper noise' effect using median and thresholds
 newImg = MedianFilter(newImg, 20, 20);
 newImg = RunFilter(newImg, filter);
 newImg = Threshold(newImg, 150);

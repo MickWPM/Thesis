@@ -1,4 +1,5 @@
 function [output] = Threshold(image, threshold, invert)
+% Simple thresholding function implemented as nested loops with conditionals
 
     if(nargin<3)
         invert = false;

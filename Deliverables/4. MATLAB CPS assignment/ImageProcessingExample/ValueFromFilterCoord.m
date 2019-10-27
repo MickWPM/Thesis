@@ -1,4 +1,5 @@
 function [value] = ValueFromFilterCoord(image, filter, x, y)
+% Return a single filtered value from an image x,y point with a convolution filter 
 
     filterX = size(filter,2);
     filterY = size(filter,1);    

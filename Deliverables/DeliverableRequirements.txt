@@ -1,7 +1,3 @@
 Cover Document
-
 2. Simulation (And documentation)
-
-4. MATLAB assignment
-
 6. CNN study examples (Certificate, Wally eg.)

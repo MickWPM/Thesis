@@ -1,5 +1,6 @@
-function [value] = MeanFromCoord(image, x, y, filterXSize,filterYSize)
-
+function [value] = MedianFromCoord(image, x, y, filterXSize,filterYSize)
+%Helper function to return the median value within a provided filter size
+%(x and y) about a point. Used for MedianFilter.m
 
     filterXOffset = floor(filterXSize/2);
     filterYOffset = floor(filterYSize/2);

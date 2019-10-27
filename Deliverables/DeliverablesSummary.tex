@@ -2,6 +2,7 @@
 \usepackage{graphicx}
 \usepackage[ampersand]{easylist}
 \usepackage{fullpage}
+\usepackage{url}
 
 \begin{document}
 
@@ -22,7 +23,7 @@ The development attempted to follow an AGILE approach with iterative increases i
 
 During the course of development familiarity was gained in a range of additional areas. Edge detection was investigated as an initial road detection attempt and the use of convolutional neural networks was investigated as an alternate option. As a result of this work outside the core system, the following additional deliverables have been developed:
 \begin{easylist}[itemize]
-	& \textbf{MATLAB assignment detail for Computational Problem Solving.} 
+	& \textbf{MATLAB assignment resources for Computational Problem Solving.} 
 	& \textbf{Sprint review example.} 
 	& \textbf{???Machine learning familiarisation activities}
 \end{easylist}
@@ -66,12 +67,32 @@ The system expects a data interface with the following methods:
 The provided code demonstrates the concept of the system and is suitable for extension, generalisation and improvement. Any script that implements the data interface can be passed to the main method in \textit{nav\_localisation.py} for processing which allows easy implementation of multiple different input source files. The data interface provided uses images and an inverse perspective transformation matrix included in the \textit{TestData} subfolder. 
 
 
-\section{MATLAB assignment detail for Computational Problem Solving}
+\section{MATLAB assignment resources for Computational Problem Solving}
 
-It was identified that filter convolution is a (relatively) simple algorithm to implement and may be a suitable teaching case for a practical implementation of loops.
+It was identified that filter convolution is a (relatively) simple algorithm to implement and may be a suitable teaching case for a practical implementation of loops. In lieu of developing a specific assignment, a set of relatively simple set of convolution operations using functions over several files is included as a starting point for an assignment.
 
-A candidate assignment task was developed with an example solution included. This has the dual effect of providing a practical example and passing on some conceptual understanding of how image filtering works.
-\textbf{TODO: Polish example solution, Create assignment task}
+The files include operations on two images using a combination of smoothing (blur) and median filters as well as edge hardening (subtracting smoothed image from original image) and masking. These algorithms have been implemented naively using nested loops with helper functions to ensure the logic is as clear as possible. Helper functions include getting a filtered value (filtering a single point involves two nested loops) and a `safe getter' which will return a value or 0 if a coordinate is out of bounds.
+
+\begin{easylist}[itemize]
+	& \textbf{Images.mat} - MATLAB variable file with both images saved.
+	& \textbf{ProcessImages.m} - Base file to run to demonstrate operations on both images. Assuming data has been loaded from \textbf{Images.mat}, the following files can be run for individual demonstrations:
+	&& \textbf{FarmImage.m}
+	&& \textbf{CountrysideImage.m}
+
+	& Core files:
+	&& \textbf{RunFilter.m} - Apply a convolution filter to an image using nested for loops. 
+	&& \textbf{MedianFilter.m} - Apply a median filter to an image. Median filter sets the new pixel value to the median value over the filter size about the point. This is very usefeul for the removal of 'salt and pepper' noise.
+	
+	& Helper files:
+	&& \textbf{ValueFromFilterCoord.m} - Get a single convolution value for a pixel. This function applies the convolution filter about a location on the image defined by an x, y coordinate.
+	&& \textbf{Threshold.m} - Simple thresholding function implemented as nested loops with conditionals. Thresholding returns a binary image (black and white) where pixels of value greater than the threshold will be white and lower than a threshold will be black.
+	&& \textbf{NormaliseImage.m} - Helper function to normalise an image from 8 bit to floating point between 0 and 1.
+	&& \textbf{MedianFromCoord.m} - Helper function to return the median value within a provided filter size (x and y) about a point. 
+	&& \textbf{GetValueOrZero.m} - Helper function to 'safely get' a value within a matrix. If the provided coordinates fall outside the matrix dimensions, return 0 instead.
+	&& \textbf{MaskFilter.m} - Helper function to mask out all elements of an image outside a provided rectangle bounds.
+\end{easylist}
+
+These files represent a verbose loop based implementation of simple image processing. A possible assignment task is to provide these files with portions and/or full implementations missing. As an example the core files could be provided without the loops implemented and files such as \textbf{GetValueOrZero.m} could be provided without any implementation code to be filled out. The exact task is dependant on the level of expected competency of students. Extensions to this task could involve improving the implementation, for example the \textbf{conv2} function (\url{https://au.mathworks.com/help/matlab/ref/conv2.html}) can replace the majority of core and helper files. Providing a hint that 2D convolution is the task they are undertaking would allow exercising of documentation research (while being simple enough that googling `MATLAB 2d convolution' would lead to the answer).
 
 \section{Sprint review example.}
 
