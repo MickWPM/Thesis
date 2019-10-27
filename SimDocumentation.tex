@@ -33,15 +33,17 @@
 \subsection*{Background}
 \addcontentsline{toc}{subsection}{Background}
 
-What this simulationw as developed for
+This simulation was developed to generate data for a system that uses computer vision to identify and track road features such as intersections using a single vehicle mounted camera. The simulation developed is lightweight in that the functionality is only as much as is required for the computer vision system data generation which consists of a camera image feed from a vehicle driving in simulation. A significant challenge in the development of this simulation was the Inter Process Communications (IPC) implementation which allowed direct communication of data (image data and server messages) between the Unity simulation and a Python process running in the background.
 
-Extendable with information on extension options included as applicable
+Despite the somewhat narrow focus, the simulation as developed allows for significant extension. Several difficult challenges have been solved and extension options are discussed throughout this documentation. It is hoped that this documentation will provide enough context and understanding to be able to follow the operation of the simulation and extend on it as required.
 
 \subsection*{Unity}
 \addcontentsline{toc}{subsection}{Unity}
-A little bit on Unity - links to Unity learn
 
-Monobehaviour - attach to game object
+The simulation is developed in Unity and some familiarity with the Unity engine is required to gain a full understanding of how the system works, especially if the intent is to modify or extend the system. Unity uses C\# as a scripting language and a component based approach to organisation. A central \textbf{MonoBehaviour} class provides interface with engine functions (such as initialisation and update functions) and facilitates attaching scripts to \textbf{Game Objects} in the scene to allow the script logic to function. 
+
+The engine allows full use of `pure' C\# however and many of the data classes used in simulation were implemented without extending from the Unity \textbf{MonoBehaviour} class. There are a raft of official and non official resources for learning Unity with a recommended starting point being the official tutorials at \url{https://learn.unity.com/}. 
+
 \section{Project setup}
 
 The project was developed using Unity 2019.1.4f1 however only uses general engine functionality so there should be no issues arising from using other Unity versions. As always, make a backup just to be safe before changing versions. The grass texture used was `ground4' from ADG\_Textures, Ground Volume 1 \footnote{Available from the Unity Asset Store at:  \url{https://assetstore.unity.com/packages/2d/textures-materials/floors/outdoor-ground-textures-12555} } which is a free texture pack and the vehicle used is the Sedan from NWH Vehicle Physics \footnote{Available (for purchase) from the Unity Asset Store at: \url{https://assetstore.unity.com/packages/tools/physics/nwh-vehicle-physics-107332}. Only the vehicle model was used from this package; no control logic has been included. }. These assets (texture and model) do not affect the simulation and can be changed as desired.
