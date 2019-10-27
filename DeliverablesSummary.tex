@@ -38,7 +38,17 @@ The initial draft is aligned to the Robotics and Autonomous systems general form
 
 \section{Simulation with Inter Process Communication}
 
-\textbf{TODO: Intro, tidying up and commenting, documentation, extensions}
+A lightweight simulation was developed to assist in data generation for the development of the navigation localisation system for the thesis. This system presented significant challenges in developing a method to communicate sensor data from the simulation to the Python process. Inter Process Communication (IPC) was implemented with ZeroMQ which allowed communication between Unity (C\#) and Python. 
+
+As the system developed it was found the only information needed from the Unity simulation was the camera image feed so the IPC setup was developed around this specific need however a more advanced communications architecture was planned. While this was not implemented, the logic behind it was preserved and is included with the simulation documentation. 
+
+The simulation itself contains a simple waypoint following AI and basic sensors. It provided effective data for the system being developed for the thesis but also represents a starting point for a more advanced and generic simulation. Included files are:
+
+\begin{easylist}
+	& The Unity project for the simulation (\textbf{VehicleSimluation} folder)
+	& \textbf{PythonZMQServer.py} - The Python script required for the IPC server.
+	& The simulation system documentation including an overview of the Unity project, IPC communications and the planned architecture for a more advanced communications protocol between an external process and the simulation.
+\end{easylist}
 
 \section{Navigation localisation system}
 
@@ -81,7 +91,7 @@ The files include operations on two images using a combination of smoothing (blu
 
 	& Core files:
 	&& \textbf{RunFilter.m} - Apply a convolution filter to an image using nested for loops. 
-	&& \textbf{MedianFilter.m} - Apply a median filter to an image. Median filter sets the new pixel value to the median value over the filter size about the point. This is very usefeul for the removal of 'salt and pepper' noise.
+	&& \textbf{MedianFilter.m} - Apply a median filter to an image. Median filter sets the new pixel value to the median value over the filter size about the point. This is very useful for the removal of 'salt and pepper' noise.
 	
 	& Helper files:
 	&& \textbf{ValueFromFilterCoord.m} - Get a single convolution value for a pixel. This function applies the convolution filter about a location on the image defined by an x, y coordinate.
@@ -108,7 +118,7 @@ Three elements are presented here to highlight the work undertaken regarding mac
 
 \subsection{Machine Learning course}
 
-The Stanford University online Machine Learning course was undertaken through Coursera (\url{https://www.coursera.org/learn/machine-learning}) which provided a mathematical understanding of multiple machine learning algorithms. The course is delivered by Andrew Ng \footnote{Andrew NG credentials include: CEO/Founder Landing AI; Co-founder, Coursera; Adjunct Professor, Stanford University; formerly Chief Scientist,Baidu and founding lead of Google Brain} over 11 weeks and includes the mathematics and development from first principles in MATLAB of multivariate linear regression, logistic regression, regularisation, neural networks (forward and backpropogation), Support Vector Machines, k-Means and Principal Components Analysis. The course culminates with examples (and implementation from first principles) of anomoly detection, recommender systems and a simple optical character recognition. This course was completed with 100\% over all quizzes and code assignments. The certificate of completion of this is included. 
+The Stanford University online Machine Learning course was undertaken through Coursera (\url{https://www.coursera.org/learn/machine-learning}) which provided a mathematical understanding of multiple machine learning algorithms. The course is delivered by Andrew Ng \footnote{Andrew NG credentials include: CEO/Founder Landing AI; Co-founder, Coursera; Adjunct Professor, Stanford University; formerly Chief Scientist,Baidu and founding lead of Google Brain} over 11 weeks and includes the mathematics and development from first principles in MATLAB of multivariate linear regression, logistic regression, regularisation, neural networks (forward and backpropogation), Support Vector Machines, k-Means and Principal Components Analysis. The course culminates with examples (and implementation from first principles) of anomaly detection, recommender systems and a simple optical character recognition. This course was completed with 100\% over all quizzes and code assignments. The certificate of completion of this is included. 
 
 On completion of this course familiarisation projects were developed using Python and Keras which is a Tensorflow wrapper. Two of these projects which may be candidates for extension for future student projects are discussed in the following subsections.
 
@@ -120,7 +130,7 @@ The first familiarisation attempt for Convolutional Neural Networks in Keras was
 Initial approaches involved attempting to `brute force' the learning by feeding multiple images in with the normalised coordinates of Wally's face. This was not successful and a more refined approach was developed. This involved the use of dynamic resolution scaling sliding windows; in lieu of looking for Wally in the full image, a window of interest (initially the full window) is resized to the network input dimensions and run through a binary classifier which has been trained on images of just Wally's face. This region of interest `slides' over the image and when the full image has been checked, the window of interest size is reduced. The process continues iteratively with smaller and smaller window sizes until a minimum size is reached. The benefits of this approach are likely to be:
 
 \begin{easylist}[itemize]
-	& The task being solved by the network is significantly simpler; the network is just a binary classifier which detects if an image contains Wally. The trainind data consists of `full face' images where Wally takes up most of the image so multiple features can be matched. 
+	& The task being solved by the network is significantly simpler; the network is just a binary classifier which detects if an image contains Wally. The training data consists of `full face' images where Wally takes up most of the image so multiple features can be matched. 
 	& The iterative size reduction of the sliding window allows the full image to be considered at different sizes. This means that regardless of how big Wally is in the image, assuming the window scaling factor is correct, there will eventually be a point where a window of an appropriate size is located over Wally such that he fills a significant portion of it.
 \end{easylist}
 
@@ -146,18 +156,18 @@ To reiterate, while the logic seems sound, the trained model did not perform wel
 
 \textbf{Background.} The motivation for this exercise was real time arbitrary symbol recognition such as may be found in a game where the player `casts' spells by drawing the symbol with a mouse. A minimal Unity project was developed which allowed the rapid generation of training data. The player holds down a button to commence the `cast' and draws a symbol with the mouse. The data generated by this is a binary image with pixel locations drawn over locations the mouse was moved over. This is sampled each frame so the faster the mouse is moved, the further apart individual pixels will be. The point the user commences is marked by a larger `blob' which assists in differentiating between similar symbols with different directions (although the relative pixel spacing differences based on input movement speed may also provide enough information to differentiate these). The Unity project is provided in the \textbf{SpellGesture} subfolder and includes all the functionality required to generate training data based off mouse button presses with the logic fully enclosed in \textbf{SpellCasting.cs}. \\
 
-\textbf{Approach.} Three symbols were developed as allowable options; an E (capital epsillon starting from top right) and two V shapes, one starting either side. These are visualised (along with an incorrect symbol due to Epsillon starting in the bottom right) in figure \ref{symbolPrediction}. This figure represents the correct predictions made by the trained 'Spell Gesture' network.
+\textbf{Approach.} Three symbols were developed as allowable options; an E (capital epsilon starting from top right) and two V shapes, one starting either side. These are visualised (along with an incorrect symbol due to Epsilon starting in the bottom right) in figure \ref{symbolPrediction}. This figure represents the correct predictions made by the trained 'Spell Gesture' network.
 
 \begin{figure}[h!]
 	\centering
 	\includegraphics[width=0.5\linewidth]{symbolPrediction.png}
-	\caption{Prediction of symbols by `Spell Gesture' network showing two acceptable V variants (top), an acceptable Epsillon variant (bottom left) and a fail (bottom right) due to starting an Epsillon at the wrong location.}
+	\caption{Prediction of symbols by `Spell Gesture' network showing two acceptable V variants (top), an acceptable Epsilon variant (bottom left) and a fail (bottom right) due to starting an Epsilon at the wrong location.}
 	\label{symbolPrediction}
 \end{figure}
 
 The first attempt was to define a 3 output network with [V1, V2, E] as the outputs (where a fail is all zero). This did not work very well as the network seemed biased towards higher values as failures were still being predicted as one of the 3 options. I tried adding a fourth output and set all the fail examples to the first value (ie output = [fail, V1, V2, E] ) and that worked quite well, including correctly classifying the E symbol as a fail when it started at the bottom instead of the top. 
 
-The final approach reverted to the original [V1, V2, E] however the final activation function was changed from softmax to sigmoid. This was an error initally; softmax provides a best guess out of all options; the final output values are normalised to sum to 1. This is why adding a fourth `fail' option (effectively became a catch-all for everything else) performed better. Using raw sigmoid is a much better option when you do not \textbf{need} one of the options to be true. \\
+The final approach reverted to the original [V1, V2, E] however the final activation function was changed from softmax to sigmoid. This was an error initially; softmax provides a best guess out of all options; the final output values are normalised to sum to 1. This is why adding a fourth `fail' option (effectively became a catch-all for everything else) performed better. Using raw sigmoid is a much better option when you do not \textbf{need} one of the options to be true. \\
 
 \textbf{Analysis.} Looking at the first tensorboard output (convolutional dropout at 25\%) below it seems that there is an overfitting issue. This was addressed by increasing the dropout to 50\% which generalises the model more (dropout randomly removes connections in training to ensure general patterns are developed as opposed to specific `learned' patterns).
 
@@ -169,7 +179,7 @@ The final approach reverted to the original [V1, V2, E] however the final activa
 \end{figure}
 
 
-Training time for the network was negligible (1-2 minutes using GPU for 1.5k epochs) and the results (off realistically quite a small training set, even without using the keras image augmentation) were very solid after only ~200 epochs (~20s).\\ 
+Training time for the network was negligible (1-2 minutes using GPU for 1500 epochs) and the results (off realistically quite a small training set, even without using the keras image augmentation) were very solid after only ~200 epochs (~20s).\\ 
 
 \textbf{Provided code.} The python code is provided in the subfolder \textbf{SpellGestureCNN} and is relatively straight forward. In addition to the training data and trained models (*.h5 files) the three code files are:
 
